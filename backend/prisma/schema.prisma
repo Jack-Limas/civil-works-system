@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- ENUMS ----------
+
+enum Role {
+  ADMIN
+  RESIDENT_ENGINEER
+}
+
+enum ProjectType {
+  STADIUM
+  POOL
+  SYNTHETIC_FIELD
+  RETAINING_WALL
+  PRIVATE_WORK
+  OTHER
+}
+
+enum ProjectStatus {
+  PLANNED
+  IN_PROGRESS
+  SUSPENDED
+  FINISHED
+}
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum MovementType {
+  IN
+  OUT
+}
+
+enum ExpenseCategory {
+  MATERIALS
+  LABOR
+  EQUIPMENT
+  TRANSPORT
+  FUEL
+  OTHER
+}
+
+enum IncidentType {
+  MATERIAL_SHORTAGE
+  ACTIVITY_DELAY
+  WEATHER
+  EQUIPMENT_DAMAGE
+  STAFF_ISSUE
+  ACTIVITY_CHANGE
+  OTHER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
+enum AlertType {
+  INVENTORY
+  SCHEDULE
+  FINANCIAL
+  ACTIVITY
+}
+
+enum AlertStatus {
+  ACTIVE
+  RESOLVED
+}
+
+enum PredictionType {
+  DELAY_RISK
+  COST_OVERRUN_RISK
+  ANOMALY
+  MATERIAL_FORECAST
+  PRIORITY_SCORE
+}
+
+// ---------- MODELS ----------
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(RESIDENT_ENGINEER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projectsInCharge Project[]      @relation("ProjectResponsible")
+  activities       Activity[]     @relation("ActivityResponsible")
+  evidenceUploaded Evidence[]     @relation("EvidenceUploadedBy")
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Project {
+  id                  String        @id @default(uuid())
+  name                String
+  type                ProjectType
+  municipality        String
+  address             String?
+  startDate           DateTime
+  estimatedEndDate    DateTime
+  budget              Decimal       @db.Decimal(14, 2)
+  status              ProjectStatus @default(PLANNED)
+  progressPercentage  Float         @default(0)
+  responsibleId       String
+  responsible         User          @relation("ProjectResponsible", fields: [responsibleId], references: [id])
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  activities          Activity[]
+  workers             Worker[]
+  inventoryMovements  InventoryMovement[]
+  expenses            Expense[]
+  incidents           Incident[]
+  evidence            Evidence[]
+  alerts              Alert[]
+  predictions         Prediction[]
+
+  @@map("projects")
+}
+
+model Activity {
+  id                 String   @id @default(uuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date               DateTime
+  name               String
+  description        String?
+  progressPercentage Float
+  responsibleId      String
+  responsible        User     @relation("ActivityResponsible", fields: [responsibleId], references: [id])
+  observations       String?
+  createdAt          DateTime @default(now())
+
+  evidence           Evidence[]
+
+  @@map("activities")
+}
+
+model Worker {
+  id             String       @id @default(uuid())
+  name           String
+  documentId     String       @unique
+  position       String
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id])
+  status         WorkerStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+
+  @@map("workers")
+}
+
+model Material {
+  id             String   @id @default(uuid())
+  name           String
+  unit           String
+  stockAvailable Float    @default(0)
+  stockMinimum   Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  movements      InventoryMovement[]
+
+  @@map("materials")
+}
+
+model InventoryMovement {
+  id         String       @id @default(uuid())
+  materialId String
+  material   Material     @relation(fields: [materialId], references: [id])
+  projectId  String?
+  project    Project?     @relation(fields: [projectId], references: [id])
+  type       MovementType
+  quantity   Float
+  date       DateTime     @default(now())
+  notes      String?
+
+  @@map("inventory_movements")
+}
+
+model Expense {
+  id          String          @id @default(uuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(14, 2)
+  date        DateTime        @default(now())
+  description String?
+
+  @@map("expenses")
+}
+
+model Incident {
+  id          String         @id @default(uuid())
+  projectId   String
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date        DateTime       @default(now())
+  type        IncidentType
+  description String
+  priority    Priority       @default(MEDIUM)
+  status      IncidentStatus @default(OPEN)
+
+  @@map("incidents")
+}
+
+model Evidence {
+  id           String    @id @default(uuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activityId   String?
+  activity     Activity? @relation(fields: [activityId], references: [id])
+  date         DateTime  @default(now())
+  description  String?
+  imageUrl     String
+  uploadedById String
+  uploadedBy   User      @relation("EvidenceUploadedBy", fields: [uploadedById], references: [id])
+
+  @@map("evidence")
+}
+
+model Alert {
+  id        String      @id @default(uuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      AlertType
+  message   String
+  severity  Priority    @default(MEDIUM)
+  status    AlertStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
+
+  @@map("alerts")
+}
+
+model Prediction {
+  id           String         @id @default(uuid())
+  projectId    String
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type         PredictionType
+  resultJson   Json
+  confidence   Float?
+  generatedAt  DateTime       @default(now())
+
+  @@map("predictions")
+}
