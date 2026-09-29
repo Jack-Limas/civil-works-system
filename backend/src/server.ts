@@ -1,23 +1,26 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import "dotenv/config";
+import authPlugin from "./plugins/auth.plugin";
+import { authRoutes } from "./routes/auth.routes";
+import { env } from "./config/env";
 
 const app = Fastify({ logger: true });
 
 async function main() {
   await app.register(cors, {
-    origin: process.env.FRONTEND_URL ?? "http://localhost:3000",
+    origin: env.FRONTEND_URL,
     credentials: true,
   });
 
-  app.get("/health", async () => {
-    return { status: "ok", timestamp: new Date().toISOString() };
-  });
+  await app.register(authPlugin);
 
-  const port = Number(process.env.PORT) || 4000;
+  app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
+
+  await app.register(authRoutes);
+
   try {
-    await app.listen({ port, host: "0.0.0.0" });
-    console.log(`Backend running on http://localhost:${port}`);
+    await app.listen({ port: Number(env.PORT), host: "0.0.0.0" });
+    console.log(`Backend running on http://localhost:${env.PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
