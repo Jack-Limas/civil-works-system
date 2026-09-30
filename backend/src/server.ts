@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import { ZodError } from "zod";
 import authPlugin from "./plugins/auth.plugin";
 import { authRoutes } from "./routes/auth.routes";
@@ -9,6 +10,7 @@ import { materialRoutes } from "./routes/material.routes";
 import { workerRoutes } from "./routes/worker.routes";
 import { expenseRoutes } from "./routes/expense.routes";
 import { incidentRoutes } from "./routes/incident.routes";
+import { evidenceRoutes } from "./routes/evidence.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -18,6 +20,10 @@ async function main() {
   await app.register(cors, {
     origin: env.FRONTEND_URL,
     credentials: true,
+  });
+
+  await app.register(multipart, {
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo por imagen
   });
 
   await app.register(authPlugin);
@@ -32,6 +38,7 @@ async function main() {
   await app.register(workerRoutes);
   await app.register(expenseRoutes);
   await app.register(incidentRoutes);
+  await app.register(evidenceRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
