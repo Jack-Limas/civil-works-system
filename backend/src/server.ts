@@ -25,7 +25,7 @@ async function main() {
     if (error instanceof ZodError) {
       return reply.code(400).send({
         error: "Validation error",
-        details: error.errors.map((e) => ({ path: e.path.join("."), message: e.message })),
+        details: error.issues.map((e) => ({ path: e.path.join("."), message: e.message })),
       });
     }
 
