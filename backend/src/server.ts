@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { ZodError } from "zod";
 import authPlugin from "./plugins/auth.plugin";
 import { authRoutes } from "./routes/auth.routes";
+import { projectRoutes } from "./routes/project.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -18,7 +19,9 @@ async function main() {
 
   app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
+  // Registrar Rutas
   await app.register(authRoutes);
+  await app.register(projectRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
