@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import authPlugin from "./plugins/auth.plugin";
 import { authRoutes } from "./routes/auth.routes";
 import { projectRoutes } from "./routes/project.routes";
+import { activityRoutes } from "./routes/activity.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -22,6 +23,7 @@ async function main() {
   // Registrar Rutas
   await app.register(authRoutes);
   await app.register(projectRoutes);
+  await app.register(activityRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
