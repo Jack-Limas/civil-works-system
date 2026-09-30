@@ -29,6 +29,7 @@ async function main() {
   await app.register(activityRoutes);
   await app.register(materialRoutes);
   await app.register(workerRoutes);
+  await app.register(expenseRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
