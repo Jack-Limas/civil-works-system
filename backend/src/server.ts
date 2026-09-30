@@ -8,6 +8,7 @@ import { activityRoutes } from "./routes/activity.routes";
 import { materialRoutes } from "./routes/material.routes";
 import { workerRoutes } from "./routes/worker.routes";
 import { expenseRoutes } from "./routes/expense.routes";
+import { incidentRoutes } from "./routes/incident.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
