@@ -5,6 +5,7 @@ import authPlugin from "./plugins/auth.plugin";
 import { authRoutes } from "./routes/auth.routes";
 import { projectRoutes } from "./routes/project.routes";
 import { activityRoutes } from "./routes/activity.routes";
+import { materialRoutes } from "./routes/material.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -24,6 +25,7 @@ async function main() {
   await app.register(authRoutes);
   await app.register(projectRoutes);
   await app.register(activityRoutes);
+  await app.register(materialRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
