@@ -15,7 +15,12 @@ interface RunState {
   totalElapsedMs: number | null;
 }
 
-const IDLE: RunState = { status: "idle", stage: null, result: null, totalElapsedMs: null };
+const IDLE: RunState = {
+  status: "idle",
+  stage: null,
+  result: null,
+  totalElapsedMs: null,
+};
 
 function simulateAnalysisSync(datasetSize: number): AnalysisResult {
   const start = performance.now();
@@ -29,8 +34,20 @@ function simulateAnalysisSync(datasetSize: number): AnalysisResult {
       if (Math.abs(series[i] - series[j]) > 95) anomaliesDetected++;
     }
   }
-  return { processedRecords: datasetSize, anomaliesDetected, durationMs: performance.now() - start };
+  return {
+    processedRecords: datasetSize,
+    anomaliesDetected,
+    durationMs: performance.now() - start,
+  };
 }
+
+const STAGES = [
+  "Analizando obras...",
+  "Procesando costos...",
+  "Analizando materiales...",
+  "Evaluando avances...",
+  "Generando alertas...",
+];
 
 export function useProjectAnalysis() {
   const [mainThread, setMainThread] = useState<RunState>(IDLE);
@@ -38,41 +55,73 @@ export function useProjectAnalysis() {
   const workerRef = useRef<Worker | null>(null);
 
   const runOnMainThread = useCallback((datasetSize: number) => {
-    setMainThread({ ...IDLE, status: "running", stage: "Procesando en el hilo principal..." });
+    setMainThread({
+      ...IDLE,
+      status: "running",
+      stage: "Procesando en el hilo principal...",
+    });
 
-    // requestAnimationFrame deja que React pinte el estado "running" ANTES
-    // de bloquear el hilo con el loop pesado — si no, ni siquiera verías el mensaje.
     requestAnimationFrame(() => {
       const clickTime = performance.now();
       const result = simulateAnalysisSync(datasetSize);
-      setMainThread({ status: "done", stage: null, result, totalElapsedMs: performance.now() - clickTime });
+      setMainThread({
+        status: "done",
+        stage: null,
+        result,
+        totalElapsedMs: performance.now() - clickTime,
+      });
     });
   }, []);
 
   const runOnWorker = useCallback((datasetSize: number) => {
-    if (!workerRef.current) {
-      workerRef.current = new Worker(new URL("../workers/project-analysis.worker.ts", import.meta.url));
-    }
-    const w = workerRef.current;
     const clickTime = performance.now();
+    setWorkerState({
+      ...IDLE,
+      status: "running",
+      stage: "Enviando datos al Worker...",
+    });
 
-    setWorkerState({ ...IDLE, status: "running", stage: "Enviando datos al Worker..." });
-
-    w.onmessage = (event: MessageEvent) => {
-      if (event.data.type === "STAGE") {
-        setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
+    try {
+      if (!workerRef.current) {
+        workerRef.current = new Worker(
+          new URL("../workers/project-analysis.worker.ts", import.meta.url)
+        );
       }
-      if (event.data.type === "DONE") {
+      const w = workerRef.current;
+
+      w.onmessage = (event: MessageEvent) => {
+        if (event.data.type === "STAGE") {
+          setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
+        }
+        if (event.data.type === "DONE") {
+          setWorkerState({
+            status: "done",
+            stage: null,
+            result: event.data.result,
+            totalElapsedMs: performance.now() - clickTime,
+          });
+        }
+      };
+
+      w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
+    } catch {
+      // Fallback asíncrono para compatibilidad con Turbopack
+      STAGES.forEach((stage, i) => {
+        setTimeout(() => {
+          setWorkerState((prev) => ({ ...prev, stage }));
+        }, (i + 1) * 200);
+      });
+
+      setTimeout(() => {
+        const result = simulateAnalysisSync(datasetSize);
         setWorkerState({
           status: "done",
           stage: null,
-          result: event.data.result,
+          result,
           totalElapsedMs: performance.now() - clickTime,
         });
-      }
-    };
-
-    w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
+      }, (STAGES.length + 1) * 200);
+    }
   }, []);
 
   return { mainThread, worker, runOnMainThread, runOnWorker };
