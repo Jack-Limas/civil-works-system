@@ -5,14 +5,22 @@ import { useAuthStore } from "@/store/auth.store";
 import { authService } from "@/lib/auth-service";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { setUser, setLoading } = useAuthStore();
+  const setUser = useAuthStore((s) => s.setUser);
+  const setLoading = useAuthStore((s) => s.setLoading);
 
   useEffect(() => {
+    setLoading(true);
     authService
       .me()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+      .then((user) => {
+        setUser(user);
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [setUser, setLoading]);
 
   return <>{children}</>;
