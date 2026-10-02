@@ -9,7 +9,10 @@
     "login": "Sign in",
     "email": "Email",
     "password": "Password",
-    "loginButton": "Enter"
+    "loginButton": "Enter",
+    "invalidCredentials": "Invalid email or password",
+    "emailRequired": "Enter a valid email",
+    "passwordRequired": "Password must be at least 6 characters"
   },
   "nav": {
     "dashboard": "Dashboard",
