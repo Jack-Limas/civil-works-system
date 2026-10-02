@@ -12,6 +12,7 @@ import { expenseRoutes } from "./routes/expense.routes";
 import { alertRoutes } from "./routes/alert.routes";
 import { predictionRoutes } from "./routes/prediction.routes";
 import { dashboardRoutes } from "./routes/dashboard.routes";
+import { benchmarkRoutes } from "./routes/benchmark.routes";
 import { incidentRoutes } from "./routes/incident.routes";
 import { evidenceRoutes } from "./routes/evidence.routes";
 import { env } from "./config/env";
