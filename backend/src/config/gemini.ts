@@ -9,4 +9,5 @@ if (!apiKey) {
 
 export const geminiClient = new GoogleGenAI({ apiKey });
 
-export const GEMINI_MODEL = "gemini-3.8-flash";
+// Lee el modelo desde el .env y si no existe usa gemini-3.8-flash por defecto
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
