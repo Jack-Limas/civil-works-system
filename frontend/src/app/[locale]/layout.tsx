@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 
@@ -41,9 +42,11 @@ export default async function LocaleLayout({
     >
       <body className="bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors min-h-full flex flex-col notranslate">
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <ThemeProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>
