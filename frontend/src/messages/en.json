@@ -22,5 +22,9 @@
     "expenses": "Expenses",
     "incidents": "Incidents",
     "alerts": "Alerts"
+  },
+  "dashboard": {
+    "welcome": "Hello, {name}",
+    "role": "Role"
   }
 }

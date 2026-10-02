@@ -22,5 +22,9 @@
     "expenses": "Gastos",
     "incidents": "Novedades",
     "alerts": "Alertas"
+  },
+  "dashboard": {
+    "welcome": "Hola, {name}",
+    "role": "Rol"
   }
 }
