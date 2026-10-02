@@ -30,7 +30,6 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  // Carga los mensajes del archivo de traducción correspondiente (.json)
   const messages = await getMessages();
 
   return (
