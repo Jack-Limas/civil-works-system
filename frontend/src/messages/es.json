@@ -9,7 +9,10 @@
     "login": "Iniciar sesión",
     "email": "Correo electrónico",
     "password": "Contraseña",
-    "loginButton": "Entrar"
+    "loginButton": "Entrar",
+    "invalidCredentials": "Correo o contraseña incorrectos",
+    "emailRequired": "Ingresa un correo válido",
+    "passwordRequired": "La contraseña debe tener al menos 6 caracteres"
   },
   "nav": {
     "dashboard": "Panel general",
