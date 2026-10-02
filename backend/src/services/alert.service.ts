@@ -4,11 +4,7 @@ import { expenseService } from "./expense.service";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/app-error";
 import { Project } from "@prisma/client";
-
-// Umbrales de negocio: qué tan grave debe ser la desviación para generar alerta.
-// Están centralizados aquí para poder ajustarlos sin tocar la lógica.
-const SCHEDULE_DELAY_THRESHOLD = 10; // puntos porcentuales de atraso permitidos
-const FINANCIAL_GAP_THRESHOLD = 15; // puntos porcentuales de gasto vs avance físico
+import { RISK_THRESHOLDS } from "../config/risk-thresholds";
 
 function calculateExpectedProgress(project: Project): number {
   const now = Date.now();
@@ -26,11 +22,11 @@ async function evaluateScheduleRisk(project: Project) {
   const expectedProgress = calculateExpectedProgress(project);
   const delay = expectedProgress - project.progressPercentage;
 
-  if (delay > SCHEDULE_DELAY_THRESHOLD) {
+  if (delay > RISK_THRESHOLDS.SCHEDULE_DELAY) {
     return {
       shouldAlert: true,
       message: `El avance físico (${project.progressPercentage.toFixed(1)}%) está ${delay.toFixed(1)} puntos por debajo del avance esperado según el cronograma (${expectedProgress.toFixed(1)}%).`,
-      severity: delay > SCHEDULE_DELAY_THRESHOLD * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      severity: delay > RISK_THRESHOLDS.SCHEDULE_DELAY * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
     };
   }
   return { shouldAlert: false };
@@ -39,11 +35,11 @@ async function evaluateScheduleRisk(project: Project) {
 async function evaluateFinancialRisk(project: Project) {
   const indicators = await expenseService.getBudgetIndicators(project.id);
 
-  if (indicators.financialVsPhysicalGap > FINANCIAL_GAP_THRESHOLD) {
+  if (indicators.financialVsPhysicalGap > RISK_THRESHOLDS.FINANCIAL_GAP) {
     return {
       shouldAlert: true,
       message: `Los gastos ejecutados (${indicators.executedPercentage.toFixed(1)}%) crecen más rápido que el avance físico (${project.progressPercentage.toFixed(1)}%), con una brecha de ${indicators.financialVsPhysicalGap.toFixed(1)} puntos.`,
-      severity: indicators.financialVsPhysicalGap > FINANCIAL_GAP_THRESHOLD * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      severity: indicators.financialVsPhysicalGap > RISK_THRESHOLDS.FINANCIAL_GAP * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
     };
   }
   return { shouldAlert: false };
