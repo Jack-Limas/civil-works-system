@@ -1,0 +1,23 @@
+{
+  "common": {
+    "appName": "Civil Works Management System",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "login": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Enter"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "materials": "Materials",
+    "workers": "Workers",
+    "expenses": "Expenses",
+    "incidents": "Incidents",
+    "alerts": "Alerts"
+  }
+}
