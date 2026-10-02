@@ -3,4 +3,4 @@ import { env } from "./env";
 
 export const geminiClient = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-1.5-flash";

@@ -35,6 +35,7 @@ export class AIRiskStrategy implements RiskStrategy {
       });
       rawText = response.text ?? "";
     } catch (error) {
+        console.error("=== ERROR REAL DE GEMINI ===", error); // <--- AGREGAR ESTA LÍNEA
       throw new AppError(502, "Gemini AI service is currently unavailable");
     }
 
