@@ -1,4 +1,4 @@
-import { geminiClient, GEMINI_MODEL } from "../../config/gemini";
+import { geminiClient } from "../../config/gemini";
 import { RiskStrategy, ProjectRiskContext, ProjectRiskAssessment } from "./risk-strategy.interface";
 import { AppError } from "../../utils/app-error";
 
@@ -17,26 +17,39 @@ Base your analysis on: progress vs expected progress, budget execution vs
 physical progress, open incidents, and low-stock materials. Be conservative:
 only mark HIGH when the data clearly shows a serious problem.`;
 
+const MODEL_NAME = "gemini-3.8-flash";
+
 export class AIRiskStrategy implements RiskStrategy {
   readonly name = "AI_GEMINI";
 
   async analyze(context: ProjectRiskContext): Promise<ProjectRiskAssessment> {
     const prompt = `Project data:\n${JSON.stringify(context, null, 2)}`;
 
-    let rawText: string;
-    try {
-      const response = await geminiClient.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: prompt,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          responseMimeType: "application/json",
-        },
-      });
-      rawText = response.text ?? "";
-    } catch (error) {
-        console.error("=== ERROR REAL DE GEMINI ===", error); // <--- AGREGAR ESTA LÍNEA
-      throw new AppError(502, "Gemini AI service is currently unavailable");
+    let rawText = "";
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        const response = await geminiClient.models.generateContent({
+          model: MODEL_NAME,
+          contents: prompt,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            responseMimeType: "application/json",
+          },
+        });
+
+        rawText = response.text ?? "";
+        if (rawText) break;
+      } catch (error: any) {
+        console.warn(`[AI_GEMINI] Intento ${attempts}/${maxAttempts} ocupado. Esperando para reintentar...`);
+        if (attempts >= maxAttempts) {
+          throw new AppError(502, "Gemini AI service is currently unavailable due to high demand");
+        }
+        await new Promise((resolve) => setTimeout(resolve, attempts * 1000));
+      }
     }
 
     let parsed: Omit<ProjectRiskAssessment, "source">;
