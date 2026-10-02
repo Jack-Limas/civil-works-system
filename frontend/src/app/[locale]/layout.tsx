@@ -37,8 +37,9 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
+      translate="no"
     >
-      <body className="bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors min-h-full flex flex-col">
+      <body className="bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors min-h-full flex flex-col notranslate">
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
             <AuthProvider>{children}</AuthProvider>

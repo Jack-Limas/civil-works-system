@@ -2,7 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { LayoutDashboard, Building2, Package, Users, Receipt, AlertTriangle, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  Users,
+  Receipt,
+  AlertTriangle,
+  LogOut,
+} from "lucide-react";
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "@/i18n/navigation";
@@ -17,7 +25,8 @@ const links = [
 ] as const;
 
 export function Sidebar() {
-  const t = useTranslations("nav");
+  const tNav = useTranslations("nav");
+  const tAuth = useTranslations("auth");
   const pathname = usePathname();
   const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();
@@ -44,7 +53,7 @@ export function Sidebar() {
             }`}
           >
             <Icon size={16} />
-            {t(key)}
+            {tNav(key)}
           </Link>
         ))}
       </nav>
@@ -54,7 +63,7 @@ export function Sidebar() {
         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
       >
         <LogOut size={16} />
-        Logout
+        {tAuth("logout")}
       </button>
     </aside>
   );
