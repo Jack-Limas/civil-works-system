@@ -41,14 +41,6 @@ function simulateAnalysisSync(datasetSize: number): AnalysisResult {
   };
 }
 
-const STAGES = [
-  "Analizando obras...",
-  "Procesando costos...",
-  "Analizando materiales...",
-  "Evaluando avances...",
-  "Generando alertas...",
-];
-
 export function useProjectAnalysis() {
   const [mainThread, setMainThread] = useState<RunState>(IDLE);
   const [worker, setWorkerState] = useState<RunState>(IDLE);
@@ -74,54 +66,34 @@ export function useProjectAnalysis() {
   }, []);
 
   const runOnWorker = useCallback((datasetSize: number) => {
+    if (!workerRef.current) {
+      // Instanciación directa desde la carpeta public/ servida en el navegador
+      workerRef.current = new Worker("/workers/project-analysis.worker.js");
+    }
+    const w = workerRef.current;
     const clickTime = performance.now();
+
     setWorkerState({
       ...IDLE,
       status: "running",
       stage: "Enviando datos al Worker...",
     });
 
-    try {
-      if (!workerRef.current) {
-        workerRef.current = new Worker(
-          new URL("../workers/project-analysis.worker.ts", import.meta.url)
-        );
+    w.onmessage = (event: MessageEvent) => {
+      if (event.data.type === "STAGE") {
+        setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
       }
-      const w = workerRef.current;
-
-      w.onmessage = (event: MessageEvent) => {
-        if (event.data.type === "STAGE") {
-          setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
-        }
-        if (event.data.type === "DONE") {
-          setWorkerState({
-            status: "done",
-            stage: null,
-            result: event.data.result,
-            totalElapsedMs: performance.now() - clickTime,
-          });
-        }
-      };
-
-      w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
-    } catch {
-      // Fallback asíncrono para compatibilidad con Turbopack
-      STAGES.forEach((stage, i) => {
-        setTimeout(() => {
-          setWorkerState((prev) => ({ ...prev, stage }));
-        }, (i + 1) * 200);
-      });
-
-      setTimeout(() => {
-        const result = simulateAnalysisSync(datasetSize);
+      if (event.data.type === "DONE") {
         setWorkerState({
           status: "done",
           stage: null,
-          result,
+          result: event.data.result,
           totalElapsedMs: performance.now() - clickTime,
         });
-      }, (STAGES.length + 1) * 200);
-    }
+      }
+    };
+
+    w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
   }, []);
 
   return { mainThread, worker, runOnMainThread, runOnWorker };
