@@ -1,0 +1,23 @@
+{
+  "common": {
+    "appName": "Sistema de Obras Civiles",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "loginButton": "Entrar"
+  },
+  "nav": {
+    "dashboard": "Panel general",
+    "projects": "Obras",
+    "materials": "Materiales",
+    "workers": "Trabajadores",
+    "expenses": "Gastos",
+    "incidents": "Novedades",
+    "alerts": "Alertas"
+  }
+}
