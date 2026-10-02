@@ -46,6 +46,7 @@ async function main() {
   await app.register(alertRoutes);
   await app.register(dashboardRoutes);
   await app.register(predictionRoutes);
+  await app.register(benchmarkRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
