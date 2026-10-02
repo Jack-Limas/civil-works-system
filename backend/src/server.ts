@@ -10,6 +10,7 @@ import { materialRoutes } from "./routes/material.routes";
 import { workerRoutes } from "./routes/worker.routes";
 import { expenseRoutes } from "./routes/expense.routes";
 import { alertRoutes } from "./routes/alert.routes";
+import { predictionRoutes } from "./routes/prediction.routes";
 import { dashboardRoutes } from "./routes/dashboard.routes";
 import { incidentRoutes } from "./routes/incident.routes";
 import { evidenceRoutes } from "./routes/evidence.routes";
