@@ -6,7 +6,7 @@ const intlMiddleware = createMiddleware(routing);
 
 type Locale = (typeof routing.locales)[number];
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const response = intlMiddleware(request);
 
   const segments = request.nextUrl.pathname.split("/");
