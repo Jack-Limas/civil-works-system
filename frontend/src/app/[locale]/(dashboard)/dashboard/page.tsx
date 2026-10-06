@@ -8,6 +8,7 @@ import { DashboardSummary } from "@/types/dashboard";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { BudgetChart } from "@/components/charts/budget-chart";
 import { AnalysisRunner } from "@/components/dashboard/analysis-runner";
+import { SharedMemoryDemo } from "@/components/dashboard/shared-memory-demo";
 import { useSharedAnalysisStatus } from "@/hooks/use-shared-analysis-status";
 
 export default function DashboardPage() {
@@ -97,7 +98,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Indicador animado de sincronización entre pestañas */}
+      {/* Indicador animado de sincronización entre pestañas (Paso 24.1) */}
       {sharedStatus.status === "running" && (
         <div className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-xs font-medium text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300">
           <span className="relative flex h-2.5 w-2.5">
@@ -109,6 +110,9 @@ export default function DashboardPage() {
       )}
 
       <AnalysisRunner />
+
+      {/* Demostración de SharedArrayBuffer y aislamiento Cross-Origin (Paso 24.2) */}
+      <SharedMemoryDemo />
     </div>
   );
 }
