@@ -1,11 +1,21 @@
 import { apiClient } from "./api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+export interface Evidence {
+  id: string;
+  projectId: string;
+  fileUrl: string;
+  description: string;
+  createdAt: string;
+}
+
 export function useEvidenceList(projectId?: string) {
   return useQuery({
     queryKey: ["evidence", "list", projectId],
     queryFn: async () => {
-      const { data } = await apiClient.get("/evidence", { params: { projectId } });
+      const { data } = await apiClient.get<{ data: Evidence[] }>("/evidence", {
+        params: { projectId },
+      });
       return data;
     },
   });
