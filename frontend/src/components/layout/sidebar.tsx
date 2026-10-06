@@ -3,7 +3,14 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import {
-  LayoutDashboard, Building2, Receipt, Package, FileBarChart, Users2, Settings, LogOut,
+  LayoutDashboard,
+  Building2,
+  Receipt,
+  Package,
+  FileBarChart,
+  Users2,
+  Settings,
+  LogOut,
 } from "lucide-react";
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/store/auth.store";
@@ -32,9 +39,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col bg-sidebar px-4 py-6">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-sidebar px-4 py-6 min-h-screen text-sidebar-ink">
       <div className="mb-8 px-2">
-        <h1 className="text-lg font-semibold text-white">Dalid</h1>
+        <h1 className="text-lg font-semibold text-white">Civil Works System</h1>
         <p className="text-xs text-sidebar-ink">Construction Mgmt</p>
       </div>
 
@@ -46,7 +53,9 @@ export function Sidebar() {
               key={href}
               href={href}
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                active ? "bg-accent text-white" : "text-sidebar-ink hover:bg-white/5 hover:text-white"
+                active
+                  ? "bg-accent text-white font-medium"
+                  : "text-sidebar-ink hover:bg-white/5 hover:text-white"
               }`}
             >
               <Icon size={17} strokeWidth={active ? 2.3 : 1.8} />
@@ -64,12 +73,21 @@ export function Sidebar() {
         </Link>
       </nav>
 
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-accent/15 px-3 py-2.5">
+      <div className="mt-4 flex items-center justify-between rounded-lg bg-white/5 p-3">
         <div>
-          <p className="text-xs font-medium text-accent">{user?.name ?? "Usuario"}</p>
-          <p className="text-[11px] text-sidebar-ink">{user?.role === "ADMIN" ? "Admin Pro" : "Residente"}</p>
+          <p className="text-xs font-medium text-white">
+            {user?.name ?? "Usuario"}
+          </p>
+          <p className="text-[11px] text-sidebar-ink">
+            {user?.role === "ADMIN" ? "Admin Pro" : "Residente"}
+          </p>
         </div>
-        <button onClick={handleLogout} className="rounded-md p-1.5 text-sidebar-ink hover:bg-white/10 hover:text-white">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="rounded-md p-1.5 text-sidebar-ink hover:bg-white/10 hover:text-white"
+          aria-label="Cerrar sesión"
+        >
           <LogOut size={15} />
         </button>
       </div>
