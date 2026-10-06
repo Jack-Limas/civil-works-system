@@ -26,12 +26,16 @@ const STAGES = [
 self.onmessage = function (event) {
   if (event.data.type !== "RUN_ANALYSIS") return;
 
+  // Espaciamos cada etapa a 1.2 segundos (1200 ms) para poder visualizar la sincronización multitabla
   STAGES.forEach((stage, i) => {
-    setTimeout(() => self.postMessage({ type: "STAGE", stage }), i * 120);
+    setTimeout(() => {
+      self.postMessage({ type: "STAGE", stage });
+    }, i * 1200);
   });
 
+  // Enviamos el resultado final cuando completen las 5 etapas (después de 6 segundos)
   setTimeout(() => {
     const result = simulateAnalysis(event.data.datasetSize);
     self.postMessage({ type: "DONE", result });
-  }, STAGES.length * 120 + 10);
+  }, STAGES.length * 1200 + 100);
 };
