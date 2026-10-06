@@ -26,6 +26,7 @@ export default function DashboardPage() {
     dashboardService
       .getSummary()
       .then(setSummary)
+      .catch(() => setSummary(null))
       .finally(() => setIsLoadingSummary(false));
   }, []);
 
