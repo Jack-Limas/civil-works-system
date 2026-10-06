@@ -11,6 +11,9 @@ import { AnalysisRunner } from "@/components/dashboard/analysis-runner";
 import { SharedMemoryDemo } from "@/components/dashboard/shared-memory-demo";
 import { useSharedAnalysisStatus } from "@/hooks/use-shared-analysis-status";
 
+// Importamos los iconos para las tarjetas KPI rediseñadas
+import { Building2, CheckCircle2, TrendingUp, AlertTriangle } from "lucide-react";
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const isLoadingAuth = useAuthStore((s) => s.isLoading);
@@ -61,32 +64,61 @@ export default function DashboardPage() {
 
       {summary && (
         <>
+          {/* Tarjetas KPI con animación orquestada e iconos estilizados */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <KpiCard label="Obras activas" value={summary.projects.inProgress} />
-            <KpiCard label="Obras finalizadas" value={summary.projects.finished} />
-            <KpiCard label="Avance promedio" value={`${summary.averageProgress}%`} />
+            <KpiCard
+              label="Obras activas"
+              value={summary.projects.inProgress}
+              icon={Building2}
+              iconColor="brand"
+              trend="En ejecución activa"
+              trendPositive={true}
+              index={0}
+            />
+            <KpiCard
+              label="Obras finalizadas"
+              value={summary.projects.finished}
+              icon={CheckCircle2}
+              iconColor="success"
+              trend="Entregadas con éxito"
+              trendPositive={true}
+              index={1}
+            />
+            <KpiCard
+              label="Avance promedio"
+              value={`${summary.averageProgress}%`}
+              icon={TrendingUp}
+              iconColor="accent"
+              trend="Cumplimiento global"
+              trendPositive={true}
+              index={2}
+            />
             <KpiCard
               label="Alertas activas"
               value={summary.activeAlertsCount}
-              hint={`${summary.projects.withActiveAlerts} obra(s) afectada(s)`}
+              icon={AlertTriangle}
+              iconColor="critical"
+              trend={`${summary.projects.withActiveAlerts} obra(s) afectada(s)`}
+              trendPositive={false}
+              index={3}
             />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-xl border border-line bg-surface p-4">
               <h2 className="mb-2 font-medium">Presupuesto vs Ejecutado</h2>
               <BudgetChart total={summary.budget.total} executed={summary.budget.executed} />
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-xl border border-line bg-surface p-4">
               <h2 className="mb-2 font-medium">Materiales con stock bajo</h2>
               {summary.lowStockMaterials.length === 0 ? (
-                <p className="text-sm text-gray-500">Sin materiales en riesgo.</p>
+                <p className="text-sm text-ink-muted">Sin materiales en riesgo.</p>
               ) : (
                 <ul className="space-y-1 text-sm">
                   {summary.lowStockMaterials.map((m) => (
                     <li key={m.id} className="flex justify-between">
                       <span>{m.name}</span>
-                      <span className="text-red-500 font-semibold">
+                      <span className="text-critical font-semibold">
                         {m.stockAvailable}/{m.stockMinimum}
                       </span>
                     </li>
