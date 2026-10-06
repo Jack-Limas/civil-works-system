@@ -1,6 +1,8 @@
 {
   "common": {
     "appName": "Civil Works Management System",
+    "appShortName": "Obrix",
+    "appTagline": "Construction Intelligence",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel"
@@ -22,7 +24,8 @@
     "workers": "Workers",
     "expenses": "Expenses",
     "incidents": "Incidents",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "settings": "Settings"
   },
   "dashboard": {
     "welcome": "Hello, {name}",
