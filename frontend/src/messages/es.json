@@ -1,6 +1,8 @@
 {
   "common": {
     "appName": "Sistema de Obras Civiles",
+    "appShortName": "Obrix",
+    "appTagline": "Construction Intelligence",
     "loading": "Cargando...",
     "save": "Guardar",
     "cancel": "Cancelar"
@@ -22,7 +24,8 @@
     "workers": "Trabajadores",
     "expenses": "Gastos",
     "incidents": "Novedades",
-    "alerts": "Alertas"
+    "alerts": "Alertas",
+    "settings": "Configuración"
   },
   "dashboard": {
     "welcome": "Hola, {name}",
