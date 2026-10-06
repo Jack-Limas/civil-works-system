@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useSharedAnalysisStatus } from "./use-shared-analysis-status";
 
 export interface AnalysisResult {
   processedRecords: number;
@@ -45,6 +46,7 @@ export function useProjectAnalysis() {
   const [mainThread, setMainThread] = useState<RunState>(IDLE);
   const [worker, setWorkerState] = useState<RunState>(IDLE);
   const workerRef = useRef<Worker | null>(null);
+  const { broadcast } = useSharedAnalysisStatus();
 
   const runOnMainThread = useCallback((datasetSize: number) => {
     setMainThread({
@@ -65,36 +67,44 @@ export function useProjectAnalysis() {
     });
   }, []);
 
-  const runOnWorker = useCallback((datasetSize: number) => {
-    if (!workerRef.current) {
-      // Instanciación directa desde la carpeta public/ servida en el navegador
-      workerRef.current = new Worker("/workers/project-analysis.worker.js");
-    }
-    const w = workerRef.current;
-    const clickTime = performance.now();
-
-    setWorkerState({
-      ...IDLE,
-      status: "running",
-      stage: "Enviando datos al Worker...",
-    });
-
-    w.onmessage = (event: MessageEvent) => {
-      if (event.data.type === "STAGE") {
-        setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
+  const runOnWorker = useCallback(
+    (datasetSize: number) => {
+      if (!workerRef.current) {
+        workerRef.current = new Worker("/workers/project-analysis.worker.js");
       }
-      if (event.data.type === "DONE") {
-        setWorkerState({
-          status: "done",
-          stage: null,
-          result: event.data.result,
-          totalElapsedMs: performance.now() - clickTime,
-        });
-      }
-    };
+      const w = workerRef.current;
+      const clickTime = performance.now();
 
-    w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
-  }, []);
+      setWorkerState({
+        ...IDLE,
+        status: "running",
+        stage: "Enviando datos al Worker...",
+      });
+
+      broadcast({ status: "running", stage: "Enviando datos al Worker..." });
+
+      w.onmessage = (event: MessageEvent) => {
+        if (event.data.type === "STAGE") {
+          setWorkerState((prev) => ({ ...prev, stage: event.data.stage }));
+          // Notificar a las demás pestañas vía SharedWorker
+          broadcast({ status: "running", stage: event.data.stage });
+        }
+        if (event.data.type === "DONE") {
+          setWorkerState({
+            status: "done",
+            stage: null,
+            result: event.data.result,
+            totalElapsedMs: performance.now() - clickTime,
+          });
+          // Notificar finalización
+          broadcast({ status: "done", stage: null });
+        }
+      };
+
+      w.postMessage({ type: "RUN_ANALYSIS", datasetSize });
+    },
+    [broadcast]
+  );
 
   return { mainThread, worker, runOnMainThread, runOnWorker };
 }
