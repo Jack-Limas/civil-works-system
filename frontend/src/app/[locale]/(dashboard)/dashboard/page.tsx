@@ -8,6 +8,7 @@ import { DashboardSummary } from "@/types/dashboard";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { BudgetChart } from "@/components/charts/budget-chart";
 import { AnalysisRunner } from "@/components/dashboard/analysis-runner";
+import { useSharedAnalysisStatus } from "@/hooks/use-shared-analysis-status";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -18,6 +19,9 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+
+  // Escuchamos el estado global compartido entre pestañas vía SharedWorker
+  const { status: sharedStatus } = useSharedAnalysisStatus();
 
   useEffect(() => {
     dashboardService
@@ -91,6 +95,17 @@ export default function DashboardPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Indicador animado de sincronización entre pestañas */}
+      {sharedStatus.status === "running" && (
+        <div className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-xs font-medium text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+          </span>
+          🔄 Sincronizado vía SharedWorker: {sharedStatus.stage}
+        </div>
       )}
 
       <AnalysisRunner />
