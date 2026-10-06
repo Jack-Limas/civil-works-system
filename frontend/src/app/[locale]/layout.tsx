@@ -5,7 +5,7 @@ import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -15,6 +15,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
@@ -36,11 +41,11 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
       translate="no"
     >
-      <body className="bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors min-h-full flex flex-col notranslate">
+      <body className="bg-bg text-ink transition-colors min-h-full flex flex-col notranslate">
         <NextIntlClientProvider messages={messages} locale={locale}>
           <QueryProvider>
             <ThemeProvider>
