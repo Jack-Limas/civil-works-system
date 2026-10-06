@@ -9,7 +9,7 @@ import {
   Package,
   FileBarChart,
   Users2,
-  Settings,
+  UserCog,
   LogOut,
 } from "lucide-react";
 import { authService } from "@/lib/auth-service";
@@ -41,7 +41,6 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-sidebar px-4 py-6 min-h-screen text-sidebar-ink">
-      {/* Bloque del Logo & Branding dinámico centralizado en i18n */}
       <div className="mb-8 px-2">
         <h1 className="text-lg font-semibold text-white">
           {tCommon("appShortName")}
@@ -68,13 +67,20 @@ export function Sidebar() {
           );
         })}
 
-        <Link
-          href="/settings"
-          className="mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-ink hover:bg-white/5 hover:text-white"
-        >
-          <Settings size={17} strokeWidth={1.8} />
-          {t("settings")}
-        </Link>
+        {/* Opción de Usuarios / Gestión de Cuentas (Solo ADMIN) */}
+        {user?.role === "ADMIN" && (
+          <Link
+            href="/users"
+            className={`mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+              pathname === "/users"
+                ? "bg-accent text-white font-medium"
+                : "text-sidebar-ink hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <UserCog size={17} strokeWidth={1.8} />
+            {t("users")}
+          </Link>
+        )}
       </nav>
 
       <div className="mt-4 flex items-center justify-between rounded-lg bg-white/5 p-3">
