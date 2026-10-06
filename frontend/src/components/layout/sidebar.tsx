@@ -8,6 +8,7 @@ import {
   Package,
   Users,
   Receipt,
+  AlertCircle,
   AlertTriangle,
   LogOut,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const links = [
   { href: "/materials", key: "materials", icon: Package },
   { href: "/workers", key: "workers", icon: Users },
   { href: "/expenses", key: "expenses", icon: Receipt },
+  { href: "/incidents", key: "incidents", icon: AlertCircle },
   { href: "/alerts", key: "alerts", icon: AlertTriangle },
 ] as const;
 

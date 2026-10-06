@@ -1,118 +1,68 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { DataTable } from "@/components/ui/data-table";
-import { Modal } from "@/components/ui/modal";
-import { useIncidents, useCreateIncident, Incident } from "@/lib/incidents-service";
+import { useAlerts, useGenerateAlerts, useResolveAlert, Alert } from "@/lib/alerts-service";
 
-const schema = z.object({
-  projectId: z.string().uuid("Debe ser un UUID válido"),
-  type: z.string().min(2, "Tipo obligatorio"),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-  description: z.string().min(3, "Descripción obligatoria"),
-});
-
-type FormValues = z.infer<typeof schema>;
+const SEVERITY_COLOR: Record<Alert["severity"], string> = {
+  HIGH: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
+  MEDIUM: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+  LOW: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+};
 
 export default function AlertsPage() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const { data, isLoading } = useIncidents();
-  const createIncident = useCreateIncident();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
-
-  async function onSubmit(values: FormValues) {
-    await createIncident.mutateAsync(values);
-    reset();
-    setModalOpen(false);
-  }
+  const { data: alerts, isLoading } = useAlerts("ACTIVE");
+  const generate = useGenerateAlerts();
+  const resolve = useResolveAlert();
 
   return (
     <div className="space-y-4 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Novedades / Alertas</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Alertas del Sistema</h1>
+          <p className="text-sm text-gray-500">Alertas automáticas generadas por el motor de reglas</p>
+        </div>
         <button
-          onClick={() => setModalOpen(true)}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
+          onClick={() => generate.mutate()}
+          disabled={generate.isPending}
+          className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-gray-900"
         >
-          + Reportar novedad
+          {generate.isPending ? "Analizando..." : "Generar análisis"}
         </button>
       </div>
 
-      <DataTable<Incident>
-        rows={data?.data ?? []}
-        isLoading={isLoading}
-        rowKey={(i) => i.id}
-        columns={[
-          { header: "Tipo", accessor: (i) => i.type },
-          { header: "Prioridad", accessor: (i) => i.priority },
-          { header: "Descripción", accessor: (i) => i.description },
-          { header: "ID Obra", accessor: (i) => i.projectId },
-        ]}
-      />
+      {isLoading && <p className="text-sm text-gray-500 animate-pulse">Cargando alertas...</p>}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Reportar novedad">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium">ID de Obra (UUID)</label>
-            <input
-              {...register("projectId")}
-              placeholder="UUID de la obra"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-            />
-            {errors.projectId && <p className="text-xs text-red-500">{errors.projectId.message}</p>}
-          </div>
+      {!isLoading && alerts?.length === 0 && (
+        <div className="rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-500 dark:border-gray-800">
+          No hay alertas activas en este momento.
+        </div>
+      )}
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Tipo de Novedad</label>
-            <input
-              {...register("type")}
-              placeholder="Ej: Clima, Retraso, Daño de Maquinaria"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-            />
-            {errors.type && <p className="text-xs text-red-500">{errors.type.message}</p>}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Prioridad</label>
-            <select
-              {...register("priority")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-            >
-              <option value="LOW">Baja</option>
-              <option value="MEDIUM">Media</option>
-              <option value="HIGH">Alta</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Descripción</label>
-            <input
-              {...register("description")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-            />
-            {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
-          </div>
-
-          <button
-            type="submit"
-            disabled={createIncident.isPending}
-            className="w-full rounded-md bg-gray-900 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-gray-900"
+      <div className="space-y-2">
+        {alerts?.map((alert) => (
+          <div
+            key={alert.id}
+            className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
           >
-            {createIncident.isPending ? "Guardando..." : "Reportar novedad"}
-          </button>
-        </form>
-      </Modal>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLOR[alert.severity]}`}>
+                  {alert.severity}
+                </span>
+                <span className="text-xs text-gray-400">{alert.type}</span>
+                <span className="text-xs text-gray-400">· {alert.project?.name ?? "Obra"}</span>
+              </div>
+              <p className="text-sm">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => resolve.mutate(alert.id)}
+              disabled={resolve.isPending}
+              className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+            >
+              Resolver
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
