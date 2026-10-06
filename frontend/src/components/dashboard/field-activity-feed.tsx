@@ -2,6 +2,7 @@
 
 import { useEvidenceList } from "@/lib/evidence-service";
 import { Link } from "@/i18n/navigation";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 export function FieldActivityFeed() {
   const { data } = useEvidenceList();
@@ -10,7 +11,7 @@ export function FieldActivityFeed() {
   return (
     <div className="rounded-xl border border-line bg-surface p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold">Actividad Reciente en Campo</h2>
+        <h2 className="text-base font-semibold text-ink">Actividad Reciente en Campo</h2>
         <Link href="/evidence" className="text-xs text-accent hover:underline">
           Ver bitácora completa
         </Link>
@@ -43,10 +44,10 @@ export function FieldActivityFeed() {
                 {userName[0]?.toUpperCase() ?? "?"}
               </div>
               <div>
-                <p className="text-sm">
-                  <span className="font-medium">{userName}</span>{" "}
+                <p className="text-sm text-ink">
+                  <span className="font-medium text-ink">{userName}</span>{" "}
                   registró avance fotográfico en{" "}
-                  <span className="font-medium">{projectName}</span>.
+                  <span className="font-medium text-ink">{projectName}</span>.
                 </p>
                 <p className="mb-2 text-xs text-ink-muted">
                   {new Date(dateStr).toLocaleDateString("es-CO", {
@@ -55,11 +56,10 @@ export function FieldActivityFeed() {
                   })}
                 </p>
                 {imageUrl && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
+                  <ImageLightbox
                     src={imageUrl}
                     alt={description}
-                    className="h-24 w-32 rounded-lg border border-line object-cover"
+                    thumbClassName="h-24 w-32 rounded-lg border border-line object-cover"
                   />
                 )}
               </div>
