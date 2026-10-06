@@ -27,6 +27,7 @@ const links = [
 
 export function Sidebar() {
   const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const setUser = useAuthStore((s) => s.setUser);
   const user = useAuthStore((s) => s.user);
@@ -40,9 +41,12 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-sidebar px-4 py-6 min-h-screen text-sidebar-ink">
+      {/* Bloque del Logo & Branding dinámico centralizado en i18n */}
       <div className="mb-8 px-2">
-        <h1 className="text-lg font-semibold text-white">Civil Works System</h1>
-        <p className="text-xs text-sidebar-ink">Construction Mgmt</p>
+        <h1 className="text-lg font-semibold text-white">
+          {tCommon("appShortName")}
+        </h1>
+        <p className="text-xs text-sidebar-ink">{tCommon("appTagline")}</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
