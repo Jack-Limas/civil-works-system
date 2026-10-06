@@ -12,6 +12,7 @@ import { expenseRoutes } from "./routes/expense.routes";
 import { alertRoutes } from "./routes/alert.routes";
 import { predictionRoutes } from "./routes/prediction.routes";
 import { dashboardRoutes } from "./routes/dashboard.routes";
+import { assistantRoutes } from "./routes/assistant.routes";
 import { benchmarkRoutes } from "./routes/benchmark.routes";
 import { incidentRoutes } from "./routes/incident.routes";
 import { evidenceRoutes } from "./routes/evidence.routes";
@@ -47,6 +48,7 @@ async function main() {
   await app.register(dashboardRoutes);
   await app.register(predictionRoutes);
   await app.register(benchmarkRoutes);
+  await app.register(assistantRoutes);
 
   // Error Handler Global
   app.setErrorHandler((error, request, reply) => {
