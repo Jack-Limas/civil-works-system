@@ -5,7 +5,11 @@
     "appTagline": "Construction Intelligence",
     "loading": "Cargando...",
     "save": "Guardar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "search": "Buscar"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -15,7 +19,9 @@
     "loginButton": "Entrar",
     "invalidCredentials": "Correo o contraseña incorrectos",
     "emailRequired": "Ingresa un correo válido",
-    "passwordRequired": "La contraseña debe tener al menos 6 caracteres"
+    "passwordRequired": "La contraseña debe tener al menos 6 caracteres",
+    "heroTitle": "Gestiona cada obra con claridad total",
+    "heroSubtitle": "Seguimiento, presupuesto y predicción de riesgos en un solo lugar."
   },
   "nav": {
     "dashboard": "Panel general",
@@ -25,10 +31,33 @@
     "expenses": "Gastos",
     "incidents": "Novedades",
     "alerts": "Alertas",
-    "settings": "Configuración"
+    "users": "Usuarios"
   },
   "dashboard": {
     "welcome": "Hola, {name}",
-    "role": "Rol"
+    "role": "Rol",
+    "title": "Dashboard Principal",
+    "subtitle": "Resumen operativo y estado general de las obras."
+  },
+  "assistant": {
+    "title": "Asistente Inteligente",
+    "chatTab": "Asistente",
+    "benchmarkTab": "Rendimiento",
+    "placeholder": "Escribe tu pregunta...",
+    "thinking": "El asistente está pensando...",
+    "errorMessage": "No pude procesar tu pregunta en este momento. Intenta de nuevo.",
+    "emptyStateHint": "Pregúntame sobre tus obras, materiales o alertas:"
+  },
+  "users": {
+    "title": "Usuarios",
+    "subtitle": "Crea cuentas para administradores e ingenieros residentes.",
+    "name": "Nombre completo",
+    "email": "Correo electrónico",
+    "password": "Contraseña temporal",
+    "role": "Rol",
+    "roleAdmin": "Administrador",
+    "roleResident": "Ingeniero residente",
+    "submit": "Crear usuario",
+    "success": "Usuario creado correctamente."
   }
 }

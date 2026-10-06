@@ -5,7 +5,11 @@
     "appTagline": "Construction Intelligence",
     "loading": "Loading...",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "search": "Search"
   },
   "auth": {
     "login": "Sign in",
@@ -15,7 +19,9 @@
     "loginButton": "Enter",
     "invalidCredentials": "Invalid email or password",
     "emailRequired": "Enter a valid email",
-    "passwordRequired": "Password must be at least 6 characters"
+    "passwordRequired": "Password must be at least 6 characters",
+    "heroTitle": "Manage every project with total clarity",
+    "heroSubtitle": "Tracking, budgeting and risk prediction in one place."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -25,10 +31,33 @@
     "expenses": "Expenses",
     "incidents": "Incidents",
     "alerts": "Alerts",
-    "settings": "Settings"
+    "users": "Users"
   },
   "dashboard": {
     "welcome": "Hello, {name}",
-    "role": "Role"
+    "role": "Role",
+    "title": "Main Dashboard",
+    "subtitle": "Operational summary and general status of all projects."
+  },
+  "assistant": {
+    "title": "Smart Assistant",
+    "chatTab": "Assistant",
+    "benchmarkTab": "Performance",
+    "placeholder": "Type your question...",
+    "thinking": "The assistant is thinking...",
+    "errorMessage": "I couldn't process your question right now. Please try again.",
+    "emptyStateHint": "Ask me about your projects, materials or alerts:"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Create accounts for admins and resident engineers.",
+    "name": "Full name",
+    "email": "Email",
+    "password": "Temporary password",
+    "role": "Role",
+    "roleAdmin": "Administrator",
+    "roleResident": "Resident engineer",
+    "submit": "Create user",
+    "success": "User created successfully."
   }
 }
