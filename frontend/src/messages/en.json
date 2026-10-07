@@ -45,18 +45,38 @@
     "subtitle": "Operational summary and overall status of civil works."
   },
   "projects": {
-    "title": "Civil Works & Projects Management",
-    "subtitle": "Progress monitoring, budgeting, and operational status.",
+    "title": "Projects Management",
+    "subtitle": "Monitor and organize progress of your current civil works.",
     "newProject": "New Project",
-    "name": "Project Name",
-    "municipality": "Municipality / Location",
-    "budget": "Allocated Budget",
-    "progress": "Progress Percentage",
+    "totalProjects": "Total Projects",
+    "inProgress": "In Progress",
+    "totalBudget": "Total Budget",
+    "searchPlaceholder": "Search by name...",
+    "allStatuses": "All statuses",
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "municipality": "Municipality",
+      "progress": "Progress",
+      "budget": "Budget",
+      "status": "Status",
+      "responsible": "Responsible",
+      "startDate": "Start date",
+      "endDate": "Est. end date"
+    },
     "status": {
-      "IN_PROGRESS": "In Progress",
-      "PAUSED": "Paused",
-      "COMPLETED": "Completed",
-      "CANCELLED": "Cancelled"
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In progress",
+      "SUSPENDED": "Suspended",
+      "FINISHED": "Finished"
+    },
+    "types": {
+      "STADIUM": "Stadium",
+      "POOL": "Swimming pool",
+      "SYNTHETIC_FIELD": "Synthetic field",
+      "RETAINING_WALL": "Retaining wall",
+      "PRIVATE_WORK": "Private work",
+      "OTHER": "Other"
     }
   },
   "materials": {
