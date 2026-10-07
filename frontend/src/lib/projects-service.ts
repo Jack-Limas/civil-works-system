@@ -7,9 +7,12 @@ export interface Project {
   name: string;
   type: string;
   municipality: string;
+  address?: string | null;
   status: "PLANNED" | "IN_PROGRESS" | "SUSPENDED" | "FINISHED";
   progressPercentage: number;
   budget: number;
+  startDate: string;
+  estimatedEndDate: string;
   responsible: { id: string; name: string };
 }
 
