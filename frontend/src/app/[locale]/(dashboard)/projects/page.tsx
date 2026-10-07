@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Search, Plus, Camera, Play, CheckCircle2, Loader2 } from "lucide-react";
+import { AxiosError } from "axios";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -109,9 +110,16 @@ export default function ProjectsPage() {
         id: projectId,
         input: { status: newStatus },
       });
-    } catch (err: unknown) {
-      console.error("Error cambiando estado:", err);
-      alert("No se pudo actualizar el estado. Verifica que hayas iniciado sesión como Administrador.");
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ error?: string; message?: string }>;
+      const status = axiosErr.response?.status;
+      const message =
+        axiosErr.response?.data?.message ??
+        axiosErr.response?.data?.error ??
+        axiosErr.message;
+
+      console.error(`Error ${status ?? "sin respuesta"}: ${message}`);
+      alert(`No se pudo actualizar (${status ?? "sin conexión"}): ${message}`);
     }
   }
 
