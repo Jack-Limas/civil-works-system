@@ -15,6 +15,7 @@ import {
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "@/i18n/navigation";
+import { Logo } from "@/components/ui/logo";
 
 const links = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
@@ -41,11 +42,17 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-sidebar px-4 py-6 min-h-screen text-sidebar-ink">
-      <div className="mb-8 px-2">
-        <h1 className="text-lg font-semibold text-white">
-          {tCommon("appShortName")}
-        </h1>
-        <p className="text-xs text-sidebar-ink">{tCommon("appTagline")}</p>
+      {/* Bloque de Marca con Logo SVG y ObraIQ */}
+      <div className="mb-8 flex items-center gap-2 px-2">
+        <Logo size={30} />
+        <div>
+          <h1 className="text-sm font-semibold leading-tight text-white">
+            {tCommon("appShortName")}
+          </h1>
+          <p className="text-[11px] leading-tight text-sidebar-ink">
+            {tCommon("appTagline")}
+          </p>
+        </div>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
