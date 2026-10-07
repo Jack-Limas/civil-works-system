@@ -8,16 +8,16 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "admin@civilworks.com" },
-    update: {},
+    update: { name: "Jack Limas" },
     create: {
-      name: "Administrador",
+      name: "Jack Limas",
       email: "admin@civilworks.com",
       passwordHash,
       role: Role.ADMIN,
     },
   });
 
-  console.log("Seed completado: admin@civilworks.com / Admin123!");
+  console.log("Seed completado: Jack Limas (admin@civilworks.com / Admin123!)");
 }
 
 main()
