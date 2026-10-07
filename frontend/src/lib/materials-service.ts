@@ -9,6 +9,14 @@ export interface Material {
   stockMinimum: number;
 }
 
+export interface LowStockMaterial {
+  id: string;
+  name: string;
+  unit: string;
+  stockAvailable: number;
+  stockMinimum: number;
+}
+
 export function useMaterials() {
   return useQuery({
     queryKey: ["materials", "list"],
@@ -27,5 +35,17 @@ export function useCreateMaterial() {
       return data.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["materials"] }),
+  });
+}
+
+export function useLowStockMaterials() {
+  return useQuery({
+    queryKey: ["materials", "low-stock"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ data: LowStockMaterial[] }>(
+        "/materials/low-stock"
+      );
+      return data.data;
+    },
   });
 }
