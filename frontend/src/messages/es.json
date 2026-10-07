@@ -18,8 +18,8 @@
   },
   "auth": {
     "login": "Iniciar sesión",
-    "logout": "Cerrar sesión",
     "loginSubtitle": "Ingresa tus credenciales para continuar.",
+    "logout": "Cerrar sesión",
     "email": "Correo electrónico",
     "password": "Contraseña",
     "loginButton": "Entrar",
