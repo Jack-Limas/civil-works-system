@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { createResourceHooks } from "./create-resource-hooks";
+import { apiClient } from "./api-client";
 
 export interface Project {
   id: string;
@@ -38,3 +40,14 @@ export const {
   "projects",
   "/projects"
 );
+
+export function useProject(id: string) {
+  return useQuery({
+    queryKey: ["projects", "detail", id],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ data: Project }>(`/projects/${id}`);
+      return data.data;
+    },
+    enabled: !!id,
+  });
+}
