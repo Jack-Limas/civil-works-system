@@ -114,7 +114,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Filtros y Redirección a Crear Obra */}
+        {/* Filtros y Botón Nuevo Proyecto */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
             <div className="flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2">
@@ -146,7 +146,7 @@ export default function ProjectsPage() {
           </Link>
         </div>
 
-        {/* Tabla con Enlaces al Detalle */}
+        {/* Tabla de Obras con Link Dinámico */}
         <div className="overflow-x-auto rounded-xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead className="bg-surface-2 text-xs uppercase tracking-wide text-ink-muted">

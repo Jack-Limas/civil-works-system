@@ -58,3 +58,9 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -12px rgba(0, 0, 0, 0.25);
 }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
