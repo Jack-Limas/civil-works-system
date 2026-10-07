@@ -11,6 +11,8 @@ import { useRouter } from "@/i18n/navigation";
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/store/auth.store";
 import { ConstructionSkyline } from "@/components/auth/construction-skyline";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -51,6 +53,10 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen">
+      <div className="absolute right-4 top-4 z-20 flex gap-2">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+      </div>
       <div
         ref={heroRef}
         onMouseMove={handleMouseMove}
