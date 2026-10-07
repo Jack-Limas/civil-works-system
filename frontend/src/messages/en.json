@@ -9,7 +9,12 @@
     "edit": "Edit",
     "delete": "Delete",
     "create": "Create",
-    "search": "Search"
+    "search": "Search",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "total": "Total",
+    "description": "Description"
   },
   "auth": {
     "login": "Sign in",
@@ -20,8 +25,8 @@
     "invalidCredentials": "Invalid email or password",
     "emailRequired": "Enter a valid email",
     "passwordRequired": "Password must be at least 6 characters",
-    "heroTitle": "Manage every project with total clarity",
-    "heroSubtitle": "Tracking, budgeting and risk prediction in one place."
+    "heroTitle": "Manage every project with full clarity",
+    "heroSubtitle": "Tracking, budgeting, and risk prediction in one place."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -37,27 +42,88 @@
     "welcome": "Hello, {name}",
     "role": "Role",
     "title": "Main Dashboard",
-    "subtitle": "Operational summary and general status of all projects."
+    "subtitle": "Operational summary and overall status of civil works."
+  },
+  "projects": {
+    "title": "Civil Works & Projects Management",
+    "subtitle": "Progress monitoring, budgeting, and operational status.",
+    "newProject": "New Project",
+    "name": "Project Name",
+    "municipality": "Municipality / Location",
+    "budget": "Allocated Budget",
+    "progress": "Progress Percentage",
+    "status": {
+      "IN_PROGRESS": "In Progress",
+      "PAUSED": "Paused",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "materials": {
+    "title": "Materials & Inventory Control",
+    "subtitle": "Warehouse stock, consumption, and minimum stock alerts.",
+    "newMaterial": "Register Material",
+    "name": "Material Name",
+    "unit": "Unit of Measure",
+    "stockAvailable": "Available Stock",
+    "stockMinimum": "Minimum Stock",
+    "unitCost": "Unit Cost",
+    "lowStockWarning": "Materials with critical stock"
+  },
+  "expenses": {
+    "title": "Expenses & Cost Control",
+    "subtitle": "Detailed record of disbursements and budget execution.",
+    "newExpense": "Register Expense",
+    "concept": "Concept / Description",
+    "amount": "Amount / Cost",
+    "category": "Category",
+    "project": "Associated Project",
+    "supplier": "Supplier"
+  },
+  "incidents": {
+    "title": "Field Incidents & Issues",
+    "subtitle": "Record of delays, equipment failures, or weather events.",
+    "newIncident": "Report Incident",
+    "type": "Incident Type",
+    "severity": "Severity Level",
+    "resolved": "Resolved",
+    "pending": "Pending Attention",
+    "severities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    }
+  },
+  "workers": {
+    "title": "Personnel & Workforce",
+    "subtitle": "Management of operators, crews, and assignments by project.",
+    "newWorker": "Register Worker",
+    "name": "Full Name",
+    "document": "ID Document",
+    "specialty": "Specialty / Job Title",
+    "assignedProject": "Assigned Project",
+    "phone": "Contact Phone"
   },
   "assistant": {
     "title": "Smart Assistant",
     "chatTab": "Assistant",
     "benchmarkTab": "Performance",
     "placeholder": "Type your question...",
-    "thinking": "The assistant is thinking...",
+    "thinking": "Assistant is thinking...",
     "errorMessage": "I couldn't process your question right now. Please try again.",
-    "emptyStateHint": "Ask me about your projects, materials or alerts:"
+    "emptyStateHint": "Ask me about your projects, materials, or alerts:"
   },
   "users": {
-    "title": "Users",
-    "subtitle": "Create accounts for admins and resident engineers.",
-    "name": "Full name",
-    "email": "Email",
+    "title": "User Management",
+    "subtitle": "Create accounts for administrators and resident engineers.",
+    "name": "Full Name",
+    "email": "Email address",
     "password": "Temporary password",
-    "role": "Role",
+    "role": "Assigned Role",
     "roleAdmin": "Administrator",
-    "roleResident": "Resident engineer",
-    "submit": "Create user",
-    "success": "User created successfully."
+    "roleResident": "Resident Engineer",
+    "submit": "Create User",
+    "success": "User registered successfully."
   }
 }

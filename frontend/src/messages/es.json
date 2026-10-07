@@ -9,7 +9,12 @@
     "edit": "Editar",
     "delete": "Eliminar",
     "create": "Crear",
-    "search": "Buscar"
+    "search": "Buscar",
+    "actions": "Acciones",
+    "status": "Estado",
+    "date": "Fecha",
+    "total": "Total",
+    "description": "Descripción"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -39,6 +44,87 @@
     "title": "Dashboard Principal",
     "subtitle": "Resumen operativo y estado general de las obras."
   },
+  "projects": {
+    "title": "Gestión de Proyectos",
+    "subtitle": "Monitorea y organiza el avance de tus obras actuales.",
+    "newProject": "Nuevo Proyecto",
+    "totalProjects": "Total Proyectos",
+    "inProgress": "En Curso",
+    "totalBudget": "Presupuesto Total",
+    "searchPlaceholder": "Buscar por nombre...",
+    "allStatuses": "Todos los estados",
+    "fields": {
+      "name": "Nombre",
+      "type": "Tipo",
+      "municipality": "Municipio",
+      "progress": "Avance",
+      "budget": "Presupuesto",
+      "status": "Estado",
+      "responsible": "Responsable",
+      "startDate": "Fecha inicio",
+      "endDate": "Fecha fin est."
+    },
+    "status": {
+      "PLANNED": "Planificada",
+      "IN_PROGRESS": "En curso",
+      "SUSPENDED": "Suspendida",
+      "FINISHED": "Finalizada"
+    },
+    "types": {
+      "STADIUM": "Estadio",
+      "POOL": "Piscina",
+      "SYNTHETIC_FIELD": "Cancha sintética",
+      "RETAINING_WALL": "Muro de contención",
+      "PRIVATE_WORK": "Obra particular",
+      "OTHER": "Otro"
+    }
+  },
+  "materials": {
+    "title": "Control de Materiales e Inventario",
+    "subtitle": "Existencias en bodega, consumo y alertas de stock mínimo.",
+    "newMaterial": "Registrar Material",
+    "name": "Nombre del Material",
+    "unit": "Unidad de Medida",
+    "stockAvailable": "Stock Disponible",
+    "stockMinimum": "Stock Mínimo",
+    "unitCost": "Costo Unitario",
+    "lowStockWarning": "Materiales con stock crítico"
+  },
+  "expenses": {
+    "title": "Control de Gastos y Costos",
+    "subtitle": "Registro detallado de desembolsos y ejecución presupuestal.",
+    "newExpense": "Registrar Gasto",
+    "concept": "Concepto / Descripción",
+    "amount": "Monto / Valor",
+    "category": "Categoría",
+    "project": "Obra Asociada",
+    "supplier": "Proveedor"
+  },
+  "incidents": {
+    "title": "Novedades e Inconvenientes de Campo",
+    "subtitle": "Registro de retrasos, fallas de maquinaria o eventos climáticos.",
+    "newIncident": "Reportar Novedad",
+    "type": "Tipo de Novedad",
+    "severity": "Nivel de Severidad",
+    "resolved": "Resuelto",
+    "pending": "Pendiente de Atención",
+    "severities": {
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta",
+      "CRITICAL": "Crítica"
+    }
+  },
+  "workers": {
+    "title": "Personal y Mano de Obra",
+    "subtitle": "Gestión de operarios, cuadrillas y asignaciones por obra.",
+    "newWorker": "Registrar Trabajador",
+    "name": "Nombre Completo",
+    "document": "Documento de Identidad",
+    "specialty": "Especialidad / Cargo",
+    "assignedProject": "Obra Asignada",
+    "phone": "Teléfono de Contacto"
+  },
   "assistant": {
     "title": "Asistente Inteligente",
     "chatTab": "Asistente",
@@ -49,15 +135,15 @@
     "emptyStateHint": "Pregúntame sobre tus obras, materiales o alertas:"
   },
   "users": {
-    "title": "Usuarios",
+    "title": "Gestión de Usuarios",
     "subtitle": "Crea cuentas para administradores e ingenieros residentes.",
     "name": "Nombre completo",
     "email": "Correo electrónico",
     "password": "Contraseña temporal",
-    "role": "Rol",
+    "role": "Rol asignado",
     "roleAdmin": "Administrador",
     "roleResident": "Ingeniero residente",
     "submit": "Crear usuario",
-    "success": "Usuario creado correctamente."
+    "success": "Usuario registrado correctamente."
   }
 }
