@@ -1,42 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Search, Plus, Camera, Play, CheckCircle2, Loader2 } from "lucide-react";
+import { Search, Plus, Play, CheckCircle2, Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
+import { Link } from "@/i18n/navigation";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
-import { Modal } from "@/components/ui/modal";
 import {
   useProjects,
-  useCreateProject,
   useUpdateProject,
   Project,
 } from "@/lib/projects-service";
 import { useAlerts } from "@/lib/alerts-service";
-import { useUploadEvidence } from "@/lib/evidence-service";
-
-const schema = z.object({
-  name: z.string().min(3),
-  type: z.enum([
-    "STADIUM",
-    "POOL",
-    "SYNTHETIC_FIELD",
-    "RETAINING_WALL",
-    "PRIVATE_WORK",
-    "OTHER",
-  ]),
-  municipality: z.string().min(2),
-  startDate: z.string(),
-  estimatedEndDate: z.string(),
-  budget: z.coerce.number().positive(),
-  responsibleId: z.string().uuid(),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 const STATUS_CLASS: Record<Project["status"], string> = {
   PLANNED: "bg-surface-2 text-ink-muted border border-line",
@@ -56,28 +32,10 @@ export default function ProjectsPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [modalOpen, setModalOpen] = useState(false);
-
-  // Modal Evidencia
-  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [evidenceDescription, setEvidenceDescription] = useState("");
-  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
   const { data, isLoading } = useProjects();
   const { data: activeAlerts } = useAlerts("ACTIVE");
-  const createProject = useCreateProject();
   const updateProject = useUpdateProject();
-  const uploadEvidence = useUploadEvidence();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
 
   const projects = useMemo(() => data?.data ?? [], [data?.data]);
   const alertedIds = useMemo(
@@ -123,38 +81,6 @@ export default function ProjectsPage() {
     }
   }
 
-  async function onSubmit(values: FormValues) {
-    await createProject.mutateAsync(values);
-    reset();
-    setModalOpen(false);
-  }
-
-  async function handleEvidenceSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedProjectId || !evidenceFile) {
-      alert("Selecciona un archivo de imagen válido");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("projectId", selectedProjectId);
-    formData.append("description", evidenceDescription);
-    formData.append("file", evidenceFile);
-
-    await uploadEvidence.mutateAsync(formData);
-
-    setEvidenceDescription("");
-    setEvidenceFile(null);
-    setSelectedProjectId(null);
-    setEvidenceModalOpen(false);
-    alert("Evidencia subida correctamente");
-  }
-
-  function openEvidenceModal(projectId: string) {
-    setSelectedProjectId(projectId);
-    setEvidenceModalOpen(true);
-  }
-
   return (
     <>
       <DashboardHeader title={t("title")} subtitle={t("subtitle")} />
@@ -188,7 +114,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Filtros */}
+        {/* Filtros y Redirección a Crear Obra */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
             <div className="flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2">
@@ -212,16 +138,15 @@ export default function ProjectsPage() {
               <option value="FINISHED">{t("status.FINISHED")}</option>
             </select>
           </div>
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
+          <Link
+            href="/projects/new"
             className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 transition-colors shadow-sm"
           >
             <Plus size={15} /> {t("newProject")}
-          </button>
+          </Link>
         </div>
 
-        {/* Tabla */}
+        {/* Tabla con Enlaces al Detalle */}
         <div className="overflow-x-auto rounded-xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead className="bg-surface-2 text-xs uppercase tracking-wide text-ink-muted">
@@ -258,7 +183,10 @@ export default function ProjectsPage() {
                   className="transition-colors"
                 >
                   <td className="px-4 py-3 font-medium text-ink">
-                    <div className="flex items-center gap-2">
+                    <Link
+                      href={`/projects/${p.id}`}
+                      className="flex items-center gap-2 hover:text-accent transition-colors"
+                    >
                       {alertedIds.has(p.id) && (
                         <span
                           className="h-2 w-2 shrink-0 rounded-full bg-critical"
@@ -266,7 +194,7 @@ export default function ProjectsPage() {
                         />
                       )}
                       {p.name}
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{p.municipality}</td>
                   <td className="px-4 py-3">
@@ -306,14 +234,6 @@ export default function ProjectsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => openEvidenceModal(p.id)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface hover:text-accent transition-colors"
-                      >
-                        <Camera size={13} /> Evidencia
-                      </button>
-
                       {p.status === "PLANNED" && (
                         <button
                           type="button"
@@ -353,158 +273,6 @@ export default function ProjectsPage() {
           </table>
         </div>
       </main>
-
-      {/* Modal Crear Obra */}
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={t("newProject")}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              {t("fields.name")}
-            </label>
-            <input
-              {...register("name")}
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-            />
-            {errors.name && (
-              <p className="mt-1 text-xs text-critical">Mínimo 3 caracteres</p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              {t("fields.type")}
-            </label>
-            <select
-              {...register("type")}
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-            >
-              {[
-                "STADIUM",
-                "POOL",
-                "SYNTHETIC_FIELD",
-                "RETAINING_WALL",
-                "PRIVATE_WORK",
-                "OTHER",
-              ].map((opt) => (
-                <option key={opt} value={opt}>
-                  {t(`types.${opt}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              {t("fields.municipality")}
-            </label>
-            <input
-              {...register("municipality")}
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-ink">
-                {t("fields.startDate")}
-              </label>
-              <input
-                type="date"
-                {...register("startDate")}
-                className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-ink">
-                {t("fields.endDate")}
-              </label>
-              <input
-                type="date"
-                {...register("estimatedEndDate")}
-                className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              {t("fields.budget")}
-            </label>
-            <input
-              type="number"
-              {...register("budget")}
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              ID del responsable
-            </label>
-            <input
-              {...register("responsibleId")}
-              placeholder="UUID del usuario"
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={createProject.isPending}
-            className="w-full rounded-md bg-accent py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {createProject.isPending ? "Guardando..." : t("newProject")}
-          </button>
-        </form>
-      </Modal>
-
-      {/* Modal Evidencia */}
-      <Modal
-        open={evidenceModalOpen}
-        onClose={() => setEvidenceModalOpen(false)}
-        title="Adjuntar Evidencia Fotográfica"
-      >
-        <form onSubmit={handleEvidenceSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              Descripción
-            </label>
-            <input
-              type="text"
-              value={evidenceDescription}
-              onChange={(e) => setEvidenceDescription(e.target.value)}
-              placeholder="Ej: Foto del avance de cimentación"
-              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink">
-              Fotografía (Imagen)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setEvidenceFile(e.target.files?.[0] ?? null)}
-              className="w-full text-sm text-ink-muted file:mr-4 file:rounded-md file:border-0 file:bg-surface-2 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:bg-line"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={uploadEvidence.isPending}
-            className="w-full rounded-md bg-accent py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {uploadEvidence.isPending ? "Subiendo..." : "Subir Fotografía"}
-          </button>
-        </form>
-      </Modal>
     </>
   );
 }
