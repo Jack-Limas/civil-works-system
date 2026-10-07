@@ -109,9 +109,9 @@ export default function ProjectsPage() {
         id: projectId,
         input: { status: newStatus },
       });
-    } catch (err) {
-      console.error("Error al actualizar el estado:", err);
-      alert("Asegúrate de estar autenticado como Administrador para realizar esta acción.");
+    } catch (err: unknown) {
+      console.error("Error cambiando estado:", err);
+      alert("No se pudo actualizar el estado. Verifica que hayas iniciado sesión como Administrador.");
     }
   }
 

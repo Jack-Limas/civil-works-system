@@ -19,7 +19,14 @@ export interface CreateProjectInput {
   estimatedEndDate: string;
   budget: number;
   responsibleId: string;
+}
+
+export interface UpdateProjectInput {
+  name?: string;
   status?: "PLANNED" | "IN_PROGRESS" | "SUSPENDED" | "FINISHED";
+  progressPercentage?: number;
+  budget?: number;
+  estimatedEndDate?: string;
 }
 
 export const {
@@ -27,4 +34,7 @@ export const {
   useCreate: useCreateProject,
   useUpdate: useUpdateProject,
   useRemove: useRemoveProject,
-} = createResourceHooks<Project, CreateProjectInput>("projects", "/projects");
+} = createResourceHooks<Project, CreateProjectInput, UpdateProjectInput>(
+  "projects",
+  "/projects"
+);
