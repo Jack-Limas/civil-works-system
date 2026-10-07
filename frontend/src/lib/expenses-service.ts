@@ -1,5 +1,5 @@
-import { apiClient } from "./api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "./api-client";
 
 export interface Expense {
   id: string;
@@ -28,5 +28,16 @@ export function useCreateExpense() {
       return data.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["expenses"] }),
+  });
+}
+
+export function useBudgetIndicators(projectId: string) {
+  return useQuery({
+    queryKey: ["expenses", "indicators", projectId],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/expenses/project/${projectId}/indicators`);
+      return data.data;
+    },
+    enabled: !!projectId,
   });
 }
