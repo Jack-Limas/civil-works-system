@@ -57,19 +57,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen">
-      <div className="absolute right-4 top-4 z-20 flex gap-2">
+    <main className="relative flex min-h-screen">
+      <div className="absolute right-4 top-4 z-30 flex gap-2">
         <LanguageSwitcher />
         <ThemeSwitcher />
       </div>
 
+      {/* Panel de marca — intencionalmente fijo (estilo Linear/Vercel) */}
       <div
         ref={heroRef}
         onMouseMove={handleMouseMove}
         className="relative hidden w-1/2 overflow-hidden bg-sidebar lg:flex lg:flex-col lg:justify-between lg:p-12"
         style={{ "--spot-x": "50%", "--spot-y": "50%" } as React.CSSProperties}
       >
-        {/* Linterna interactiva que sigue el cursor */}
         <div
           className="pointer-events-none absolute inset-0 transition-[background] duration-150"
           style={{
@@ -78,7 +78,6 @@ export default function LoginPage() {
           }}
         />
 
-        {/* Elementos flotantes decorativos */}
         <div aria-hidden className="pointer-events-none absolute inset-0 motion-reduce:hidden">
           <motion.div
             className="absolute -left-16 top-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl"
@@ -94,7 +93,6 @@ export default function LoginPage() {
 
         <ConstructionSkyline />
 
-        {/* Identidad de Marca Superior con Logo SVG */}
         <div className="relative z-10 flex items-center gap-3">
           <Logo size={40} />
           <div>
@@ -105,7 +103,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Hero Text */}
         <div className="relative z-10 max-w-md">
           <h2 className="text-3xl font-semibold leading-tight text-white">
             {t("heroTitle")}
@@ -113,13 +110,12 @@ export default function LoginPage() {
           <p className="mt-3 text-sidebar-ink">{t("heroSubtitle")}</p>
         </div>
 
-        {/* Footer */}
         <div className="relative z-10 text-xs text-sidebar-ink">
           © {new Date().getFullYear()} {tCommon("appShortName")}
         </div>
       </div>
 
-      {/* Formulario de Login */}
+      {/* Formulario — reacciona dinámicamente al tema y al idioma */}
       <div className="flex w-full items-center justify-center bg-bg px-6 lg:w-1/2">
         <motion.form
           initial={{ opacity: 0, y: 12 }}
@@ -128,22 +124,16 @@ export default function LoginPage() {
           onSubmit={handleSubmit(onSubmit)}
           className="w-full max-w-sm space-y-4"
         >
-          {/* Marca para dispositivos móviles */}
-          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
-            <Logo size={32} />
-            <div>
-              <h1 className="text-lg font-semibold leading-tight text-ink">
-                {tCommon("appShortName")}
-              </h1>
-              <p className="text-xs text-ink-muted">{tCommon("appTagline")}</p>
-            </div>
+          <div className="mb-6 flex items-center gap-2 lg:hidden">
+            <Logo size={28} />
+            <h1 className="text-lg font-semibold text-ink">
+              {tCommon("appShortName")}
+            </h1>
           </div>
 
           <div>
             <h2 className="text-xl font-semibold text-ink">{t("login")}</h2>
-            <p className="text-sm text-ink-muted">
-              Ingresa tus credenciales para continuar.
-            </p>
+            <p className="text-sm text-ink-muted">{t("loginSubtitle")}</p>
           </div>
 
           <div>

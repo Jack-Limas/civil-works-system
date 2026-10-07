@@ -41,15 +41,15 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-sidebar px-4 py-6 min-h-screen text-sidebar-ink">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-line bg-surface px-4 py-6 min-h-screen">
       {/* Bloque de Marca con Logo SVG y ObraIQ */}
       <div className="mb-8 flex items-center gap-2 px-2">
         <Logo size={30} />
         <div>
-          <h1 className="text-sm font-semibold leading-tight text-white">
+          <h1 className="text-sm font-semibold leading-tight text-ink">
             {tCommon("appShortName")}
           </h1>
-          <p className="text-[11px] leading-tight text-sidebar-ink">
+          <p className="text-[11px] leading-tight text-ink-muted">
             {tCommon("appTagline")}
           </p>
         </div>
@@ -62,10 +62,10 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 active
                   ? "bg-accent text-white font-medium"
-                  : "text-sidebar-ink hover:bg-white/5 hover:text-white"
+                  : "text-ink-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
               <Icon size={17} strokeWidth={active ? 2.3 : 1.8} />
@@ -81,7 +81,7 @@ export function Sidebar() {
             className={`mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
               pathname === "/users"
                 ? "bg-accent text-white font-medium"
-                : "text-sidebar-ink hover:bg-white/5 hover:text-white"
+                : "text-ink-muted hover:bg-surface-2 hover:text-ink"
             }`}
           >
             <UserCog size={17} strokeWidth={1.8} />
@@ -90,19 +90,19 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-white/5 p-3">
+      <div className="mt-4 flex items-center justify-between rounded-lg bg-surface-2 p-3">
         <div>
-          <p className="text-xs font-medium text-white">
+          <p className="text-xs font-medium text-ink">
             {user?.name ?? "Usuario"}
           </p>
-          <p className="text-[11px] text-sidebar-ink">
+          <p className="text-[11px] text-ink-muted">
             {user?.role === "ADMIN" ? "Admin Pro" : "Residente"}
           </p>
         </div>
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-md p-1.5 text-sidebar-ink hover:bg-white/10 hover:text-white"
+          className="rounded-md p-1.5 text-ink-muted hover:bg-surface hover:text-critical transition-colors"
           aria-label="Cerrar sesión"
         >
           <LogOut size={15} />

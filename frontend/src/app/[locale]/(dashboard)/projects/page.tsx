@@ -12,6 +12,7 @@ import { Modal } from "@/components/ui/modal";
 import { useProjects, useCreateProject, Project } from "@/lib/projects-service";
 import { useAlerts } from "@/lib/alerts-service";
 import { useUploadEvidence } from "@/lib/evidence-service";
+import { useProjects, useCreateProject, useUpdateProject, Project } from "@/lib/projects-service";
 
 const schema = z.object({
   name: z.string().min(3),
@@ -53,6 +54,7 @@ export default function ProjectsPage() {
   const { data, isLoading } = useProjects();
   const { data: activeAlerts } = useAlerts("ACTIVE");
   const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
   const uploadEvidence = useUploadEvidence();
 
   const {
