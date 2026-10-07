@@ -6,17 +6,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Search, Plus, Camera } from "lucide-react";
+import { Search, Plus, Camera, Play, CheckCircle2 } from "lucide-react";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Modal } from "@/components/ui/modal";
-import { useProjects, useCreateProject, Project } from "@/lib/projects-service";
+import {
+  useProjects,
+  useCreateProject,
+  useUpdateProject,
+  Project,
+} from "@/lib/projects-service";
 import { useAlerts } from "@/lib/alerts-service";
 import { useUploadEvidence } from "@/lib/evidence-service";
-import { useProjects, useCreateProject, useUpdateProject, Project } from "@/lib/projects-service";
 
 const schema = z.object({
   name: z.string().min(3),
-  type: z.enum(["STADIUM", "POOL", "SYNTHETIC_FIELD", "RETAINING_WALL", "PRIVATE_WORK", "OTHER"]),
+  type: z.enum([
+    "STADIUM",
+    "POOL",
+    "SYNTHETIC_FIELD",
+    "RETAINING_WALL",
+    "PRIVATE_WORK",
+    "OTHER",
+  ]),
   municipality: z.string().min(2),
   startDate: z.string(),
   estimatedEndDate: z.string(),
@@ -47,7 +58,9 @@ export default function ProjectsPage() {
 
   // Estados para el Modal de Subir Evidencia Fotográfica
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const [evidenceDescription, setEvidenceDescription] = useState("");
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
@@ -66,8 +79,11 @@ export default function ProjectsPage() {
     resolver: zodResolver(schema),
   });
 
-  const projects = data?.data ?? [];
-  const alertedIds = new Set((activeAlerts ?? []).map((a) => a.project.id));
+  const projects = useMemo(() => data?.data ?? [], [data?.data]);
+  const alertedIds = useMemo(
+    () => new Set((activeAlerts ?? []).map((a) => a.project.id)),
+    [activeAlerts]
+  );
 
   const filtered = useMemo(
     () =>
@@ -132,7 +148,9 @@ export default function ProjectsPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
               {t("totalProjects")}
             </p>
-            <p className="font-mono-data text-2xl font-semibold text-ink">{totals.total}</p>
+            <p className="font-mono-data text-2xl font-semibold text-ink">
+              {totals.total}
+            </p>
           </div>
           <div className="hover-lift rounded-xl border border-line bg-surface p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
@@ -197,7 +215,7 @@ export default function ProjectsPage() {
                 <th className="px-4 py-3 text-left">{t("fields.budget")}</th>
                 <th className="px-4 py-3 text-left">{t("fields.status")}</th>
                 <th className="px-4 py-3 text-left">{t("fields.responsible")}</th>
-                <th className="px-4 py-3 text-center">Acciones</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -242,7 +260,9 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-surface-2">
                         <div
-                          className={`h-full rounded-full ${progressColor(p.progressPercentage)}`}
+                          className={`h-full rounded-full ${progressColor(
+                            p.progressPercentage
+                          )}`}
                           style={{ width: `${p.progressPercentage}%` }}
                         />
                       </div>
@@ -256,20 +276,58 @@ export default function ProjectsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[p.status]}`}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        STATUS_CLASS[p.status]
+                      }`}
                     >
                       {t(`status.${p.status}`)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-ink">{p.responsible?.name ?? "—"}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => openEvidenceModal(p.id)}
-                      className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-ink hover:bg-surface hover:text-accent transition-colors"
-                    >
-                      <Camera size={13} /> Evidencia
-                    </button>
+                  <td className="px-4 py-3 text-ink">
+                    {p.responsible?.name ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEvidenceModal(p.id)}
+                        className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-ink hover:bg-surface hover:text-accent transition-colors"
+                      >
+                        <Camera size={13} /> Evidencia
+                      </button>
+
+                      {p.status === "PLANNED" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateProject.mutate({
+                              id: p.id,
+                              input: { status: "IN_PROGRESS" } as unknown as Parameters<typeof updateProject.mutate>[0]["input"],
+                            })
+                          }
+                          disabled={updateProject.isPending}
+                          className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-success hover:bg-success/10 transition-colors disabled:opacity-50"
+                        >
+                          <Play size={12} /> Marcar en curso
+                        </button>
+                      )}
+
+                      {p.status === "IN_PROGRESS" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateProject.mutate({
+                              id: p.id,
+                              input: { status: "FINISHED" } as unknown as Parameters<typeof updateProject.mutate>[0]["input"],
+                            })
+                          }
+                          disabled={updateProject.isPending}
+                          className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-brand hover:bg-brand/10 transition-colors disabled:opacity-50"
+                        >
+                          <CheckCircle2 size={12} /> Marcar finalizada
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </motion.tr>
               ))}
@@ -279,7 +337,11 @@ export default function ProjectsPage() {
       </main>
 
       {/* Modal para Crear Obra */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("newProject")}>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={t("newProject")}
+      >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           <div>
             <label className="mb-1 block text-sm font-medium text-ink">
@@ -289,7 +351,9 @@ export default function ProjectsPage() {
               {...register("name")}
               className="w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
             />
-            {errors.name && <p className="mt-1 text-xs text-critical">Mínimo 3 caracteres</p>}
+            {errors.name && (
+              <p className="mt-1 text-xs text-critical">Mínimo 3 caracteres</p>
+            )}
           </div>
 
           <div>
