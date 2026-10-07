@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Search, Plus, Camera, Play, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Camera, Play, CheckCircle2, Loader2 } from "lucide-react";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -38,29 +38,28 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const STATUS_CLASS: Record<Project["status"], string> = {
-  PLANNED: "bg-surface-2 text-ink-muted",
-  IN_PROGRESS: "bg-success/15 text-success",
-  SUSPENDED: "bg-warning/15 text-warning",
-  FINISHED: "bg-brand/15 text-brand",
+  PLANNED: "bg-surface-2 text-ink-muted border border-line",
+  IN_PROGRESS: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
+  SUSPENDED: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
+  FINISHED: "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
 };
 
 function progressColor(pct: number) {
-  if (pct >= 75) return "bg-success";
-  if (pct >= 40) return "bg-brand";
-  return "bg-warning";
+  if (pct >= 75) return "bg-emerald-500";
+  if (pct >= 40) return "bg-accent";
+  return "bg-amber-500";
 }
 
 export default function ProjectsPage() {
   const t = useTranslations("projects");
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Estados para el Modal de Subir Evidencia Fotográfica
+  // Modal Evidencia
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [evidenceDescription, setEvidenceDescription] = useState("");
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
@@ -104,13 +103,24 @@ export default function ProjectsPage() {
     [projects]
   );
 
+  async function handleStatusChange(projectId: string, newStatus: Project["status"]) {
+    try {
+      await updateProject.mutateAsync({
+        id: projectId,
+        input: { status: newStatus },
+      });
+    } catch (err) {
+      console.error("Error al actualizar el estado:", err);
+      alert("Asegúrate de estar autenticado como Administrador para realizar esta acción.");
+    }
+  }
+
   async function onSubmit(values: FormValues) {
     await createProject.mutateAsync(values);
     reset();
     setModalOpen(false);
   }
 
-  // Manejo de subida de evidencias fotográficas mediante FormData
   async function handleEvidenceSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedProjectId || !evidenceFile) {
@@ -156,7 +166,7 @@ export default function ProjectsPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
               {t("inProgress")}
             </p>
-            <p className="font-mono-data text-2xl font-semibold text-success">
+            <p className="font-mono-data text-2xl font-semibold text-emerald-400">
               {totals.inProgress}
             </p>
           </div>
@@ -170,7 +180,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Filtros de Búsqueda y Botón de Nueva Obra */}
+        {/* Filtros */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
             <div className="flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2">
@@ -197,13 +207,13 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 transition-colors shadow-sm"
           >
             <Plus size={15} /> {t("newProject")}
           </button>
         </div>
 
-        {/* Tabla Rica de Proyectos */}
+        {/* Tabla */}
         <div className="overflow-x-auto rounded-xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead className="bg-surface-2 text-xs uppercase tracking-wide text-ink-muted">
@@ -252,7 +262,7 @@ export default function ProjectsPage() {
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{p.municipality}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-ink">
+                    <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-ink border border-line">
                       {t(`types.${p.type}`)}
                     </span>
                   </td>
@@ -276,7 +286,7 @@ export default function ProjectsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                         STATUS_CLASS[p.status]
                       }`}
                     >
@@ -287,11 +297,11 @@ export default function ProjectsPage() {
                     {p.responsible?.name ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-2.5">
                       <button
                         type="button"
                         onClick={() => openEvidenceModal(p.id)}
-                        className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-ink hover:bg-surface hover:text-accent transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface hover:text-accent transition-colors"
                       >
                         <Camera size={13} /> Evidencia
                       </button>
@@ -299,32 +309,32 @@ export default function ProjectsPage() {
                       {p.status === "PLANNED" && (
                         <button
                           type="button"
-                          onClick={() =>
-                            updateProject.mutate({
-                              id: p.id,
-                              input: { status: "IN_PROGRESS" } as unknown as Parameters<typeof updateProject.mutate>[0]["input"],
-                            })
-                          }
+                          onClick={() => handleStatusChange(p.id, "IN_PROGRESS")}
                           disabled={updateProject.isPending}
-                          className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-success hover:bg-success/10 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-sm"
                         >
-                          <Play size={12} /> Marcar en curso
+                          {updateProject.isPending ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Play size={13} />
+                          )}
+                          Marcar en curso
                         </button>
                       )}
 
                       {p.status === "IN_PROGRESS" && (
                         <button
                           type="button"
-                          onClick={() =>
-                            updateProject.mutate({
-                              id: p.id,
-                              input: { status: "FINISHED" } as unknown as Parameters<typeof updateProject.mutate>[0]["input"],
-                            })
-                          }
+                          onClick={() => handleStatusChange(p.id, "FINISHED")}
                           disabled={updateProject.isPending}
-                          className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-1 text-xs text-brand hover:bg-brand/10 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-sm"
                         >
-                          <CheckCircle2 size={12} /> Marcar finalizada
+                          {updateProject.isPending ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <CheckCircle2 size={13} />
+                          )}
+                          Marcar finalizada
                         </button>
                       )}
                     </div>
@@ -336,7 +346,7 @@ export default function ProjectsPage() {
         </div>
       </main>
 
-      {/* Modal para Crear Obra */}
+      {/* Modal Crear Obra */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -444,7 +454,7 @@ export default function ProjectsPage() {
         </form>
       </Modal>
 
-      {/* Modal para Subir Evidencia Fotográfica */}
+      {/* Modal Evidencia */}
       <Modal
         open={evidenceModalOpen}
         onClose={() => setEvidenceModalOpen(false)}

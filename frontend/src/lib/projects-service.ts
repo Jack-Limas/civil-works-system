@@ -19,6 +19,7 @@ export interface CreateProjectInput {
   estimatedEndDate: string;
   budget: number;
   responsibleId: string;
+  status?: "PLANNED" | "IN_PROGRESS" | "SUSPENDED" | "FINISHED";
 }
 
 export const {
