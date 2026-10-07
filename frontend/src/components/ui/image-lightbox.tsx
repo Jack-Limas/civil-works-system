@@ -10,7 +10,11 @@ interface ImageLightboxProps {
   thumbClassName?: string;
 }
 
-export function ImageLightbox({ src, alt, thumbClassName = "" }: ImageLightboxProps) {
+export function ImageLightbox({
+  src,
+  alt,
+  thumbClassName = "",
+}: ImageLightboxProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,6 +23,7 @@ export function ImageLightbox({ src, alt, thumbClassName = "" }: ImageLightboxPr
       <img
         src={src}
         alt={alt}
+        crossOrigin="anonymous"
         onClick={() => setOpen(true)}
         className={`cursor-zoom-in object-cover transition-opacity hover:opacity-90 ${thumbClassName}`}
       />
@@ -41,6 +46,7 @@ export function ImageLightbox({ src, alt, thumbClassName = "" }: ImageLightboxPr
               <X size={24} />
             </button>
             <motion.img
+              crossOrigin="anonymous"
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
