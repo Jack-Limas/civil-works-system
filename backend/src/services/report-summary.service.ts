@@ -10,6 +10,9 @@ const lastRequestByUser = new Map<string, number>();
 /** Rows sent to the model are capped to keep the prompt small and fast. */
 const MAX_ROWS_IN_PROMPT = 25;
 
+const MAX_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 1500;
+
 const LANGUAGE_NAME = { es: "español", en: "English" } as const;
 
 function systemInstruction(locale: "es" | "en") {
@@ -51,17 +54,26 @@ export const reportSummaryService = {
       series: undefined,
     };
 
-    try {
-      const response = await geminiClient.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: `Report (${input.type}):\n${JSON.stringify(compact)}`,
-        config: { systemInstruction: systemInstruction(input.locale) },
-      });
-      const text = response.text?.trim();
-      if (!text) throw new Error("Empty response");
-      return { summary: text, model: GEMINI_MODEL, basedOn: meta };
-    } catch {
-      throw new AppError(502, "The AI summary is unavailable right now");
+    // Gemini sometimes answers 503 "high demand": retry once after a short pause
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const response = await geminiClient.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: `Report (${input.type}):
+${JSON.stringify(compact)}`,
+          config: { systemInstruction: systemInstruction(input.locale) },
+        });
+        const text = response.text?.trim();
+        if (!text) throw new Error("Empty response");
+        return { summary: text, model: GEMINI_MODEL, basedOn: meta };
+      } catch (error) {
+        console.warn(
+          `[reportSummary] Gemini attempt ${attempt}/${MAX_ATTEMPTS} failed:`,
+          error instanceof Error ? error.message.slice(0, 300) : error
+        );
+        if (attempt < MAX_ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      }
     }
+    throw new AppError(502, "The AI summary is unavailable right now");
   },
 };
