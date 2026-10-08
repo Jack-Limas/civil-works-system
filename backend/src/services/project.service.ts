@@ -42,8 +42,24 @@ export const projectService = {
     return projectRepository.update(id, data);
   },
 
+  /**
+   * Deleting cascades to expenses, activities, evidence, alerts... and would
+   * silently erase the project's accounting. Projects with any recorded data
+   * must be SUSPENDED or FINISHED instead.
+   */
   async remove(id: string, requester: RequestUser) {
     await projectAccess.assert(requester, id);
+
+    const dependents = await projectRepository.countDependents(id);
+    const blocking = Object.entries(dependents).filter(([, count]) => count > 0);
+    if (blocking.length > 0) {
+      const detail = blocking.map(([name, count]) => `${count} ${name}`).join(", ");
+      throw new AppError(
+        409,
+        `Project has recorded data (${detail}) and cannot be deleted; suspend or finish it instead`
+      );
+    }
+
     return projectRepository.delete(id);
   },
 };

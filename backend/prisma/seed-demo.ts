@@ -18,16 +18,19 @@ import bcrypt from "bcrypt";
 import {
   ExpenseCategory,
   IncidentType,
+  MaterialCategory,
   PaymentMethod,
   Prisma,
   Priority,
   ProjectStatus,
   ProjectType,
+  Weather,
 } from "@prisma/client";
 import { prisma } from "../src/config/prisma";
 import { alertService } from "../src/services/alert.service";
 import { riskContextService } from "../src/services/risk-context.service";
 import { RuleBasedRiskStrategy } from "../src/strategies/risk/rule-based-risk.strategy";
+import { businessDateKey, dateKeyToDbDate } from "../src/utils/business-time";
 
 const DEMO_PASSWORD = "Demo1234!";
 const ADMIN_EMAIL = "admin@civilworks.com";
@@ -109,20 +112,52 @@ const SUPPLIERS: Array<{ key: string; name: string; nit: string; category: Expen
   { key: "s-10", name: "Maderas y Formaletas Ipiales", nit: "901667788-1", category: "MATERIALS", phone: "602 7732290" },
 ];
 
-const MATERIALS: Array<{ key: string; name: string; unit: string; available: number; minimum: number }> = [
-  { key: "m-1", name: "Cemento gris 50 kg", unit: "bultos", available: 340, minimum: 150 },
-  { key: "m-2", name: "Varilla corrugada 1/2\"", unit: "unidades", available: 85, minimum: 120 },
-  { key: "m-3", name: "Arena de río", unit: "m³", available: 42, minimum: 20 },
-  { key: "m-4", name: "Grava triturada 3/4\"", unit: "m³", available: 12, minimum: 25 },
-  { key: "m-5", name: "Ladrillo tolete", unit: "unidades", available: 6800, minimum: 3000 },
-  { key: "m-6", name: "Malla electrosoldada", unit: "láminas", available: 18, minimum: 30 },
-  { key: "m-7", name: "Tubería PVC sanitaria 4\"", unit: "tubos", available: 64, minimum: 40 },
-  { key: "m-8", name: "Cable THHN #12", unit: "rollos", available: 9, minimum: 15 },
-  { key: "m-9", name: "Teja termoacústica", unit: "unidades", available: 110, minimum: 60 },
-  { key: "m-10", name: "Pintura tipo 1 blanca", unit: "galones", available: 75, minimum: 30 },
-  { key: "m-11", name: "Asfalto MDC-19", unit: "toneladas", available: 26, minimum: 40 },
-  { key: "m-12", name: "Formaleta metálica", unit: "unidades", available: 140, minimum: 80 },
+/**
+ * Inventory demo. `final` is today's stock and `daily` the average consumption
+ * of the last 30 days, chosen so the rule engine shows every status:
+ * OUT (grava, cable), CRITICAL (varilla, malla, asfalto), WARNING (arena, PVC, pintura), OK (rest).
+ * `projects` are the demo projects that consume it.
+ */
+const MATERIALS: Array<{
+  key: string;
+  name: string;
+  unit: string;
+  category: MaterialCategory;
+  unitCost: number;
+  minimum: number;
+  final: number;
+  daily: number;
+  decimals: boolean;
+  projects: string[];
+}> = [
+  { key: "m-1", name: "Cemento gris 50 kg", unit: "bultos", category: "CEMENT_CONCRETE", unitCost: 32_500, minimum: 150, final: 340, daily: 12, decimals: false, projects: ["p-edificio", "p-colegio", "p-puente"] },
+  { key: "m-2", name: "Varilla corrugada 1/2\"", unit: "unidades", category: "STEEL", unitCost: 28_900, minimum: 120, final: 85, daily: 6, decimals: false, projects: ["p-edificio", "p-puente"] },
+  { key: "m-3", name: "Arena de río", unit: "m³", category: "AGGREGATES", unitCost: 95_000, minimum: 20, final: 42, daily: 3.5, decimals: true, projects: ["p-edificio", "p-colegio", "p-via"] },
+  { key: "m-4", name: "Grava triturada 3/4\"", unit: "m³", category: "AGGREGATES", unitCost: 110_000, minimum: 25, final: 0, daily: 2.5, decimals: true, projects: ["p-via", "p-puente"] },
+  { key: "m-5", name: "Ladrillo tolete", unit: "unidades", category: "MASONRY", unitCost: 850, minimum: 3000, final: 6800, daily: 260, decimals: false, projects: ["p-edificio", "p-colegio"] },
+  { key: "m-6", name: "Malla electrosoldada", unit: "láminas", category: "STEEL", unitCost: 215_000, minimum: 30, final: 18, daily: 1.2, decimals: false, projects: ["p-edificio", "p-colegio"] },
+  { key: "m-7", name: "Tubería PVC sanitaria 4\"", unit: "tubos", category: "PLUMBING", unitCost: 62_000, minimum: 40, final: 64, daily: 5, decimals: false, projects: ["p-edificio", "p-colegio"] },
+  { key: "m-8", name: "Cable THHN #12", unit: "rollos", category: "ELECTRICAL", unitCost: 245_000, minimum: 15, final: 0, daily: 0.6, decimals: false, projects: ["p-edificio", "p-colegio"] },
+  { key: "m-9", name: "Teja termoacústica", unit: "unidades", category: "FINISHES", unitCost: 89_000, minimum: 60, final: 110, daily: 2, decimals: false, projects: ["p-colegio"] },
+  { key: "m-10", name: "Pintura tipo 1 blanca", unit: "galones", category: "FINISHES", unitCost: 68_000, minimum: 30, final: 75, daily: 6, decimals: false, projects: ["p-edificio", "p-colegio", "p-puente"] },
+  { key: "m-11", name: "Asfalto MDC-19", unit: "toneladas", category: "OTHER", unitCost: 420_000, minimum: 40, final: 26, daily: 4, decimals: true, projects: ["p-via"] },
+  // Reusable formwork: no consumption, so coverage is "—" and status OK
+  { key: "m-12", name: "Formaleta metálica", unit: "unidades", category: "TOOLS_EQUIPMENT", unitCost: 145_000, minimum: 80, final: 140, daily: 0, decimals: false, projects: [] },
 ];
+
+/** Which demo supplier sells each material category (inventory entries). */
+const SUPPLIER_BY_MATERIAL: Record<MaterialCategory, string> = {
+  CEMENT_CONCRETE: "s-2",
+  AGGREGATES: "s-2",
+  STEEL: "s-3",
+  MASONRY: "s-1",
+  WOOD: "s-10",
+  ELECTRICAL: "s-8",
+  PLUMBING: "s-1",
+  FINISHES: "s-1",
+  TOOLS_EQUIPMENT: "s-10",
+  OTHER: "s-2",
+};
 
 const EXPENSE_TEXT: Record<ExpenseCategory, string[]> = {
   MATERIALS: ["Compra de cemento gris", "Varilla corrugada y alambre", "Arena y grava para concreto", "Ladrillo y mortero", "Tubería y accesorios PVC", "Material eléctrico"],
@@ -186,6 +221,7 @@ async function countRealRows() {
     refreshTokens: await prisma.refreshToken.count({ where: { userId: notIn(ids.users) } }),
     suppliers: await prisma.supplier.count({ where: { id: notIn(ids.suppliers) } }),
     fundTransfers: await prisma.fundTransfer.count({ where: { residentId: notIn(ids.users) } }),
+    fieldReports: await prisma.fieldReport.count({ where: { NOT: demoProject } }),
   };
 }
 
@@ -201,6 +237,8 @@ function assertSame(before: Record<string, number>, after: Record<string, number
 async function clean() {
   const demoProject = { projectId: { in: ids.projects } };
   await prisma.$transaction([
+    // Field reports reference projects and users with RESTRICT: remove them first
+    prisma.fieldReport.deleteMany({ where: { OR: [demoProject, { authorId: { in: ids.users } }] } }),
     prisma.fundTransfer.deleteMany({ where: { residentId: { in: ids.users } } }),
     prisma.inventoryMovement.deleteMany({ where: { materialId: { in: ids.materials } } }),
     prisma.expense.deleteMany({ where: demoProject }),
@@ -212,6 +250,257 @@ async function clean() {
     prisma.refreshToken.deleteMany({ where: { userId: { in: ids.users } } }),
     prisma.user.deleteMany({ where: { id: { in: ids.users } } }),
   ]);
+}
+
+// ---------- inventory ledger ----------
+
+const HISTORY_DAYS = 60;
+/** Separate PRNG streams keep the older demo data identical between versions of this script. */
+const invRand = prng(20261008);
+const invBetween = (min: number, max: number) => min + invRand() * (max - min);
+const projectByKey = new Map(PROJECTS.map((p) => [p.key, p]));
+
+/** `n` days ago at a working hour in Bogotá (07:00–16:59 = 12:00–21:59 UTC). */
+function workTime(n: number, hour?: number): Date {
+  const d = daysAgo(n);
+  d.setUTCHours(hour ?? 12 + Math.floor(invRand() * 10), Math.floor(invRand() * 60), 0, 0);
+  return d;
+}
+
+const OUT_NOTES = ["Despacho a obra", "Consumo en frente de trabajo", "Entrega a cuadrilla", "Salida para fundición"];
+
+interface LinkedEntry {
+  /** which entry (0 = initial purchase) is paid by the linked expense */
+  restock: number;
+  projectKey: string;
+  byResident: boolean;
+  rejected?: { reason: string };
+}
+
+/** Some entries come from material expenses: the expense says how the stock was paid. */
+const LINKED: Record<string, LinkedEntry> = {
+  "m-1": { restock: 2, projectKey: "p-edificio", byResident: false },
+  "m-5": { restock: 1, projectKey: "p-colegio", byResident: false },
+  "m-7": { restock: 2, projectKey: "p-edificio", byResident: true },
+  // Rejected invoice whose material did reach the warehouse: shows the ledger warning
+  "m-3": { restock: 1, projectKey: "p-via", byResident: true, rejected: { reason: "Factura duplicada: el proveedor ya la había cobrado en una compra anterior." } },
+};
+
+function buildInventory(adminId: string) {
+  const movements: Prisma.InventoryMovementCreateManyInput[] = [];
+  const expenses: Prisma.ExpenseCreateManyInput[] = [];
+
+  for (const m of MATERIALS) {
+    const materialId = demoId(m.key);
+    const round = (q: number) => (m.decimals ? Math.round(q * 10) / 10 : Math.round(q));
+
+    // Consumption: an OUT every 1–3 days (every 3–5 for slow movers) until 2 days ago
+    const outs: Array<{ day: number; qty: number; projectKey: string }> = [];
+    if (m.daily > 0) {
+      let day = HISTORY_DAYS - 3;
+      while (day >= 2) {
+        const gap = m.daily < 1 ? 3 + Math.floor(invRand() * 3) : 1 + Math.floor(invRand() * 3);
+        const qty = Math.max(m.decimals ? 0.5 : 1, round(m.daily * gap * invBetween(0.75, 1.25)));
+        outs.push({ day, qty, projectKey: m.projects[Math.floor(invRand() * m.projects.length)] });
+        day -= gap;
+      }
+    }
+    const totalOut = outs.reduce((sum, o) => sum + o.qty, 0);
+
+    // Entries: initial purchase + restocks; the last one closes the books exactly at today's stock
+    const inDays = m.daily > 0 ? [HISTORY_DAYS, 38, 16] : [HISTORY_DAYS];
+    const totalIn = m.final + totalOut;
+    const amounts = inDays.length === 1 ? [totalIn] : [round(totalIn * 0.45), round(totalIn * 0.3)];
+    if (inDays.length > 1) amounts.push(round(totalIn - amounts[0] - amounts[1]));
+
+    // Never let the running stock go negative: move the shortfall to the earlier entry
+    for (let k = 0; k < inDays.length - 1; k++) {
+      let running =
+        amounts.slice(0, k + 1).reduce((a, b) => a + b, 0) - outs.filter((o) => o.day > inDays[k]).reduce((a, o) => a + o.qty, 0);
+      let lowest = running;
+      for (const o of outs.filter((x) => x.day <= inDays[k] && x.day > inDays[k + 1])) {
+        running -= o.qty;
+        lowest = Math.min(lowest, running);
+      }
+      if (lowest < 0) {
+        const deficit = round(-lowest + m.daily * 2);
+        amounts[k] = round(amounts[k] + deficit);
+        amounts[inDays.length - 1] = round(amounts[inDays.length - 1] - deficit);
+      }
+    }
+    if (amounts.some((a) => a <= 0)) throw new Error(`Demo inventory for ${m.name} could not be balanced`);
+
+    const linked = LINKED[m.key];
+    inDays.forEach((day, k) => {
+      const quantity = amounts[k];
+      const date = workTime(day, 13);
+      // Prices drift a little over time; the latest entry sets the "last known cost"
+      const listCost = Math.round(m.unitCost * (k === inDays.length - 1 ? 1 : 0.96));
+      let expenseId: string | null = null;
+      let registeredById = adminId;
+      let projectId: string | null = null;
+      let unitCost = listCost;
+
+      if (linked && linked.restock === k) {
+        const project = projectByKey.get(linked.projectKey)!;
+        const amount = cop(quantity * listCost);
+        expenseId = demoId(`${m.key}-inventory-expense-${k}`);
+        projectId = demoId(project.key);
+        registeredById = linked.byResident ? ids.users[project.resident] : adminId;
+        // Same rule as the API: the unit cost of a linked entry comes from the expense
+        unitCost = Math.round(amount / quantity);
+        expenses.push({
+          id: expenseId,
+          projectId,
+          category: "MATERIALS",
+          amount,
+          date,
+          description: `Compra de ${m.name.toLowerCase()} (${quantity} ${m.unit})`,
+          supplierId: demoId(SUPPLIER_BY_MATERIAL[m.category]),
+          paymentMethod: linked.byResident ? "CASH" : "TRANSFER",
+          invoiceNumber: `FE-${20000 + day * 7 + k}`,
+          registeredById,
+          status: linked.rejected ? "REJECTED" : "APPROVED",
+          reviewedById: adminId,
+          reviewedAt: workTime(Math.max(1, day - 1), 15),
+          rejectionReason: linked.rejected?.reason ?? null,
+        });
+      }
+
+      movements.push({
+        id: demoId(`${m.key}-in-${k}`),
+        materialId,
+        projectId,
+        type: "IN",
+        quantity,
+        date,
+        createdAt: date,
+        notes: k === 0 ? "Compra inicial de inventario" : "Reposición de inventario",
+        registeredById,
+        expenseId,
+        supplierId: demoId(SUPPLIER_BY_MATERIAL[m.category]),
+        unitCost: new Prisma.Decimal(unitCost),
+      });
+    });
+
+    outs.forEach((o, i) => {
+      const project = projectByKey.get(o.projectKey)!;
+      const date = workTime(o.day);
+      movements.push({
+        id: demoId(`${m.key}-out-${i}`),
+        materialId,
+        projectId: demoId(project.key),
+        type: "OUT",
+        quantity: o.qty,
+        date,
+        createdAt: date,
+        notes: OUT_NOTES[i % OUT_NOTES.length],
+        registeredById: ids.users[project.resident],
+      });
+    });
+  }
+
+  return { movements, expenses };
+}
+
+// ---------- daily site logs ----------
+
+const logRand = prng(20261009);
+const logPick = <T>(items: readonly T[]) => items[Math.floor(logRand() * items.length)];
+
+const LOG_WORK: Record<string, string[]> = {
+  "p-edificio": [
+    "Fundición de placa del piso 5, sector norte.",
+    "Mampostería en ejes B y C del piso 4.",
+    "Armado de acero de columnas del piso 6.",
+    "Instalación de tubería sanitaria en baños del piso 3.",
+    "Pañetes interiores en apartamentos 301 a 304.",
+  ],
+  "p-via": [
+    "Extendido y compactación de base granular entre K3+200 y K3+350.",
+    "Imprimación y riego de liga en el carril derecho.",
+    "Colocación de mezcla asfáltica MDC-19 en 120 m de calzada.",
+    "Construcción de cunetas en concreto, margen izquierda.",
+    "Señalización provisional y manejo de tráfico en el tramo.",
+  ],
+  "p-puente": [
+    "Fundición del estribo occidental.",
+    "Montaje de vigas metálicas del tramo central.",
+    "Armado de acero del tablero.",
+    "Pintura anticorrosiva de barandas.",
+    "Relleno y compactación de accesos.",
+  ],
+  "p-colegio": [
+    "Mampostería de aulas del segundo piso.",
+    "Instalación de cubierta termoacústica en el bloque B.",
+    "Fundición de vigas de amarre.",
+    "Cableado eléctrico de aulas 201 a 204.",
+    "Enchape de baterías sanitarias.",
+  ],
+};
+const LOG_WORKERS: Record<string, number> = { "p-edificio": 18, "p-via": 22, "p-puente": 12, "p-colegio": 14 };
+const WEATHER_ISSUES: Partial<Record<Weather, string[]>> = {
+  RAINY: ["Lluvia en la tarde detuvo la fundición durante dos horas.", "Lluvia intermitente; se cubrió el concreto fresco con plástico."],
+  STORMY: ["Tormenta eléctrica: se suspendieron los trabajos en altura por seguridad."],
+};
+const OTHER_ISSUES = [
+  "Retraso de tres horas en la entrega de concreto premezclado.",
+  "Faltaron dos ayudantes por incapacidad médica.",
+  "Se requiere reposición de varilla para la próxima semana.",
+];
+const REVIEW_NOTES = [
+  "Bien documentado.",
+  "Adjuntar fotos de la fundición en el próximo reporte.",
+  "Revisar el consumo de cemento frente a lo programado.",
+  "Coordinar con interventoría la visita del viernes.",
+];
+
+function pickWeather(): Weather {
+  const r = logRand();
+  return r < 0.3 ? "SUNNY" : r < 0.65 ? "CLOUDY" : r < 0.92 ? "RAINY" : "STORMY";
+}
+
+/**
+ * 15–20 logs per active demo project over the last weeks (no Sundays and no
+ * "today", so a resident can try the "today's report" flow). Recent ones wait
+ * for review; older ones are mostly reviewed.
+ */
+function buildFieldReports(adminId: string): Prisma.FieldReportCreateManyInput[] {
+  const reports: Prisma.FieldReportCreateManyInput[] = [];
+  for (const p of PROJECTS.filter((x) => x.status === "IN_PROGRESS")) {
+    const target = 15 + Math.floor(logRand() * 6);
+    let created = 0;
+    for (let n = 1; n <= 40 && created < target; n++) {
+      const key = businessDateKey(daysAgo(n));
+      if (new Date(`${key}T12:00:00Z`).getUTCDay() === 0 || logRand() < 0.1) continue;
+      const weather = pickWeather();
+      const work = LOG_WORK[p.key];
+      const first = logPick(work);
+      const second = logPick(work.filter((w) => w !== first));
+      const weatherIssue = WEATHER_ISSUES[weather];
+      const issues = weatherIssue ? logPick(weatherIssue) : logRand() < 0.25 ? logPick(OTHER_ISSUES) : null;
+      const reviewed = n > 3 && logRand() > 0.12;
+      // Sent at 17:30 Bogotá time of that day
+      const createdAt = new Date(`${key}T22:30:00Z`);
+      reports.push({
+        id: demoId(`${p.key}-log-${key}`),
+        projectId: demoId(p.key),
+        authorId: ids.users[p.resident],
+        date: dateKeyToDbDate(key),
+        weather,
+        workersOnSite: Math.max(3, LOG_WORKERS[p.key] + Math.round((logRand() - 0.5) * 8) - (weather === "STORMY" ? 6 : 0)),
+        summary: `${first} ${second}`,
+        issues,
+        status: reviewed ? "REVIEWED" : "SUBMITTED",
+        reviewedById: reviewed ? adminId : null,
+        reviewedAt: reviewed ? new Date(createdAt.getTime() + 16 * 3_600_000) : null,
+        reviewNote: reviewed && logRand() < 0.4 ? logPick(REVIEW_NOTES) : null,
+        createdAt,
+      });
+      created++;
+    }
+  }
+  return reports;
 }
 
 // ---------- seed ----------
@@ -227,7 +516,7 @@ async function seed(adminId: string) {
   });
 
   await prisma.material.createMany({
-    data: MATERIALS.map((m) => ({ id: demoId(m.key), name: m.name, unit: m.unit, stockAvailable: m.available, stockMinimum: m.minimum })),
+    data: MATERIALS.map((m) => ({ id: demoId(m.key), name: m.name, unit: m.unit, category: m.category, stockAvailable: m.final, stockMinimum: m.minimum })),
   });
 
   await prisma.project.createMany({
@@ -424,26 +713,10 @@ async function seed(adminId: string) {
     });
   }
 
-  // Inventory movements for demo materials
-  for (const [mi, m] of MATERIALS.entries()) {
-    movements.push({
-      id: demoId(`${m.key}-in`),
-      materialId: demoId(m.key),
-      type: "IN",
-      quantity: Math.round(m.available * 1.6),
-      date: daysAgo(60 + mi),
-      notes: "Compra inicial de inventario",
-    });
-    movements.push({
-      id: demoId(`${m.key}-out`),
-      materialId: demoId(m.key),
-      projectId: ids.projects[mi % 5],
-      type: "OUT",
-      quantity: Math.round(m.available * 0.6),
-      date: daysAgo(20 + mi),
-      notes: "Despacho a obra",
-    });
-  }
+  // Inventory ledger (60 days) consistent with today's stock, plus rejected-expense warning
+  const inventory = buildInventory(adminId);
+  expenses.push(...inventory.expenses);
+  movements.push(...inventory.movements);
 
   await prisma.activity.createMany({ data: activities });
   await prisma.incident.createMany({ data: incidents });
@@ -451,6 +724,8 @@ async function seed(adminId: string) {
   await prisma.fundTransfer.createMany({ data: transfers });
   await prisma.inventoryMovement.createMany({ data: movements });
   await prisma.worker.createMany({ data: workers });
+  const fieldReports = buildFieldReports(adminId);
+  await prisma.fieldReport.createMany({ data: fieldReports });
 
   // Rule-based predictions (no Gemini) and real alerts, demo projects only
   const strategy = new RuleBasedRiskStrategy();
@@ -475,6 +750,9 @@ async function seed(adminId: string) {
     activities: activities.length,
     incidents: incidents.length,
     materials: MATERIALS.length,
+    movements: movements.length,
+    linkedMovements: movements.filter((m) => m.expenseId).length,
+    fieldReports: fieldReports.length,
     suppliers: SUPPLIERS.length,
   };
 }

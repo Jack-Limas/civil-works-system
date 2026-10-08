@@ -20,6 +20,8 @@ import { userRoutes } from "./routes/user.routes";
 import { supplierRoutes } from "./routes/supplier.routes";
 import { cashRoutes } from "./routes/cash.routes";
 import { financeRoutes } from "./routes/finance.routes";
+import { reportRoutes } from "./routes/report.routes";
+import { fieldReportRoutes } from "./routes/field-report.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -39,6 +41,11 @@ async function main() {
 
   await app.register(authPlugin);
 
+  // Report endpoints send Server-Timing; this lets the frontend origin read it
+  app.addHook("onSend", async (_request, reply) => {
+    reply.header("Timing-Allow-Origin", env.FRONTEND_URL);
+  });
+
   // Global error handler. It must be set BEFORE registering the route plugins:
   // Fastify plugins capture the error handler of their parent at registration time.
   app.setErrorHandler((error, request, reply) => {
@@ -50,7 +57,7 @@ async function main() {
     }
 
     if (error instanceof AppError) {
-      return reply.code(error.statusCode).send({ error: error.message });
+      return reply.code(error.statusCode).send({ error: error.message, ...error.extra });
     }
 
     // Fastify/plugin client errors (malformed JSON, file too large, ...) keep their 4xx status
@@ -76,6 +83,8 @@ async function main() {
   await app.register(supplierRoutes);
   await app.register(cashRoutes);
   await app.register(financeRoutes);
+  await app.register(reportRoutes);
+  await app.register(fieldReportRoutes);
   await app.register(incidentRoutes);
   await app.register(evidenceRoutes);
   await app.register(alertRoutes);

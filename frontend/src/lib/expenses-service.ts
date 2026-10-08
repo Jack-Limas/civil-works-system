@@ -14,9 +14,9 @@ export interface BudgetIndicators {
   financialVsPhysicalGap: number;
 }
 
-/** Every cached view that depends on expenses (lists, summaries, balances, alerts). */
+/** Every cached view that depends on expenses (lists, summaries, balances, alerts, linked stock). */
 export function invalidateFinance(queryClient: ReturnType<typeof useQueryClient>) {
-  for (const key of ["expenses", "finance", "cash", "suppliers", "alerts", "dashboard"]) {
+  for (const key of ["expenses", "finance", "cash", "suppliers", "alerts", "dashboard", "materials"]) {
     queryClient.invalidateQueries({ queryKey: [key] });
   }
 }

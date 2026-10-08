@@ -18,6 +18,27 @@ export const createExpenseSchema = z.object({
   supplierId: optional(z.string().uuid()),
   paymentMethod: optional(z.enum(PAYMENT_METHODS)),
   invoiceNumber: optional(z.string().trim().max(60)),
+  /**
+   * Optional stock entry created in the same transaction (MATERIALS only).
+   * Multipart forms send it as a JSON string.
+   */
+  inventoryEntry: optional(
+    z.preprocess(
+      (v) => {
+        if (typeof v !== "string") return v;
+        try {
+          return JSON.parse(v);
+        } catch {
+          return v;
+        }
+      },
+      z.object({
+        materialId: z.string().uuid(),
+        quantity: z.coerce.number().positive().max(1_000_000_000),
+        unitCost: optional(z.coerce.number().positive().max(999_999_999_999)),
+      })
+    )
+  ),
   // registeredById, status and review fields are NOT accepted from clients
 });
 

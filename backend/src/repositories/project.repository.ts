@@ -36,6 +36,29 @@ export const projectRepository = {
     return prisma.project.update({ where: { id }, data });
   },
 
+  findNamesByIds(ids: string[]) {
+    return prisma.project.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, responsibleId: true },
+    });
+  },
+
+  /**
+   * Records that would be lost (cascade) or orphaned if the project were deleted.
+   * Used to refuse deleting projects that already carry accounting or field data.
+   */
+  async countDependents(id: string) {
+    const [expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports] = await Promise.all([
+      prisma.expense.count({ where: { projectId: id } }),
+      prisma.activity.count({ where: { projectId: id } }),
+      prisma.evidence.count({ where: { projectId: id } }),
+      prisma.inventoryMovement.count({ where: { projectId: id } }),
+      prisma.fundTransfer.count({ where: { projectId: id } }),
+      prisma.fieldReport.count({ where: { projectId: id } }),
+    ]);
+    return { expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports };
+  },
+
   delete(id: string) {
     return prisma.project.delete({ where: { id } });
   },

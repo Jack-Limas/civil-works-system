@@ -60,12 +60,13 @@
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
-    "materials": "Materials",
+    "materials": "Inventory",
     "workers": "Workers",
     "expenses": "Costs",
     "incidents": "Incidents",
     "alerts": "Alerts",
-    "users": "Users"
+    "users": "Users",
+    "reports": "Reports"
   },
   "dashboard": {
     "title": "Overview",
@@ -836,7 +837,13 @@
   "csv": {
     "expenses": "expenses",
     "suppliers": "suppliers",
-    "cashflow": "cash-flow"
+    "cashflow": "cash-flow",
+    "inventory": "inventory",
+    "movements": "movements",
+    "progress": "progress-report",
+    "financial": "financial-report",
+    "materials": "materials-report",
+    "incidents": "incidents-report"
   },
   "landing": {
     "nav": {
@@ -905,6 +912,445 @@
     "footer": {
       "rights": "© {year} ObraIQ. Academic project — Universidad Cooperativa de Colombia.",
       "made": "Made in Nariño, Colombia"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Central warehouse stock, consumption per project and supply alerts.",
+    "residentSubtitle": "Check available stock and record what you use on site.",
+    "tabs": {
+      "stock": "Inventory",
+      "movements": "Movements"
+    },
+    "moduleNav": "Inventory sections",
+    "newMaterial": "New material",
+    "editMaterial": "Edit material",
+    "registerMovement": "Register movement",
+    "registerEntry": "Register entry",
+    "registerConsumption": "Record consumption",
+    "kpis": {
+      "materials": "Items",
+      "materialsHint": "{count, plural, one {# without category} other {# without category}}",
+      "out": "Out of stock",
+      "outHint": "No stock left",
+      "critical": "Critical",
+      "criticalHint": "Below minimum or < 7 days",
+      "warning": "Warning",
+      "warningHint": "Coverage < 14 days",
+      "value": "Estimated value",
+      "valueHint": "{count, plural, one {# material with cost} other {# materials with cost}}",
+      "valueTooltip": "Estimate: stock × last known unit cost. Materials without a recorded cost are not included.",
+      "movements": "Movements this month",
+      "movementsHint": "Entries and withdrawals"
+    },
+    "critical": {
+      "title": "Critical materials",
+      "subtitle": "Sorted by coverage: the first ones run out sooner.",
+      "empty": "No material is critical. Supply looks good!",
+      "coverage": "Coverage",
+      "need": "30-day need",
+      "suggested": "Suggested purchase",
+      "stockOfMin": "{stock} of {min} {unit}",
+      "buy": "Register purchase"
+    },
+    "list": {
+      "title": "Stock overview",
+      "search": "Search material",
+      "allCategories": "All categories",
+      "noCategory": "No category",
+      "allStatuses": "All statuses",
+      "sort": {
+        "label": "Sort by",
+        "name": "Name",
+        "coverage": "Coverage",
+        "stock": "Stock",
+        "status": "Status"
+      },
+      "empty": "No materials match these filters.",
+      "emptyAll": "No materials registered yet.",
+      "export": "Export CSV"
+    },
+    "fields": {
+      "material": "Material",
+      "name": "Name",
+      "unit": "Unit",
+      "category": "Category",
+      "stock": "Stock",
+      "minimum": "Minimum stock",
+      "status": "Status",
+      "coverage": "Coverage",
+      "dailyConsumption": "Daily consumption",
+      "need": "30-day need",
+      "suggested": "Suggested purchase",
+      "lastMovement": "Last movement",
+      "lastCost": "Last cost",
+      "value": "Estimated value",
+      "actions": "Actions"
+    },
+    "coverageDays": "{days} days",
+    "noCoverage": "—",
+    "noCoverageHint": "No consumption in the last 30 days",
+    "categories": {
+      "CEMENT_CONCRETE": "Cement & concrete",
+      "STEEL": "Steel",
+      "AGGREGATES": "Aggregates",
+      "MASONRY": "Masonry",
+      "WOOD": "Wood",
+      "ELECTRICAL": "Electrical",
+      "PLUMBING": "Plumbing",
+      "FINISHES": "Finishes",
+      "TOOLS_EQUIPMENT": "Tools & equipment",
+      "OTHER": "Other"
+    },
+    "status": {
+      "OUT": "Out of stock",
+      "CRITICAL": "Critical",
+      "WARNING": "Warning",
+      "OK": "Healthy"
+    },
+    "movementType": {
+      "IN": "Entry",
+      "OUT": "Withdrawal"
+    },
+    "form": {
+      "namePlaceholder": "e.g. Grey cement 50 kg",
+      "unitPlaceholder": "e.g. bags, m³, rods",
+      "residentNote": "Only administrators set the category and minimum stock.",
+      "created": "Material created.",
+      "updated": "Material updated.",
+      "duplicate": "A material with this name already exists.",
+      "save": "Save material",
+      "nameError": "At least 2 characters",
+      "unitError": "Enter the unit",
+      "minError": "Must be 0 or more"
+    },
+    "movement": {
+      "title": "Register movement",
+      "consumptionTitle": "Record consumption",
+      "type": "Movement type",
+      "in": "Entry",
+      "out": "Withdrawal",
+      "inHint": "Material arrives at the warehouse",
+      "outHint": "Material leaves for a project",
+      "material": "Material",
+      "materialPlaceholder": "Search and pick a material",
+      "quantity": "Quantity",
+      "quantityIn": "Quantity ({unit})",
+      "project": "Project",
+      "projectOptional": "Project (optional)",
+      "supplier": "Supplier (optional)",
+      "unitCost": "Unit cost (COP, optional)",
+      "expense": "Linked materials expense (optional)",
+      "expensePlaceholder": "No linked expense",
+      "notes": "Note",
+      "notesPlaceholder": "e.g. Dispatch for slab pouring",
+      "available": "Available: {stock} {unit}",
+      "afterOut": "{stock} {unit} will remain",
+      "insufficient": "There is not enough stock for this withdrawal.",
+      "submit": "Register",
+      "submitConsumption": "Record consumption",
+      "saving": "Registering...",
+      "registered": "Movement registered.",
+      "belowMinimum": "{name} is now below its minimum stock ({stock} {unit}).",
+      "errors": {
+        "material": "Pick a material",
+        "quantity": "Enter a quantity greater than zero",
+        "project": "Pick the project"
+      }
+    },
+    "ledger": {
+      "title": "Movement ledger",
+      "subtitle": "Immutable record: corrections are made with a compensating movement.",
+      "allMaterials": "All materials",
+      "allProjects": "All projects",
+      "allTypes": "Entries and withdrawals",
+      "onlyWarnings": "Warnings only",
+      "empty": "No movements match these filters.",
+      "date": "Date",
+      "warning": "Rejected expense",
+      "warningHint": "The linked expense was rejected. If the material never arrived, register a compensating withdrawal.",
+      "registeredBy": "Registered by",
+      "linkedExpense": "Linked expense",
+      "noProject": "Warehouse",
+      "export": "Export CSV",
+      "unitCost": "Unit cost"
+    },
+    "detail": {
+      "back": "Back to inventory",
+      "notFound": "This material does not exist.",
+      "stockChart": "Stock evolution",
+      "range": {
+        "30": "30 days",
+        "90": "90 days"
+      },
+      "stockLine": "Stock",
+      "inBar": "Entries",
+      "outBar": "Withdrawals",
+      "byProject": "Consumption per project",
+      "byProjectEmpty": "No consumption recorded in the period.",
+      "unassigned": "No project: {quantity} {unit}",
+      "movements": "Latest movements",
+      "explain": "Rule-based status: coverage = stock ÷ average daily consumption over the last 30 days."
+    },
+    "resident": {
+      "searchPlaceholder": "Search the warehouse",
+      "recentTitle": "My recent movements",
+      "recentEmpty": "You have not recorded any consumption yet.",
+      "stockTitle": "Available stock",
+      "createInline": "Not listed? Create it",
+      "quickTip": "Record consumption as soon as the material leaves the warehouse."
+    },
+    "expenseEntry": {
+      "toggle": "Also register in inventory",
+      "hint": "Adds this purchase to the warehouse stock.",
+      "material": "Purchased material",
+      "quantity": "Quantity received",
+      "unitCostAuto": "Unit cost: {cost}"
+    }
+  },
+  "reports": {
+    "title": "Reports center",
+    "subtitle": "Reports computed on the server from your projects' data.",
+    "residentSubtitle": "Reports and daily log for your projects.",
+    "open": "Open report",
+    "types": {
+      "progress": {
+        "title": "Project progress",
+        "description": "Physical progress vs. schedule, activities and days remaining."
+      },
+      "financial": {
+        "title": "Financial",
+        "description": "Budget, approved spend, CPI and spend by category."
+      },
+      "materials": {
+        "title": "Material consumption",
+        "description": "Entries, withdrawals, consumption per project and critical materials."
+      },
+      "incidents": {
+        "title": "Incidents",
+        "description": "Incidents by type, priority and status in the period."
+      },
+      "daily": {
+        "title": "Daily log",
+        "description": "Daily field reports submitted by resident engineers."
+      }
+    },
+    "pendingLogs": "Logs awaiting review",
+    "pendingLogsEmpty": "No logs awaiting review.",
+    "seeAllLogs": "Open daily log",
+    "filters": {
+      "project": "Project",
+      "allProjects": "All projects",
+      "from": "From",
+      "to": "To",
+      "presets": {
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days"
+      },
+      "apply": "Apply"
+    },
+    "meta": "Generated in {ms} ms · {count, plural, one {# record} other {# records}}",
+    "metaBy": "Generated by {name} on {date}",
+    "period": "Period: {from} – {to}",
+    "export": "Export CSV",
+    "print": "Print / PDF",
+    "back": "Back to reports center",
+    "empty": "No data for this period.",
+    "ai": {
+      "title": "AI executive summary",
+      "button": "Generate AI summary",
+      "regenerate": "Generate again",
+      "loading": "Gemini is analyzing the report...",
+      "error": "The summary could not be generated. The AI is unavailable right now.",
+      "rateLimited": "Please wait a few seconds before requesting another summary.",
+      "retry": "Retry",
+      "disclaimer": "AI-generated text based on the report figures. Double-check before deciding.",
+      "hint": "Optional: key findings and one recommendation."
+    },
+    "printHeader": {
+      "generatedBy": "Generated by",
+      "generatedAt": "Generated on",
+      "period": "Period",
+      "project": "Project",
+      "allProjects": "All projects"
+    },
+    "progress": {
+      "kpis": {
+        "projects": "Projects",
+        "averageProgress": "Average progress",
+        "onTrack": "On track",
+        "delayed": "Delayed",
+        "activities": "Activities in period"
+      },
+      "chart": "Activities recorded per day",
+      "progressChart": "Actual vs. expected progress",
+      "real": "Actual",
+      "expected": "Expected",
+      "cols": {
+        "project": "Project",
+        "status": "Status",
+        "progress": "Progress",
+        "expected": "Expected",
+        "delay": "Deviation",
+        "gain": "Progress in period",
+        "activities": "Activities",
+        "lastActivity": "Last activity",
+        "daysRemaining": "Days remaining",
+        "responsible": "Responsible"
+      },
+      "onTrack": "On track",
+      "late": "Delayed",
+      "overdue": "Overdue"
+    },
+    "financial": {
+      "kpis": {
+        "budget": "Total budget",
+        "approved": "Approved spend",
+        "inPeriod": "Approved in period",
+        "pending": "Awaiting approval",
+        "cpi": "Overall CPI",
+        "overrun": "Projects over cost",
+        "transfers": "Transfers in period"
+      },
+      "chart": "Approved spend per day",
+      "byCategory": "Spend by category in the period",
+      "cols": {
+        "project": "Project",
+        "budget": "Budget",
+        "approved": "Approved",
+        "inPeriod": "In period",
+        "pending": "Pending",
+        "executed": "Executed",
+        "physical": "Physical progress",
+        "gap": "Gap",
+        "cpi": "CPI"
+      }
+    },
+    "materials": {
+      "kpis": {
+        "movements": "Movements",
+        "in": "Entries",
+        "out": "Withdrawals",
+        "materials": "Materials moved",
+        "critical": "Critical materials",
+        "warnings": "Warnings"
+      },
+      "chart": "Movements per day",
+      "byProject": "Consumption per project",
+      "cols": {
+        "material": "Material",
+        "category": "Category",
+        "in": "Entries",
+        "out": "Withdrawals",
+        "net": "Net",
+        "stock": "Current stock",
+        "status": "Status",
+        "coverage": "Coverage",
+        "project": "Project",
+        "outMovements": "Withdrawals",
+        "materialsCount": "Materials"
+      }
+    },
+    "incidents": {
+      "kpis": {
+        "total": "Incidents",
+        "open": "Open",
+        "inReview": "In review",
+        "resolved": "Resolved",
+        "high": "High priority"
+      },
+      "chart": "Incidents per day",
+      "byType": "Incidents by type",
+      "cols": {
+        "date": "Date",
+        "project": "Project",
+        "type": "Type",
+        "priority": "Priority",
+        "status": "Status",
+        "description": "Description"
+      }
+    },
+    "csvCurrency": "Currency: COP"
+  },
+  "fieldReports": {
+    "title": "Daily log",
+    "subtitle": "Field reports from resident engineers, with the automatic summary of the day.",
+    "myTitle": "My daily log",
+    "mySubtitle": "Your daily site report in under a minute.",
+    "today": "Today's report",
+    "todayDate": "Today, {date}",
+    "todayPending": "You have not sent today's report yet",
+    "todaySent": "Today's report sent",
+    "todayAction": "Write today's report",
+    "todayEdit": "View or edit",
+    "chooseProject": "Pick the project",
+    "history": "History",
+    "historyEmpty": "No reports sent yet.",
+    "empty": "No logs match these filters.",
+    "pendingCount": "{count, plural, =0 {Nothing to review} one {# to review} other {# to review}}",
+    "status": {
+      "SUBMITTED": "To review",
+      "REVIEWED": "Reviewed"
+    },
+    "allStatuses": "All statuses",
+    "weather": {
+      "label": "Weather",
+      "SUNNY": "Sunny",
+      "CLOUDY": "Cloudy",
+      "RAINY": "Rainy",
+      "STORMY": "Storm"
+    },
+    "fields": {
+      "date": "Date",
+      "project": "Project",
+      "author": "Resident",
+      "weather": "Weather",
+      "workers": "Crew on site",
+      "summary": "Summary of the day",
+      "issues": "Observations and issues",
+      "status": "Status"
+    },
+    "workersCount": "{count, plural, one {# person} other {# people}}",
+    "form": {
+      "title": "Report for {date}",
+      "newTitle": "New daily report",
+      "compiled": "What you already recorded today",
+      "compiledHint": "The system adds it to the report automatically.",
+      "nothingCompiled": "No activities, photos, consumption or expenses were recorded on this project today.",
+      "summaryPlaceholder": "e.g. Third-floor slab poured, masonry advanced on axis B...",
+      "issuesPlaceholder": "e.g. Ran out of sand in the afternoon; rain stopped work for 2 hours.",
+      "decrease": "Fewer people",
+      "increase": "More people",
+      "submit": "Send report",
+      "update": "Save changes",
+      "saving": "Sending...",
+      "created": "Report sent to the administrator.",
+      "updated": "Report updated.",
+      "exists": "You already sent the report for this day. Taking you there.",
+      "summaryError": "Write at least 10 characters",
+      "readOnly": "This report was reviewed and can no longer be edited.",
+      "cancel": "Cancel"
+    },
+    "sections": {
+      "activities": "Activities",
+      "incidents": "Incidents",
+      "evidence": "Photos",
+      "materials": "Materials",
+      "expenses": "Expenses"
+    },
+    "detail": {
+      "title": "Log for {date}",
+      "close": "Close",
+      "review": "Mark as reviewed",
+      "reviewNote": "Comment for the resident (optional)",
+      "reviewNotePlaceholder": "e.g. Well documented; attach photos of the pour.",
+      "reviewed": "Log marked as reviewed.",
+      "reviewedBy": "Reviewed by {name} on {date}",
+      "noIssues": "No observations.",
+      "compiled": "Recorded that day on site",
+      "nothingCompiled": "No activities, photos, material use or expenses were recorded on this project that day.",
+      "open": "View details"
     }
   }
 }

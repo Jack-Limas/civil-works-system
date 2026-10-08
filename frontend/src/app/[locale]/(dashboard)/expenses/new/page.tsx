@@ -17,6 +17,12 @@ import { SupplierPicker } from "@/components/finance/supplier-picker";
 import { MoneyInput } from "@/components/finance/money-input";
 import { SupportFileInput } from "@/components/finance/support-file-input";
 import { BudgetImpactPanel } from "@/components/finance/budget-impact-panel";
+import {
+  ExpenseInventoryEntry,
+  emptyInventoryEntry,
+  entryQuantity,
+  type InventoryEntryState,
+} from "@/components/inventory/expense-inventory-entry";
 import { useCreateExpense } from "@/lib/expenses-service";
 import { useProjects } from "@/lib/projects-service";
 import { useApiErrorMessage } from "@/lib/api-error";
@@ -58,6 +64,8 @@ export default function RegisterExpensePage() {
 
   const [support, setSupport] = useState<File | null>(null);
   const [compressing, setCompressing] = useState(false);
+  const [inventoryEntry, setInventoryEntry] = useState<InventoryEntryState>(emptyInventoryEntry);
+  const [entryTouched, setEntryTouched] = useState(false);
 
   const {
     register,
@@ -92,11 +100,18 @@ export default function RegisterExpensePage() {
     if (list.length === 1 && !getValues("projectId")) setValue("projectId", list[0].id, { shouldValidate: true });
   }, [projects, getValues, setValue]);
 
-  const [projectId, amount] = useWatch({ control, name: ["projectId", "amount"] });
+  const [projectId, amount, category] = useWatch({ control, name: ["projectId", "amount", "category"] });
+  // The inventory block only applies to material purchases
+  const withInventory = category === "MATERIALS" && inventoryEntry.enabled;
 
   async function onSubmit(values: FormValues) {
     if (!values.amount) {
       setError("amount", { type: "required" });
+      return;
+    }
+    const entryQty = entryQuantity(inventoryEntry);
+    if (withInventory && (!inventoryEntry.material || entryQty === null)) {
+      setEntryTouched(true);
       return;
     }
     const form = new FormData();
@@ -109,6 +124,9 @@ export default function RegisterExpensePage() {
     if (values.description.trim()) form.append("description", values.description.trim());
     if (values.invoiceNumber.trim()) form.append("invoiceNumber", values.invoiceNumber.trim());
     if (support) form.append("support", support);
+    if (withInventory && inventoryEntry.material && entryQty !== null) {
+      form.append("inventoryEntry", JSON.stringify({ materialId: inventoryEntry.material.id, quantity: entryQty }));
+    }
 
     try {
       const expense = await createExpense.mutateAsync(form);
@@ -128,7 +146,7 @@ export default function RegisterExpensePage() {
       <main className="space-y-5 p-4 sm:p-6">
         <CostsTabs />
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="mx-auto max-w-6xl">
+        <form onSubmit={handleSubmit(onSubmit, () => setEntryTouched(true))} noValidate className="mx-auto max-w-6xl">
           <Reveal className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <RevealItem className="order-1 space-y-5 lg:col-span-2">
               <section className="space-y-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
@@ -233,6 +251,16 @@ export default function RegisterExpensePage() {
                   <SupportFileInput file={support} onChange={setSupport} onBusyChange={setCompressing} />
                 </div>
               </section>
+
+              {category === "MATERIALS" && (
+                <ExpenseInventoryEntry
+                  value={inventoryEntry}
+                  onChange={setInventoryEntry}
+                  amount={amount}
+                  showCost={!isResident}
+                  showErrors={entryTouched}
+                />
+              )}
             </RevealItem>
 
             <RevealItem className="order-2 lg:row-span-2">

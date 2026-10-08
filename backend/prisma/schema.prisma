@@ -82,6 +82,31 @@ enum ExpenseStatus {
   REJECTED
 }
 
+enum MaterialCategory {
+  CEMENT_CONCRETE
+  STEEL
+  AGGREGATES
+  MASONRY
+  WOOD
+  ELECTRICAL
+  PLUMBING
+  FINISHES
+  TOOLS_EQUIPMENT
+  OTHER
+}
+
+enum Weather {
+  SUNNY
+  CLOUDY
+  RAINY
+  STORMY
+}
+
+enum FieldReportStatus {
+  SUBMITTED
+  REVIEWED
+}
+
 enum Priority {
   LOW
   MEDIUM
@@ -135,6 +160,10 @@ model User {
   fundTransfersReceived FundTransfer[] @relation("FundTransferResident")
   fundTransfersCreated  FundTransfer[] @relation("FundTransferCreatedBy")
 
+  movementsRegistered  InventoryMovement[] @relation("MovementRegisteredBy")
+  fieldReportsAuthored FieldReport[]       @relation("FieldReportAuthor")
+  fieldReportsReviewed FieldReport[]       @relation("FieldReportReviewer")
+
   @@map("users")
 }
 
@@ -175,6 +204,7 @@ model Project {
   alerts             Alert[]
   predictions        Prediction[]
   fundTransfers      FundTransfer[]
+  fieldReports       FieldReport[]
 
   @@map("projects")
 }
@@ -211,13 +241,15 @@ model Worker {
 }
 
 model Material {
-  id             String   @id @default(uuid())
+  id             String            @id @default(uuid())
   name           String
   unit           String
-  stockAvailable Float    @default(0)
-  stockMinimum   Float    @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  stockAvailable Float             @default(0)
+  stockMinimum   Float             @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  // Inventory module (additive): null = "no category" for existing materials
+  category       MaterialCategory?
 
   movements InventoryMovement[]
 
@@ -235,6 +267,20 @@ model InventoryMovement {
   date       DateTime     @default(now())
   notes      String?
 
+  // --- Inventory module (additive: nullable or defaulted) ---
+  registeredById String?
+  registeredBy   User?     @relation("MovementRegisteredBy", fields: [registeredById], references: [id], onDelete: SetNull)
+  expenseId      String?
+  expense        Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  supplierId     String?
+  supplier       Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  unitCost       Decimal?  @db.Decimal(14, 2)
+  createdAt      DateTime  @default(now())
+
+  @@index([materialId, date])
+  @@index([projectId, date])
+  @@index([expenseId])
+  @@index([registeredById])
   @@map("inventory_movements")
 }
 
@@ -248,20 +294,21 @@ model Expense {
   description String?
 
   // --- Finance module (additive: every column is nullable or has a default) ---
-  supplierId      String?
-  supplier        Supplier?      @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  paymentMethod   PaymentMethod?
-  invoiceNumber   String?
-  supportUrl      String?
-  registeredById  String?
-  registeredBy    User?          @relation("ExpenseRegisteredBy", fields: [registeredById], references: [id])
+  supplierId         String?
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  paymentMethod      PaymentMethod?
+  invoiceNumber      String?
+  supportUrl         String?
+  registeredById     String?
+  registeredBy       User?               @relation("ExpenseRegisteredBy", fields: [registeredById], references: [id])
   // APPROVED by default so expenses created before this module keep counting
-  status          ExpenseStatus  @default(APPROVED)
-  reviewedById    String?
-  reviewedBy      User?          @relation("ExpenseReviewedBy", fields: [reviewedById], references: [id])
-  reviewedAt      DateTime?
-  rejectionReason String?
-  createdAt       DateTime       @default(now())
+  status             ExpenseStatus       @default(APPROVED)
+  reviewedById       String?
+  reviewedBy         User?               @relation("ExpenseReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime            @default(now())
+  inventoryMovements InventoryMovement[]
 
   @@index([projectId, date])
   @@index([registeredById])
@@ -282,7 +329,8 @@ model Supplier {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  expenses Expense[]
+  expenses  Expense[]
+  movements InventoryMovement[]
 
   @@index([name])
   @@map("suppliers")
@@ -362,4 +410,30 @@ model Prediction {
   generatedAt DateTime       @default(now())
 
   @@map("predictions")
+}
+
+/// Daily site log: one per project and business day (America/Bogota).
+model FieldReport {
+  id            String            @id @default(uuid())
+  projectId     String
+  project       Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  authorId      String
+  author        User              @relation("FieldReportAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  date          DateTime          @db.Date
+  weather       Weather?
+  workersOnSite Int?
+  summary       String
+  issues        String?
+  status        FieldReportStatus @default(SUBMITTED)
+  reviewedById  String?
+  reviewedBy    User?             @relation("FieldReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  reviewNote    String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([projectId, date])
+  @@index([authorId])
+  @@index([date])
+  @@map("field_reports")
 }

@@ -72,3 +72,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+/* ---------- Print (reports "Print / PDF") ----------
+   Forces the light palette, removes app chrome and keeps cards together. */
+@media print {
+  :root,
+  .dark {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f4f5f7;
+    --line: #d9dde3;
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    color-scheme: light;
+  }
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+  a[href]::after {
+    content: none;
+  }
+}
