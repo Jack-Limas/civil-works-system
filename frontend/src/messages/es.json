@@ -1060,6 +1060,7 @@
       "allTypes": "Entradas y salidas",
       "onlyWarnings": "Solo advertencias",
       "empty": "No hay movimientos con estos filtros.",
+      "date": "Fecha",
       "warning": "Gasto rechazado",
       "warningHint": "El gasto vinculado fue rechazado. Si el material no llegó, registra una salida compensatoria.",
       "registeredBy": "Registrado por",

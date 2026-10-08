@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Download, TriangleAlert } from "lucide-react";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { fieldClass, secondaryButtonClass } from "@/components/ui/form";
 import { ProjectSelect } from "@/components/projects/project-select";
 import { ExpenseStatusBadge } from "@/components/finance/expense-status-badge";
@@ -14,6 +14,7 @@ import { exportCsv, type CsvValue } from "@/lib/export-csv";
 import { useFormatCOP } from "@/lib/format";
 import { useApiErrorMessage } from "@/lib/api-error";
 import { toast } from "@/store/toast.store";
+import { useAuthStore } from "@/store/auth.store";
 import type { Paginated } from "@/types/finance";
 import type { InventoryMovement, MovementFilters } from "@/types/inventory";
 
@@ -30,6 +31,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
   const format = useFormatter();
   const formatCOP = useFormatCOP();
   const errorMessage = useApiErrorMessage();
+  const isAdmin = useAuthStore((s) => s.user?.role === "ADMIN");
 
   const [filters, setFilters] = useState<MovementFilters>({ materialId: fixedMaterialId, page: 1, limit: PAGE_SIZE });
   const [exporting, setExporting] = useState(false);
@@ -67,7 +69,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
       exportCsv(
         `obraiq-movimientos-${new Date().toISOString().slice(0, 10)}`,
         [
-          t("fields.lastMovement"),
+          t("ledger.date"),
           t("movement.type"),
           t("fields.material"),
           t("movement.quantity"),
@@ -93,7 +95,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
   const pagination = data?.pagination;
 
   return (
-    <section className="space-y-3">
+    <section className="@container space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-ink">{t("ledger.title")}</h2>
@@ -104,7 +106,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 @md:grid-cols-2 @4xl:grid-cols-4">
         {!fixedMaterialId && (
           <select
             aria-label={t("fields.material")}
@@ -176,7 +178,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
             },
             {
               id: "date",
-              header: t("fields.lastMovement"),
+              header: t("ledger.date"),
               accessor: (m) => (
                 <span className="whitespace-nowrap">{format.dateTime(new Date(m.date), { day: "numeric", month: "short", year: "numeric" })}</span>
               ),
@@ -219,13 +221,22 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
                   <span className="text-ink-muted">—</span>
                 ),
             },
-            {
-              id: "cost",
-              header: t("ledger.unitCost"),
-              align: "right",
-              accessor: (m) =>
-                m.unitCost != null ? <span className="whitespace-nowrap font-mono-data">{formatCOP(m.unitCost)}</span> : <span className="text-ink-muted">—</span>,
-            },
+            // Residents never see costs (the API strips them too).
+            ...(isAdmin
+              ? [
+                  {
+                    id: "cost",
+                    header: t("ledger.unitCost"),
+                    align: "right",
+                    accessor: (m: InventoryMovement) =>
+                      m.unitCost != null ? (
+                        <span className="whitespace-nowrap font-mono-data">{formatCOP(m.unitCost)}</span>
+                      ) : (
+                        <span className="text-ink-muted">—</span>
+                      ),
+                  } satisfies Column<InventoryMovement>,
+                ]
+              : []),
           ]}
         />
       </div>

@@ -18,7 +18,7 @@ function MovementsScreen() {
       <DashboardHeader title={t("tabs.movements")} subtitle={t("ledger.subtitle")} />
       <main className="space-y-5 p-4 sm:p-6">
         <InventoryTabs />
-        <Reveal className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(320px,400px)_1fr]">
+        <Reveal className="grid grid-cols-1 gap-5 xl:grid-cols-[340px_1fr] 2xl:grid-cols-[400px_1fr]">
           <RevealItem>
             <section className="rounded-xl border border-line bg-surface p-5 xl:sticky xl:top-4">
               <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-ink">

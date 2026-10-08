@@ -1060,6 +1060,7 @@
       "allTypes": "Entries and withdrawals",
       "onlyWarnings": "Warnings only",
       "empty": "No movements match these filters.",
+      "date": "Date",
       "warning": "Rejected expense",
       "warningHint": "The linked expense was rejected. If the material never arrived, register a compensating withdrawal.",
       "registeredBy": "Registered by",
