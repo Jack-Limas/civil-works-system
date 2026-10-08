@@ -1,4 +1,4 @@
-import { geminiClient, GEMINI_MODEL } from "../config/gemini";
+import { generateText } from "../utils/gemini-call";
 import { prisma } from "../config/prisma";
 import { inventoryAnalysis } from "./inventory-analysis.service";
 import { AppError } from "../utils/app-error";
@@ -112,24 +112,9 @@ export const assistantService = {
       2
     )}\n\nPregunta: ${question}`;
 
-    try {
-      const response = await geminiClient.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: prompt,
-        config: { systemInstruction: SYSTEM_INSTRUCTION },
-      });
-      return (
-        response.text ??
-        "No obtuve una respuesta del asistente, intenta de nuevo."
-      );
-    } catch (error) {
-      // Log the cause (truncated, no prompt or keys) so a Gemini outage is diagnosable;
-      // the client only gets a 502 and shows its own translated message
-      console.warn(
-        "[assistant] Gemini request failed:",
-        error instanceof Error ? error.message.slice(0, 300) : error
-      );
-      throw new AppError(502, "The AI assistant is unavailable right now");
-    }
+    // 20 s budget with one retry; the cause of a failure is logged inside generateText
+    const answer = await generateText("assistant", prompt, SYSTEM_INSTRUCTION);
+    if (!answer) throw new AppError(502, "The AI assistant is unavailable right now");
+    return answer;
   },
 };
