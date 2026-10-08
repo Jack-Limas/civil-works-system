@@ -1,16 +1,18 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
-import { CreateMaterialInput } from "../schemas/material.schema";
 
 export const materialRepository = {
-  findMany(skip: number, take: number) {
-    return Promise.all([
-      prisma.material.findMany({ skip, take, orderBy: { name: "asc" } }),
-      prisma.material.count(),
-    ]);
+  /**
+   * Every material, unpaginated. The catalog is small (hundreds of rows) and
+   * status/coverage are computed per material, so filtering and sorting by
+   * those derived values happen in memory after one query.
+   */
+  findAll() {
+    return prisma.material.findMany({ orderBy: { name: "asc" } });
   },
 
+  /** Kept for internal callers that only need raw rows. */
   findAllRaw() {
-    // Sin paginación: usado para cálculos internos (alertas, reportes), no para listar en UI
     return prisma.material.findMany();
   },
 
@@ -18,7 +20,15 @@ export const materialRepository = {
     return prisma.material.findUnique({ where: { id } });
   },
 
-  create(data: CreateMaterialInput) {
+  findByNameInsensitive(name: string) {
+    return prisma.material.findFirst({ where: { name: { equals: name, mode: "insensitive" } } });
+  },
+
+  create(data: Prisma.MaterialCreateInput) {
     return prisma.material.create({ data });
+  },
+
+  update(id: string, data: Prisma.MaterialUpdateInput) {
+    return prisma.material.update({ where: { id }, data });
   },
 };

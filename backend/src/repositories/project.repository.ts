@@ -36,6 +36,13 @@ export const projectRepository = {
     return prisma.project.update({ where: { id }, data });
   },
 
+  findNamesByIds(ids: string[]) {
+    return prisma.project.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, responsibleId: true },
+    });
+  },
+
   /**
    * Records that would be lost (cascade) or orphaned if the project were deleted.
    * Used to refuse deleting projects that already carry accounting or field data.
