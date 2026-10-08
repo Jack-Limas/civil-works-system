@@ -1,6 +1,6 @@
 import { geminiClient, GEMINI_MODEL } from "../config/gemini";
 import { prisma } from "../config/prisma";
-import { materialService } from "./material.service";
+import { inventoryAnalysis } from "./inventory-analysis.service";
 import { AppError } from "../utils/app-error";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
@@ -20,7 +20,7 @@ clara y profesional, como lo haría un analista de obra experimentado.`;
 async function buildSystemContext(requester: RequestUser) {
   const responsibleId = projectAccess.scope(requester);
 
-  const [projects, lowStockMaterials, activeAlerts] = await Promise.all([
+  const [projects, analyzedMaterials, activeAlerts] = await Promise.all([
     prisma.project.findMany({
       where: { ...(responsibleId && { responsibleId }) },
       select: {
@@ -34,7 +34,7 @@ async function buildSystemContext(requester: RequestUser) {
       },
       take: 50,
     }),
-    materialService.getLowStockMaterials(),
+    inventoryAnalysis.analyzeAll(),
     prisma.alert.findMany({
       where: { status: "ACTIVE", ...(responsibleId && { project: { responsibleId } }) },
       select: {
@@ -75,7 +75,32 @@ async function buildSystemContext(requester: RequestUser) {
     };
   });
 
-  return { projects: projectsWithCosts, lowStockMaterials, activeAlerts };
+  // Inventory with the rule-based status (same engine as the screens). Only
+  // materials that need attention are listed, to keep the prompt small;
+  // residents never receive costs or inventory value.
+  const isAdmin = projectAccess.isAdmin(requester);
+  const inventoryNeedingAttention = analyzedMaterials
+    .filter((m) => m.status !== "OK")
+    .map((m) => ({
+      name: m.name,
+      unit: m.unit,
+      status: m.status,
+      stockAvailable: m.stockAvailable,
+      stockMinimum: m.stockMinimum,
+      coverageDays: m.coverageDays,
+      suggestedPurchase: m.suggestedPurchase,
+      ...(isAdmin && { lastUnitCostCOP: m.lastUnitCost }),
+    }));
+  const inventory = {
+    statusLegend: "OUT=agotado, CRITICAL=bajo el mínimo o cobertura < 7 días, WARNING=cobertura < 14 días",
+    totalMaterials: analyzedMaterials.length,
+    materialsNeedingAttention: inventoryNeedingAttention,
+    ...(isAdmin && {
+      estimatedInventoryValueCOP: analyzedMaterials.reduce((sum, m) => sum + (m.estimatedValue ?? 0), 0),
+    }),
+  };
+
+  return { projects: projectsWithCosts, inventory, activeAlerts };
 }
 
 export const assistantService = {
