@@ -23,16 +23,16 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
   - [x] 5.3 POST /reports/summary with Gemini (server-side data, locale, 502, 10 s rate limit)
   - [x] 5.4 curl checks both roles — 40/40 passed (Gemini 503 handled with retry + 502; success path verified)
 - [x] Step 6 — Frontend base (types, hooks, i18n inventory/reports/fieldReports, sidebar, print utilities)
-- [ ] Step 7 — Inventory screens
+- [x] Step 7 — Inventory screens
   - [x] 7.1 Admin inventory `/materials`
   - [x] 7.2 Admin movements `/materials/movements`
   - [x] 7.3 Material detail `/materials/[id]`
   - [x] 7.4 Resident inventory (stock + register consumption + recent movements)
   - [x] 7.5 Expense form: "also register in inventory"
-- [ ] Step 8 — Reports screens
-  - [ ] 8.1 Reports center `/reports`
-  - [ ] 8.2 Report view `/reports/[type]` (filters, KPIs, charts, meta, CSV, print, AI summary)
-  - [ ] 8.3 Daily log `/reports/daily` (admin list/detail/review)
-  - [ ] 8.4 Resident "My daily log" with today's prefilled report
+- [x] Step 8 — Reports screens
+  - [x] 8.1 Reports center `/reports`
+  - [x] 8.2 Report view `/reports/[type]` (filters, KPIs, charts, meta, CSV, print, AI summary)
+  - [x] 8.3 Daily log `/reports/daily` (admin list/detail/review)
+  - [x] 8.4 Resident "My daily log" with today's prefilled report
 - [ ] Step 9 — Demo data (categories, costs, movements, rejected-linked warning, 60-day consumption, 15-20 days of logs)
 - [ ] Step 10 — Close-out (builds, rendering doc, walkthrough both roles, regressions, report)
