@@ -50,6 +50,35 @@ Producto: plataforma web para gestionar, hacer seguimiento financiero y predecir
 - Bitácora diaria (FieldReport): un reporte por obra y día (único proyecto+fecha). Texto del residente + secciones compiladas automáticamente del día (actividades, novedades, fotos, consumo de materiales, gastos registrados). El autor lo edita mientras esté SUBMITTED; el ADMIN lo marca REVIEWED con comentario opcional y desde ahí es inmutable.
 - Zona horaria de negocio: America/Bogota (UTC-5, sin horario de verano). "Hoy", los límites de día y las fechas @db.Date se calculan en esa zona, nunca en la UTC del servidor.
 
+## Dominio de usuarios
+- Solo el ADMIN gestiona usuarios. Roles existentes: ADMIN y RESIDENT_ENGINEER; no se agregan roles nuevos.
+- Los usuarios no se borran, se desactivan (isActive=false). Desactivar revoca todos sus refresh tokens y bloquea el login con un error traducido. Un ADMIN no puede desactivarse a sí mismo, cambiar su propio rol ni desactivar o degradar al último ADMIN activo.
+- Sin envío de emails: al crear un usuario o restablecer su contraseña, el servidor genera una contraseña temporal aleatoria (crypto, 12+ caracteres) que se devuelve UNA sola vez en esa respuesta y nunca se guarda en claro ni se registra en logs. El usuario queda con mustChangePassword=true: hasta que la cambie, la API responde 403 con código PASSWORD_CHANGE_REQUIRED en todo menos /auth/me, /auth/logout y /auth/change-password, y el frontend lo redirige a la pantalla de cambio de contraseña.
+- Cambiar contraseña exige la actual, aplica la política (mínimo 8 caracteres, no igual a la anterior), revoca los demás refresh tokens y queda auditado.
+- Intentos de login: límite en memoria de 5 fallos por correo+IP en 15 minutos (429 con mensaje traducido). El mensaje de credenciales inválidas no revela si el correo existe. Al iniciar sesión se actualiza lastLoginAt.
+- createdById, actorId y similares salen siempre de la sesión en el servidor, nunca del body.
+
+## Dominio de auditoría (historial del sistema)
+- AuditLog es append-only: sin endpoints de edición ni borrado. Campos: actorId (SET NULL) más snapshot actorEmail, action (código estable tipo "user.created"), entityType, entityId, metadata JSON, ip, userAgent, createdAt.
+- Nunca se guardan contraseñas, hashes, tokens ni secretos en metadata. Un helper central (audit.service) sanea metadata con lista de campos permitidos y un cambio se registra como { antes, despues } solo de los campos que cambiaron.
+- Los eventos se registran dentro de la misma prisma.$transaction de la acción cuando existe una; si no, es "mejor esfuerzo" (si falla, se loguea y la acción no se rompe).
+- Eventos mínimos: login exitoso y fallido, logout, cambio y restablecimiento de contraseña; crear, editar, activar y desactivar usuario; cambio de configuración; crear, aprobar y rechazar gasto; giros; cambio de estado de obra; movimientos de inventario; revisión de bitácoras; cambio de estado de novedades; alta y desactivación de trabajadores.
+- Solo el ADMIN consulta el historial. Las fechas se muestran en America/Bogota.
+
+## Dominio de configuración del sistema
+- Solo existen ajustes que realmente cambian el comportamiento del sistema. Cada ajuste tiene valor por defecto en código (los valores actuales de risk-thresholds.ts e inventory-thresholds.ts) y la base solo guarda lo que el ADMIN personaliza. Si no hay fila, se usa el valor por defecto; el sistema nunca falla por falta de configuración.
+- Validación con Zod y reglas cruzadas (por ejemplo cobertura crítica < cobertura en alerta). Un servicio con caché corta se invalida al guardar. Hay botón "Restablecer valores por defecto". Todo cambio queda auditado con antes y después. Moneda (COP) y zona horaria (America/Bogota) NO son configurables.
+
+## Dominio de novedades (incidentes)
+- Estados: OPEN, IN_PROGRESS, RESOLVED, con historial de cambios (quién y cuándo) y nota de resolución. El ADMIN y el residente responsable de la obra pueden avanzar el estado en sus obras; reabrir solo el ADMIN. El residente reporta solo en obras propias.
+- Implementación: el estado "en progreso" usa el valor existente IN_REVIEW del enum IncidentStatus (renombrarlo no sería aditivo); la interfaz lo muestra como "En progreso" / "In progress".
+- Una novedad no se borra: se resuelve. Puede llevar fotos usando el mecanismo de evidencias existente (Cloudinary, crossOrigin="anonymous").
+
+## Dominio de trabajadores
+- Un trabajador no se borra si tiene registros asociados: se desactiva (isActive). Los datos personales sensibles (documento, teléfono) solo los ve el ADMIN; el residente ve nombre, oficio y estado de los trabajadores de sus obras.
+- Implementación: "isActive" es el campo existente status (ACTIVE/INACTIVE) y el oficio es position.
+- Sin nómina ni costos laborales (fuera de alcance).
+
 ## Convenciones
 - Código, nombres, comentarios y commits en INGLÉS. Texto visible al usuario solo vía next-intl: es.json y en.json con EXACTAMENTE las mismas claves. Cero strings hardcodeados en JSX (incluye placeholders, aria-labels, títulos, metadata y mensajes de error). Prohibido alert() y confirm(): usar toasts y modales traducidos.
 - TypeScript estricto: sin `any` ni `as any`. Reglas de React 19: sin setState síncrono dentro de useEffect, sin Math.random()/Date.now() durante el render, componentes puros.
