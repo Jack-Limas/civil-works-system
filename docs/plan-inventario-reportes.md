@@ -24,11 +24,11 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
   - [x] 5.4 curl checks both roles — 40/40 passed (Gemini 503 handled with retry + 502; success path verified)
 - [x] Step 6 — Frontend base (types, hooks, i18n inventory/reports/fieldReports, sidebar, print utilities)
 - [ ] Step 7 — Inventory screens
-  - [ ] 7.1 Admin inventory `/materials`
-  - [ ] 7.2 Admin movements `/materials/movements`
-  - [ ] 7.3 Material detail `/materials/[id]`
-  - [ ] 7.4 Resident inventory (stock + register consumption + recent movements)
-  - [ ] 7.5 Expense form: "also register in inventory"
+  - [x] 7.1 Admin inventory `/materials`
+  - [x] 7.2 Admin movements `/materials/movements`
+  - [x] 7.3 Material detail `/materials/[id]`
+  - [x] 7.4 Resident inventory (stock + register consumption + recent movements)
+  - [x] 7.5 Expense form: "also register in inventory"
 - [ ] Step 8 — Reports screens
   - [ ] 8.1 Reports center `/reports`
   - [ ] 8.2 Report view `/reports/[type]` (filters, KPIs, charts, meta, CSV, print, AI summary)
