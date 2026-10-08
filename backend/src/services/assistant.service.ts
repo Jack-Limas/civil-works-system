@@ -122,11 +122,14 @@ export const assistantService = {
         response.text ??
         "No obtuve una respuesta del asistente, intenta de nuevo."
       );
-    } catch {
-      throw new AppError(
-        502,
-        "El asistente de IA no está disponible en este momento."
+    } catch (error) {
+      // Log the cause (truncated, no prompt or keys) so a Gemini outage is diagnosable;
+      // the client only gets a 502 and shows its own translated message
+      console.warn(
+        "[assistant] Gemini request failed:",
+        error instanceof Error ? error.message.slice(0, 300) : error
       );
+      throw new AppError(502, "The AI assistant is unavailable right now");
     }
   },
 };
