@@ -186,6 +186,7 @@ async function countRealRows() {
     refreshTokens: await prisma.refreshToken.count({ where: { userId: notIn(ids.users) } }),
     suppliers: await prisma.supplier.count({ where: { id: notIn(ids.suppliers) } }),
     fundTransfers: await prisma.fundTransfer.count({ where: { residentId: notIn(ids.users) } }),
+    fieldReports: await prisma.fieldReport.count({ where: { NOT: demoProject } }),
   };
 }
 
@@ -201,6 +202,8 @@ function assertSame(before: Record<string, number>, after: Record<string, number
 async function clean() {
   const demoProject = { projectId: { in: ids.projects } };
   await prisma.$transaction([
+    // Field reports reference projects and users with RESTRICT: remove them first
+    prisma.fieldReport.deleteMany({ where: { OR: [demoProject, { authorId: { in: ids.users } }] } }),
     prisma.fundTransfer.deleteMany({ where: { residentId: { in: ids.users } } }),
     prisma.inventoryMovement.deleteMany({ where: { materialId: { in: ids.materials } } }),
     prisma.expense.deleteMany({ where: demoProject }),
