@@ -5,7 +5,7 @@ keeps the 157 commits of the previous session (finance module). Never push: the 
 To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-reports..HEAD`.
 
 - [x] Step 0 — Safety net (tags, branch, this plan)
-- [ ] Step 1 — CLAUDE.md: inventory and reports domain rules
+- [x] Step 1 — CLAUDE.md: inventory and reports domain rules
 - [ ] Step 2 — DELETE /projects/:id returns 409 when the project has accounting/inventory/log data
 - [ ] Step 3 — Additive schema (MaterialCategory, movement columns, Weather, FieldReportStatus, FieldReport) — **STOP-1: owner approval + Neon backup before applying**
 - [ ] Step 4 — Inventory backend

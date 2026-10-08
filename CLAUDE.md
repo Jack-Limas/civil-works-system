@@ -33,6 +33,23 @@ Producto: plataforma web para gestionar, hacer seguimiento financiero y predecir
 - registeredById, createdById, reviewedById y responsibleId de actividades se toman SIEMPRE de request.user.sub en el servidor, nunca del body.
 - Permisos: el ADMIN ve y hace todo. El RESIDENT_ENGINEER registra gastos solo en sus obras, ve los gastos de sus obras, ve solo SU saldo y SUS giros, no ve saldos de otros ni estadísticas globales, y no aprueba ni crea giros. Los residentes pueden listar proveedores y crear uno en línea (nombre + NIT opcional); solo el ADMIN los edita o elimina. Sidebar y pestañas muestran solo lo que el rol puede usar.
 
+## Dominio de inventario
+- Un solo stock por material (bodega central de la empresa). El consumo se atribuye a obras con movimientos que llevan projectId. No existe stock por obra (futuro).
+- El libro de movimientos es append-only: sin editar ni borrar movimientos; las correcciones son movimientos compensatorios con nota. stockAvailable solo cambia vía movimientos, dentro de prisma.$transaction, y nunca queda negativo.
+- Quién registra: el ADMIN registra IN y OUT (projectId opcional; opcionales expenseId, supplierId, unitCost). El RESIDENT_ENGINEER registra OUT solo en obras donde es responsable (projectId obligatorio) e IN solo vinculada a un gasto propio de categoría MATERIALS no rechazado (expenseId obligatorio). registeredById sale siempre de la sesión.
+- Si un gasto con entrada de inventario vinculada es luego RECHAZADO, el stock no se revierte solo: el libro muestra una insignia de advertencia y el ADMIN corrige con un movimiento compensatorio.
+- Estados de material: OUT (stock 0), CRITICAL (bajo el mínimo o cobertura < 7 días), WARNING (cobertura < 14 días), OK. Cobertura (días) = stock / consumo diario promedio de los últimos 30 días; si no hay consumo es null y se muestra "—", nunca infinito. Necesidad estimada a 30 días = max(0, consumo diario x 30 - stock). Umbrales en backend/src/config/inventory-thresholds.ts. Es análisis por reglas, explicable, sin IA. El consumo se agrega con un Map en una sola pasada (sin N+1); justifícalo en un comentario.
+- Valor estimado del inventario = stock x último unitCost conocido, siempre etiquetado como estimado; los materiales sin costo no suman. El residente NO ve costos ni valores.
+- Los residentes ven el stock de todos los materiales y pueden crear uno en línea (nombre + unidad). Solo el ADMIN edita nombre, unidad, categoría y stock mínimo. stockAvailable nunca se edita directamente.
+
+## Dominio de reportes
+- Tipos: progreso de obra, financiero (solo ADMIN), consumo de materiales, novedades y bitácora. El ADMIN ve todas las obras; el residente solo las suyas. Los cálculos se hacen en el servidor con datos filtrados por rol; nunca se confía en cifras del cliente.
+- Toda respuesta de reporte incluye metadatos { generatedAt, generatedBy, durationMs, recordCount }; la UI muestra "Generado en N ms · M registros" (métrica de generación de informes de la materia) y el backend envía el header Server-Timing.
+- Exportación: CSV (exportCsv, montos como números sin símbolo y columna indicando COP, fechas ISO) e Imprimir/PDF con window.print y CSS de impresión (tema claro forzado, sin sidebar ni header, encabezado con logo, obra, periodo y generado por/fecha). Sin librerías de PDF ni envío de emails.
+- Resumen ejecutivo con IA: opcional, bajo demanda, módulo independiente que puede fallar sin afectar nada. Los datos se calculan en el servidor y el idioma es el de la UI.
+- Bitácora diaria (FieldReport): un reporte por obra y día (único proyecto+fecha). Texto del residente + secciones compiladas automáticamente del día (actividades, novedades, fotos, consumo de materiales, gastos registrados). El autor lo edita mientras esté SUBMITTED; el ADMIN lo marca REVIEWED con comentario opcional y desde ahí es inmutable.
+- Zona horaria de negocio: America/Bogota (UTC-5, sin horario de verano). "Hoy", los límites de día y las fechas @db.Date se calculan en esa zona, nunca en la UTC del servidor.
+
 ## Convenciones
 - Código, nombres, comentarios y commits en INGLÉS. Texto visible al usuario solo vía next-intl: es.json y en.json con EXACTAMENTE las mismas claves. Cero strings hardcodeados en JSX (incluye placeholders, aria-labels, títulos, metadata y mensajes de error). Prohibido alert() y confirm(): usar toasts y modales traducidos.
 - TypeScript estricto: sin `any` ni `as any`. Reglas de React 19: sin setState síncrono dentro de useEffect, sin Math.random()/Date.now() durante el render, componentes puros.
