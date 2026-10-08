@@ -9,6 +9,7 @@ import {
   Receipt,
   Package,
   FileBarChart,
+  TriangleAlert,
   Users2,
   UserCog,
   LogOut,
@@ -23,7 +24,7 @@ import { Role } from "@/types/auth";
 
 interface NavLink {
   href: string;
-  key: "dashboard" | "projects" | "expenses" | "materials" | "incidents" | "workers" | "users";
+  key: "dashboard" | "projects" | "expenses" | "materials" | "reports" | "incidents" | "workers" | "users";
   icon: LucideIcon;
   roles?: Role[];
   /** Other route prefixes that belong to the same module (keeps the item highlighted). */
@@ -35,7 +36,8 @@ const LINKS: NavLink[] = [
   { href: "/projects", key: "projects", icon: Building2 },
   { href: "/expenses", key: "expenses", icon: Receipt, also: ["/suppliers", "/cash", "/cashflow"] },
   { href: "/materials", key: "materials", icon: Package },
-  { href: "/incidents", key: "incidents", icon: FileBarChart },
+  { href: "/reports", key: "reports", icon: FileBarChart },
+  { href: "/incidents", key: "incidents", icon: TriangleAlert },
   { href: "/workers", key: "workers", icon: Users2 },
   { href: "/users", key: "users", icon: UserCog, roles: ["ADMIN"] },
 ];
@@ -126,7 +128,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-line bg-surface lg:block">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-line bg-surface lg:block print:hidden">
         <SidebarContent />
       </aside>
 

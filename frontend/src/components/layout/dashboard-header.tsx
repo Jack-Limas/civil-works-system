@@ -27,7 +27,7 @@ export function DashboardHeader({
   const alertCount = activeAlerts?.length ?? 0;
 
   return (
-    <header className="border-b border-line bg-surface">
+    <header className="border-b border-line bg-surface print:hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <button
           type="button"
