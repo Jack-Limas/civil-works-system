@@ -8,8 +8,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setUser = useAuthStore((s) => s.setUser);
   const setLoading = useAuthStore((s) => s.setLoading);
 
+  // Store starts with isLoading=true, so no synchronous setState is needed here.
   useEffect(() => {
-    setLoading(true);
     authService
       .me()
       .then((user) => {

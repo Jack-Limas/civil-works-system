@@ -5,17 +5,22 @@ import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, ArrowLeft, Camera, CheckCircle2, Plus, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Modal } from "@/components/ui/modal";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
-import { useAuthStore } from "@/store/auth.store";
 import { useProject } from "@/lib/projects-service";
 import { Activity, useCreateActivity, useProjectActivities } from "@/lib/activities-service";
 import { useBudgetIndicators, useProjectExpenses } from "@/lib/expenses-service";
 import { useIncidents } from "@/lib/incidents-service";
+import { useFormatCOP } from "@/lib/format";
+import { useApiErrorMessage } from "@/lib/api-error";
+import { toast } from "@/store/toast.store";
+import { AlertMessage } from "@/components/alerts/alert-message";
+import { PROJECT_STATUS_CLASS } from "@/components/projects/project-status";
+import { primaryButtonClass } from "@/components/ui/form";
 import { useEvidenceList, useUploadEvidence } from "@/lib/evidence-service";
 import { useAlerts } from "@/lib/alerts-service";
 import { useLowStockMaterials } from "@/lib/materials-service";
@@ -45,22 +50,6 @@ const activitySchema = z.object({
 });
 type ActivityFormValues = z.infer<typeof activitySchema>;
 
-interface IncidentItem {
-  id: string;
-  projectId: string;
-  type: string;
-  description: string;
-  priority: string;
-  date?: string;
-}
-
-interface EvidenceItem {
-  id: string;
-  url?: string;
-  imageUrl?: string;
-  description?: string;
-}
-
 // Helpers fuera del componente: mantienen el render puro
 function asLevel(value: unknown): Level | null {
   return LEVELS.find((l) => l === value) ?? null;
@@ -78,8 +67,6 @@ function expectedProgress(start: string, end: string): number {
 function daysUntil(date: string): number {
   return Math.ceil((new Date(date).getTime() - Date.now()) / 86_400_000);
 }
-
-const money = (value: number | string) => `$${Number(value).toLocaleString("es-CO")}`;
 
 function Card({
   title,
@@ -121,10 +108,13 @@ function ProgressBar({ value, marker, color = "bg-accent" }: { value: number; ma
 export default function ProjectDetailPage() {
   const t = useTranslations("projectDetail");
   const tp = useTranslations("projects");
+  const tIncidents = useTranslations("incidents");
+  const format = useFormatter();
   const locale = useLocale();
+  const money = useFormatCOP();
+  const errorMessage = useApiErrorMessage();
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
-  const user = useAuthStore((s) => s.user);
 
   const [tab, setTab] = useState<TabKey>("overview");
   const [activityOpen, setActivityOpen] = useState(false);
@@ -137,8 +127,8 @@ export default function ProjectDetailPage() {
   const { data: activities } = useProjectActivities(id);
   const { data: indicators } = useBudgetIndicators(id);
   const { data: expenses } = useProjectExpenses(id);
-  const { data: incidents } = useIncidents();
-  const { data: evidence } = useEvidenceList(id);
+  const { data: incidents } = useIncidents({ projectId: id, limit: 100 });
+  const { data: evidence } = useEvidenceList(id, 40);
   const { data: allAlerts } = useAlerts("ACTIVE");
   const { data: lowStock } = useLowStockMaterials();
   const { data: predictions } = usePredictions(id);
@@ -153,17 +143,8 @@ export default function ProjectDetailPage() {
     formState: { errors },
   } = useForm<ActivityFormValues>({ resolver: zodResolver(activitySchema) });
 
-  const incidentList = useMemo(
-    () =>
-      (((incidents as { data?: unknown } | undefined)?.data ?? []) as IncidentItem[]).filter(
-        (i) => i.projectId === id
-      ),
-    [incidents, id]
-  );
-  const evidenceList = useMemo(
-    () => ((evidence as { data?: unknown } | undefined)?.data ?? []) as EvidenceItem[],
-    [evidence]
-  );
+  const incidentList = useMemo(() => incidents?.data ?? [], [incidents]);
+  const evidenceList = useMemo(() => evidence?.data ?? [], [evidence]);
   const projectAlerts = useMemo(
     () => (allAlerts ?? []).filter((a) => a.project.id === id),
     [allAlerts, id]
@@ -178,7 +159,19 @@ export default function ProjectDetailPage() {
     return [...totals.entries()].sort((a, b) => b[1] - a[1]);
   }, [expenses]);
 
-  if (isLoading) return <main className="p-6 text-sm text-ink-muted">{t("loading")}</main>;
+  if (isLoading) {
+    return (
+      <main className="space-y-4 p-4 sm:p-6" aria-busy="true">
+        <span className="sr-only">{t("loading")}</span>
+        <div className="h-8 w-1/3 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="h-36 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+          <div className="h-36 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+        </div>
+        <div className="h-64 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+      </main>
+    );
+  }
 
   if (isError || !project) {
     return (
@@ -196,8 +189,7 @@ export default function ProjectDetailPage() {
   const latestDelay = predictions?.find((p) => p.type === "DELAY_RISK");
   const latestCost = predictions?.find((p) => p.type === "COST_OVERRUN_RISK");
   const totalExecuted = costByCategory.reduce((sum, [, amount]) => sum + amount, 0);
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+  const formatDate = (iso: string) => format.dateTime(new Date(iso), { day: "numeric", month: "short", year: "numeric" });
 
   const openActivityModal = () => {
     reset({ name: "", progressPercentage: project.progressPercentage, observations: "" });
@@ -206,7 +198,6 @@ export default function ProjectDetailPage() {
   };
 
   const onActivitySubmit = async (values: ActivityFormValues) => {
-    if (!user) return;
     setActivityError(null);
     try {
       await createActivity.mutateAsync({
@@ -214,12 +205,12 @@ export default function ProjectDetailPage() {
         date: new Date().toISOString(),
         name: values.name,
         progressPercentage: values.progressPercentage,
-        responsibleId: user.id,
         observations: values.observations || undefined,
       });
       setActivityOpen(false);
-    } catch {
-      setActivityError(t("activityForm.error"));
+      toast.success(t("activityForm.created"));
+    } catch (error) {
+      setActivityError(errorMessage(error));
     }
   };
 
@@ -230,10 +221,15 @@ export default function ProjectDetailPage() {
     formData.append("projectId", id);
     formData.append("description", description);
     formData.append("file", file);
-    await uploadEvidence.mutateAsync(formData);
-    setDescription("");
-    setFile(null);
-    setEvidenceOpen(false);
+    try {
+      await uploadEvidence.mutateAsync(formData);
+      setDescription("");
+      setFile(null);
+      setEvidenceOpen(false);
+      toast.success(t("evidenceForm.uploaded"));
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
   };
 
   const renderActivity = (a: Activity) => (
@@ -241,13 +237,27 @@ export default function ProjectDetailPage() {
       <div>
         <p className="text-sm font-medium">{a.name}</p>
         <p className="text-xs text-ink-muted">
-          {formatDate(a.date)} · {a.responsible?.name}
+          {formatDate(a.date)}
+          {a.responsible?.name && ` · ${a.responsible.name}`}
         </p>
         {a.observations && <p className="mt-1 text-xs text-ink-muted">{a.observations}</p>}
       </div>
       <span className="font-mono-data text-sm font-medium">{a.progressPercentage}%</span>
     </li>
   );
+
+  /**
+   * Rule-based results carry their numbers (params) and are rendered in the
+   * active language. AI text is model output: shown as-is and labeled.
+   */
+  const reasoningText = (p: Prediction) => {
+    const { source, params, reasoning } = p.resultJson;
+    if (source === "RULE_BASED") {
+      if (params) return t(p.type === "DELAY_RISK" ? "ruleReasoning.delay" : "ruleReasoning.cost", params);
+      return locale === "es" ? reasoning : t("ruleReasoning.generic");
+    }
+    return reasoning;
+  };
 
   const renderRisk = (label: string, p?: Prediction) => {
     const level = p ? asLevel(p.resultJson.level) : null;
@@ -264,9 +274,10 @@ export default function ProjectDetailPage() {
         </div>
         {p ? (
           <>
-            <p className="mt-1 text-xs text-ink-muted">{p.resultJson.reasoning}</p>
+            <p className="mt-1 text-xs text-ink-muted">{reasoningText(p)}</p>
             <p className="mt-1 text-[11px] text-ink-muted">
               {SOURCE_KEYS.includes(source) ? t(`source.${source}`) : source} · {formatDate(p.generatedAt)}
+              {source === "AI_GEMINI" && ` · ${t("aiGenerated")}`}
             </p>
           </>
         ) : (
@@ -302,27 +313,31 @@ export default function ProjectDetailPage() {
     <>
       <DashboardHeader
         title={project.name}
-        subtitle={`${project.municipality} · ${tp(`status.${project.status}`)}`}
+        subtitle={`${project.municipality} · ${tp(`types.${project.type}`)}`}
+        actions={
+          <>
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${PROJECT_STATUS_CLASS[project.status]}`}>
+              {tp(`status.${project.status}`)}
+            </span>
+            <button type="button" onClick={openActivityModal} className={primaryButtonClass}>
+              <Plus size={15} aria-hidden /> {t("newActivity")}
+            </button>
+          </>
+        }
       />
 
-      <main className="space-y-5 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/projects" className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
-            <ArrowLeft size={14} /> {t("back")}
-          </Link>
-          <button
-            type="button"
-            onClick={openActivityModal}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-          >
-            <Plus size={15} /> {t("newActivity")}
-          </button>
-        </div>
+      <main className="space-y-5 p-4 sm:p-6">
+        <Link href="/projects" className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink">
+          <ArrowLeft size={14} aria-hidden /> {t("back")}
+        </Link>
 
-        <div className="flex gap-1 overflow-x-auto border-b border-line">
+        <div role="tablist" aria-label={project.name} className="-mx-4 flex gap-1 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0">
           {TAB_KEYS.map((key) => (
             <button
               key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
               onClick={() => setTab(key)}
               className={`whitespace-nowrap border-b-2 px-4 py-2 text-sm transition-colors ${
                 tab === key
@@ -339,7 +354,7 @@ export default function ProjectDetailPage() {
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="space-y-5 lg:col-span-2">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="hover-lift rounded-xl border border-line bg-surface p-5">
+                <div className="rounded-xl border border-line bg-surface p-5">
                   <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
                     {t("physicalProgress")}
                   </p>
@@ -350,7 +365,7 @@ export default function ProjectDetailPage() {
                   </p>
                 </div>
 
-                <div className="hover-lift rounded-xl border border-line bg-surface p-5">
+                <div className="rounded-xl border border-line bg-surface p-5">
                   <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
                     {t("financialProgress")}
                   </p>
@@ -431,8 +446,8 @@ export default function ProjectDetailPage() {
                     {evidenceList.slice(0, 4).map((e) => (
                       <ImageLightbox
                         key={e.id}
-                        src={e.url ?? e.imageUrl ?? ""}
-                        alt={e.description ?? ""}
+                        src={e.imageUrl}
+                        alt={e.description ?? project.name}
                         thumbClassName="h-28 w-full rounded-lg border border-line"
                       />
                     ))}
@@ -463,14 +478,16 @@ export default function ProjectDetailPage() {
                             : "border-l-line"
                         }`}
                       >
-                        <p className="text-xs text-ink-muted">{a.message}</p>
+                        <p className="text-xs text-ink-muted">
+                          <AlertMessage alert={a} />
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
               </Card>
 
-              <Card title={t("aiRisk")} icon={<Sparkles size={15} className="text-indigo-500" />}>
+              <Card title={t("aiRisk")} icon={<Sparkles size={15} className="text-ai" aria-hidden />}>
                 <div className="space-y-2">
                   {!latestDelay && !latestCost && (
                     <p className="text-sm text-ink-muted">{t("noPredictions")}</p>
@@ -495,7 +512,7 @@ export default function ProjectDetailPage() {
                     type="button"
                     disabled={generatePrediction.isPending}
                     onClick={() => generatePrediction.mutate("AI_GEMINI")}
-                    className="flex-1 rounded-md bg-indigo-600 px-2 py-1.5 text-xs text-white hover:bg-indigo-500 disabled:opacity-50"
+                    className="flex-1 rounded-md bg-ai px-2 py-1.5 text-xs text-bg hover:opacity-90 disabled:opacity-50"
                   >
                     {generatePrediction.isPending ? t("analyzing") : t("runAI")}
                   </button>
@@ -599,14 +616,15 @@ export default function ProjectDetailPage() {
               return (
                 <div key={i.id} className="rounded-lg border border-line bg-surface p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium capitalize">{i.type.replace(/_/g, " ").toLowerCase()}</p>
+                    <p className="font-medium">{tIncidents(`types.${i.type}`)}</p>
                     {level && (
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${LEVEL_CLASS[level]}`}>
-                        {t(`level.${level}`)}
+                        {tIncidents(`priorities.${i.priority}`)}
                       </span>
                     )}
                   </div>
                   <p className="text-ink-muted">{i.description}</p>
+                  <p className="mt-1 text-xs text-ink-muted">{tIncidents(`statuses.${i.status}`)}</p>
                   {i.date && <p className="mt-1 text-xs text-ink-muted">{formatDate(i.date)}</p>}
                 </div>
               );
@@ -617,19 +635,16 @@ export default function ProjectDetailPage() {
 
         {tab === "evidence" && (
           <div className="space-y-3">
-            <button
-              onClick={() => setEvidenceOpen(true)}
-              className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-            >
-              <Camera size={14} /> {t("attachEvidence")}
+            <button type="button" onClick={() => setEvidenceOpen(true)} className={primaryButtonClass}>
+              <Camera size={14} aria-hidden /> {t("attachEvidence")}
             </button>
             {evidenceList.length === 0 && <p className="text-sm text-ink-muted">{t("noEvidence")}</p>}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {evidenceList.map((e) => (
                 <ImageLightbox
                   key={e.id}
-                  src={e.url ?? e.imageUrl ?? ""}
-                  alt={e.description ?? ""}
+                  src={e.imageUrl}
+                  alt={e.description ?? project.name}
                   thumbClassName="h-28 w-full rounded-lg border border-line"
                 />
               ))}

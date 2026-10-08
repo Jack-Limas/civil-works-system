@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { AnalysisStage } from "./use-project-analysis";
 
 export interface SharedStatus {
   status: "idle" | "running" | "done";
-  stage: string | null;
+  stage: AnalysisStage | null;
 }
 
 export function useSharedAnalysisStatus() {

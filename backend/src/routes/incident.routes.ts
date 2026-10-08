@@ -6,5 +6,5 @@ export async function incidentRoutes(app: FastifyInstance) {
 
   app.get("/incidents", incidentController.list);
   app.post("/incidents", incidentController.create); // admin e ingeniero residente
-  app.patch("/incidents/:id", { preHandler: [app.authorize(["ADMIN"])] }, incidentController.update);
+  app.patch<{ Params: { id: string } }>("/incidents/:id", { preHandler: [app.authorize(["ADMIN"])] }, incidentController.update);
 }

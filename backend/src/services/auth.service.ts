@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify";
 import { userRepository } from "../repositories/user.repository";
 import { refreshTokenRepository } from "../repositories/refresh-token.repository";
 import { env } from "../config/env";
+import { AppError } from "../utils/app-error";
 
 function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -22,10 +23,10 @@ export function buildAuthService(app: FastifyInstance) {
   return {
     async login(email: string, password: string) {
       const user = await userRepository.findByEmail(email);
-      if (!user) throw { statusCode: 401, message: "Invalid credentials" };
+      if (!user) throw new AppError(401, "Invalid credentials");
 
       const valid = await bcrypt.compare(password, user.passwordHash);
-      if (!valid) throw { statusCode: 401, message: "Invalid credentials" };
+      if (!valid) throw new AppError(401, "Invalid credentials");
 
       const accessToken = app.jwt.sign(
         { sub: user.id, role: user.role },
@@ -51,13 +52,13 @@ export function buildAuthService(app: FastifyInstance) {
     async refresh(userId: string, rawRefreshToken: string) {
       const tokenHash = hashToken(rawRefreshToken);
       const stored = await refreshTokenRepository.findValidByUserAndHash(userId, tokenHash);
-      if (!stored) throw { statusCode: 401, message: "Invalid or expired refresh token" };
+      if (!stored) throw new AppError(401, "Invalid or expired refresh token");
 
       // Rotate: revoke the used one, issue a new pair
       await refreshTokenRepository.revoke(stored.id);
 
       const user = await userRepository.findById(userId);
-      if (!user) throw { statusCode: 401, message: "User not found" };
+      if (!user) throw new AppError(401, "User not found");
 
       const accessToken = app.jwt.sign(
         { sub: user.id, role: user.role },
@@ -76,13 +77,19 @@ export function buildAuthService(app: FastifyInstance) {
       return { accessToken, refreshToken: newRawRefreshToken };
     },
 
+    async me(userId: string) {
+      const user = await userRepository.findById(userId);
+      if (!user) throw new AppError(401, "User not found");
+      return { id: user.id, name: user.name, email: user.email, role: user.role };
+    },
+
     async logout(userId: string) {
       await refreshTokenRepository.revokeAllForUser(userId);
     },
 
     async register(data: { name: string; email: string; password: string; role: "ADMIN" | "RESIDENT_ENGINEER" }) {
       const existing = await userRepository.findByEmail(data.email);
-      if (existing) throw { statusCode: 409, message: "Email already registered" };
+      if (existing) throw new AppError(409, "Email already registered");
 
       const passwordHash = await bcrypt.hash(data.password, 10);
       const user = await userRepository.create({

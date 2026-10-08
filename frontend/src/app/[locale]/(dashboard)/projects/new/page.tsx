@@ -1,385 +1,306 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Building2,
-  Calendar,
-  UserCog,
-  CheckCircle2,
-  Circle,
-  ImagePlus,
-  LucideIcon,
-} from "lucide-react";
-import { useState } from "react";
-import Image from "next/image";
+import { ArrowLeft, Building2, Calendar, UserCog, CheckCircle2, Circle, ImagePlus, LucideIcon } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
-import { useCreateProject } from "@/lib/projects-service";
+import { AdminOnly } from "@/components/auth/admin-only";
+import { Field, fieldClass, primaryButtonClass, secondaryButtonClass } from "@/components/ui/form";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
+import { useCreateProject, PROJECT_TYPES } from "@/lib/projects-service";
 import { useUploadEvidence } from "@/lib/evidence-service";
+import { useUsers } from "@/lib/users-service";
+import { useFormatCOP } from "@/lib/format";
+import { useApiErrorMessage } from "@/lib/api-error";
+import { toast } from "@/store/toast.store";
 
-const schema = z.object({
-  name: z.string().min(3),
-  type: z.enum([
-    "STADIUM",
-    "POOL",
-    "SYNTHETIC_FIELD",
-    "RETAINING_WALL",
-    "PRIVATE_WORK",
-    "OTHER",
-  ]),
-  municipality: z.string().min(2),
-  address: z.string().optional(),
-  startDate: z.string(),
-  estimatedEndDate: z.string(),
-  budget: z.coerce.number().positive(),
-  responsibleId: z.string().uuid(),
-});
+const MS_PER_DAY = 86_400_000;
 
-type FormValues = z.infer<typeof schema>;
+const schema = z
+  .object({
+    name: z.string().min(3),
+    type: z.enum(PROJECT_TYPES),
+    municipality: z.string().min(2),
+    address: z.string().optional(),
+    startDate: z.string().min(1),
+    estimatedEndDate: z.string().min(1),
+    budget: z.coerce.number().positive(),
+    responsibleId: z.string().uuid(),
+  })
+  .refine((v) => !v.startDate || !v.estimatedEndDate || v.estimatedEndDate > v.startDate, {
+    path: ["estimatedEndDate"],
+    message: "endBeforeStart",
+  });
 
-const fieldClass =
-  "w-full rounded-lg border border-line bg-surface-2 px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30";
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
-function SectionCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: LucideIcon;
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="rounded-xl border border-line bg-surface p-5"
-    >
+    <section className="rounded-xl border border-line bg-surface p-5">
       <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent" aria-hidden>
           <Icon size={16} />
         </div>
         <h2 className="font-semibold text-ink">{title}</h2>
       </div>
       {children}
-    </motion.section>
+    </section>
   );
 }
 
-export default function NewProjectPage() {
+function CheckItem({ done, label }: { done: boolean; label: string }) {
+  return (
+    <li className="flex items-center gap-2">
+      {done ? (
+        <CheckCircle2 size={15} className="text-success" aria-hidden />
+      ) : (
+        <Circle size={15} className="text-ink-muted" aria-hidden />
+      )}
+      {label}
+    </li>
+  );
+}
+
+function NewProjectForm() {
   const t = useTranslations("projects");
+  const tf = useTranslations("projects.form");
+  const tCommon = useTranslations("common");
+  const tUsers = useTranslations("users");
   const router = useRouter();
+  const formatCOP = useFormatCOP();
+  const errorMessage = useApiErrorMessage();
   const createProject = useCreateProject();
   const uploadEvidence = useUploadEvidence();
+  const { data: users, isLoading: usersLoading } = useUsers();
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  // Release the object URL when the preview changes or the page unmounts
+  useEffect(() => {
+    return () => {
+      if (coverPreview) URL.revokeObjectURL(coverPreview);
+    };
+  }, [coverPreview]);
 
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
-  } = useForm<FormValues>({
+    formState: { errors, isSubmitting },
+  } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
+    defaultValues: { type: PROJECT_TYPES[0], responsibleId: "", name: "", municipality: "" },
   });
 
   const values = useWatch({ control });
-
-  const basicDone = !!(values?.name && values?.municipality);
-  const datesDone = !!(
-    values?.startDate &&
-    values?.estimatedEndDate &&
-    values?.budget
-  );
-  const responsibleDone = !!values?.responsibleId;
+  const budget = Number(values.budget ?? 0);
+  const basicDone = !!(values.name && values.municipality);
+  const datesDone = !!(values.startDate && values.estimatedEndDate && budget > 0);
+  const responsibleDone = !!values.responsibleId;
 
   const durationDays =
-    values?.startDate && values?.estimatedEndDate
-      ? Math.max(
-          0,
-          Math.round(
-            (new Date(values.estimatedEndDate).getTime() -
-              new Date(values.startDate).getTime()) /
-              86400000
-          )
-        )
+    values.startDate && values.estimatedEndDate
+      ? Math.max(0, Math.round((Date.parse(values.estimatedEndDate) - Date.parse(values.startDate)) / MS_PER_DAY))
       : null;
 
   function handleCoverSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setCoverFile(f);
-    setCoverPreview(URL.createObjectURL(f));
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
   }
 
   async function onSubmit(formValues: FormValues) {
-    const created = (await createProject.mutateAsync(formValues)) as unknown as {
-      id: string;
-    };
+    let created;
+    try {
+      created = await createProject.mutateAsync(formValues);
+    } catch (error) {
+      toast.error(errorMessage(error));
+      return;
+    }
 
-    if (coverFile && created?.id) {
+    if (coverFile) {
       const formData = new FormData();
       formData.append("projectId", created.id);
-      formData.append("description", "Foto principal del proyecto");
+      formData.append("description", tf("coverDescription"));
       formData.append("file", coverFile);
-      await uploadEvidence.mutateAsync(formData);
+      try {
+        await uploadEvidence.mutateAsync(formData);
+      } catch {
+        toast.error(tf("coverFailed"));
+      }
     }
 
-    if (created?.id) {
-      router.push(`/projects/${created.id}`);
-    } else {
-      router.push("/projects");
-    }
+    toast.success(tf("created"));
+    router.push(`/projects/${created.id}`);
   }
+
+  const dateError = (key: "startDate" | "estimatedEndDate") => {
+    const error = errors[key];
+    if (!error) return undefined;
+    return error.message === "endBeforeStart" ? tf("endBeforeStart") : tf("dateRequired");
+  };
 
   return (
     <>
-      <DashboardHeader
-        title={t("newProject")}
-        subtitle="Configura los detalles técnicos y financieros para iniciar una obra."
-      />
+      <DashboardHeader title={t("newProject")} subtitle={tf("subtitle")} />
 
-      <main className="mx-auto max-w-5xl p-6">
-        <Link
-          href="/projects"
-          className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink transition-colors"
-        >
-          <ArrowLeft size={14} /> Volver a Obras
+      <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
+        <Link href="/projects" className="mb-4 flex w-fit items-center gap-1 text-sm text-ink-muted transition-colors hover:text-ink">
+          <ArrowLeft size={14} aria-hidden /> {tf("back")}
         </Link>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 gap-5 lg:grid-cols-3"
-        >
-          {/* Columna del formulario */}
-          <div className="space-y-5 lg:col-span-2">
-            <SectionCard icon={Building2} title="Información Básica">
-              <div className="space-y-3">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-ink">
-                    {t("fields.name")}
-                  </label>
-                  <input
-                    {...register("name")}
-                    placeholder="Ej: Cancha sintética La Unión"
-                    className={fieldClass}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-xs text-critical">
-                      Mínimo 3 caracteres
-                    </p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-ink">
-                      {t("fields.type")}
-                    </label>
-                    <select
-                      {...register("type")}
-                      className={`${fieldClass} appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%2364748b"><path d="M5 7l5 5 5-5"/></svg>')] bg-[length:14px] bg-[right_10px_center] bg-no-repeat pr-8`}
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Reveal className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <RevealItem className="space-y-5 lg:col-span-2">
+              <SectionCard icon={Building2} title={tf("sections.basic")}>
+                <div className="space-y-3">
+                  <Field id="project-name" label={t("fields.name")} error={errors.name && tf("nameError")}>
+                    <input id="project-name" {...register("name")} placeholder={tf("namePlaceholder")} className={fieldClass} />
+                  </Field>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Field id="project-type" label={t("fields.type")}>
+                      <select id="project-type" {...register("type")} className={fieldClass}>
+                        {PROJECT_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {t(`types.${type}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field
+                      id="project-municipality"
+                      label={t("fields.municipality")}
+                      error={errors.municipality && tf("municipalityError")}
                     >
-                      {[
-                        "STADIUM",
-                        "POOL",
-                        "SYNTHETIC_FIELD",
-                        "RETAINING_WALL",
-                        "PRIVATE_WORK",
-                        "OTHER",
-                      ].map((opt) => (
-                        <option key={opt} value={opt}>
-                          {t(`types.${opt}`)}
-                        </option>
-                      ))}
-                    </select>
+                      <input
+                        id="project-municipality"
+                        {...register("municipality")}
+                        placeholder={tf("municipalityPlaceholder")}
+                        className={fieldClass}
+                      />
+                    </Field>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-ink">
-                      {t("fields.municipality")}
-                    </label>
-                    <input
-                      {...register("municipality")}
-                      placeholder="Ej: Pasto"
-                      className={fieldClass}
-                    />
+                  <Field id="project-address" label={`${tf("address")} ${tCommon("optional")}`}>
+                    <input id="project-address" {...register("address")} className={fieldClass} />
+                  </Field>
+                </div>
+              </SectionCard>
+
+              <SectionCard icon={Calendar} title={tf("sections.datesBudget")}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field id="project-start" label={t("fields.startDate")} error={dateError("startDate")}>
+                    <input id="project-start" type="date" {...register("startDate")} className={fieldClass} />
+                  </Field>
+                  <Field id="project-end" label={t("fields.endDate")} error={dateError("estimatedEndDate")}>
+                    <input id="project-end" type="date" {...register("estimatedEndDate")} className={fieldClass} />
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field
+                      id="project-budget"
+                      label={t("fields.budget")}
+                      error={errors.budget && tf("budgetError")}
+                      hint={budget > 0 ? formatCOP(budget) : undefined}
+                    >
+                      <input
+                        id="project-budget"
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        step={1}
+                        {...register("budget")}
+                        className={`${fieldClass} font-mono-data`}
+                      />
+                    </Field>
                   </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-ink">
-                    Dirección (opcional)
-                  </label>
-                  <input {...register("address")} className={fieldClass} />
-                </div>
+              </SectionCard>
+
+              <SectionCard icon={UserCog} title={tf("sections.responsible")}>
+                <Field
+                  id="project-responsible"
+                  label={t("fields.responsible")}
+                  error={errors.responsibleId && tf("responsibleRequired")}
+                  hint={users && users.length === 0 ? tf("noUsers") : tf("responsibleHint")}
+                >
+                  <select id="project-responsible" {...register("responsibleId")} disabled={usersLoading} className={fieldClass}>
+                    <option value="" disabled>
+                      {usersLoading ? tCommon("loading") : tf("responsiblePlaceholder")}
+                    </option>
+                    {users?.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} · {tUsers(u.role === "ADMIN" ? "roleAdmin" : "roleResident")}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </SectionCard>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Link href="/projects" className={secondaryButtonClass}>
+                  {tf("cancel")}
+                </Link>
+                <button type="submit" disabled={isSubmitting} className={primaryButtonClass}>
+                  {isSubmitting ? tCommon("saving") : tf("save")}
+                </button>
               </div>
-            </SectionCard>
+            </RevealItem>
 
-            <SectionCard icon={Calendar} title="Fechas y Presupuesto">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-ink">
-                    {t("fields.startDate")}
-                  </label>
-                  <input
-                    type="date"
-                    {...register("startDate")}
-                    className={fieldClass}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-ink">
-                    {t("fields.endDate")}
-                  </label>
-                  <input
-                    type="date"
-                    {...register("estimatedEndDate")}
-                    className={fieldClass}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-ink">
-                    {t("fields.budget")}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted">
-                      $
-                    </span>
-                    <input
-                      type="number"
-                      {...register("budget")}
-                      className={`${fieldClass} pl-6`}
-                    />
-                  </div>
-                </div>
+            <RevealItem className="space-y-5">
+              <div className="rounded-xl border border-line bg-surface p-5">
+                <h3 className="mb-3 text-sm font-semibold text-ink">{tf("sections.cover")}</h3>
+                <label className="relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-line bg-surface-2 text-center transition-colors focus-within:border-accent hover:border-accent">
+                  {coverPreview ? (
+                    // Local blob preview: next/image cannot optimize blob URLs
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={coverPreview} alt={tf("coverAlt")} className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <>
+                      <ImagePlus size={22} className="mb-1 text-ink-muted" aria-hidden />
+                      <span className="text-xs text-ink-muted">{tf("coverDrop")}</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" onChange={handleCoverSelect} className="sr-only" />
+                </label>
+                <p className="mt-2 text-xs text-ink-muted">{tf("coverHint")}</p>
               </div>
-            </SectionCard>
 
-            <SectionCard icon={UserCog} title="Responsable">
-              <label className="mb-1 block text-sm font-medium text-ink">
-                ID del responsable
-              </label>
-              <input
-                {...register("responsibleId")}
-                placeholder="UUID del usuario"
-                className={fieldClass}
-              />
-              <p className="mt-1 text-xs text-ink-muted">
-                Copia el UUID desde Prisma Studio o la página de Usuarios.
-              </p>
-            </SectionCard>
-
-            <div className="flex justify-end gap-2">
-              <Link
-                href="/projects"
-                className="rounded-md border border-line px-4 py-2 text-sm text-ink hover:bg-surface-2 transition-colors"
-              >
-                Cancelar
-              </Link>
-              <button
-                type="submit"
-                disabled={createProject.isPending}
-                className="rounded-md bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
-              >
-                {createProject.isPending ? "Guardando..." : "Guardar Proyecto"}
-              </button>
-            </div>
-          </div>
-
-          {/* Panel lateral: foto + vista previa + checklist */}
-          <div className="space-y-5">
-            <div className="rounded-xl border border-line bg-surface p-5">
-              <h3 className="mb-3 text-sm font-semibold text-ink">
-                Fotografía Principal
-              </h3>
-              <label className="relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-line bg-surface-2 text-center hover:border-accent transition-colors">
-                {coverPreview ? (
-                  <Image
-                    src={coverPreview}
-                    alt="Vista previa"
-                    fill
-                    unoptimized
-                    className="object-cover"
-                  />
-                ) : (
-                  <>
-                    <ImagePlus size={22} className="mb-1 text-ink-muted" />
-                    <span className="text-xs text-ink-muted">
-                      Arrastra una imagen o haz clic
-                    </span>
-                  </>
+              <div className="rounded-xl border border-line bg-surface p-5">
+                <h3 className="mb-3 text-sm font-semibold text-ink">{tf("sections.preview")}</h3>
+                <p className="font-medium text-ink">{values.name || tf("previewName")}</p>
+                <p className="text-sm text-ink-muted">{values.municipality || tf("previewMunicipality")}</p>
+                {durationDays !== null && (
+                  <p className="mt-2 font-mono-data text-xs text-accent">{tf("durationDays", { days: durationDays })}</p>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCoverSelect}
-                  className="hidden"
-                />
-              </label>
-              <p className="mt-2 text-xs text-ink-muted">
-                Esta imagen aparecerá como evidencia principal de la obra.
-              </p>
-            </div>
+                {budget > 0 && <p className="font-mono-data text-xs text-ink-muted">{formatCOP(budget)}</p>}
+              </div>
 
-            <div className="rounded-xl border border-line bg-surface p-5">
-              <h3 className="mb-3 text-sm font-semibold text-ink">Vista Previa</h3>
-              <p className="font-medium text-ink">
-                {values?.name || "Nombre de la obra"}
-              </p>
-              <p className="text-sm text-ink-muted">
-                {values?.municipality || "Municipio"}
-              </p>
-              {durationDays !== null && (
-                <p className="mt-2 font-mono-data text-xs text-accent">
-                  {durationDays} días de ejecución estimada
-                </p>
-              )}
-              {values?.budget && Number(values.budget) > 0 && (
-                <p className="font-mono-data text-xs text-ink-muted">
-                  ${Number(values.budget).toLocaleString("es-CO")}
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-line bg-surface p-5">
-              <h3 className="mb-3 text-sm font-semibold text-ink">
-                Resumen de Creación
-              </h3>
-              <ul className="space-y-2 text-sm text-ink">
-                <li className="flex items-center gap-2">
-                  {basicDone ? (
-                    <CheckCircle2 size={15} className="text-emerald-500" />
-                  ) : (
-                    <Circle size={15} className="text-ink-muted" />
-                  )}
-                  Información básica
-                </li>
-                <li className="flex items-center gap-2">
-                  {datesDone ? (
-                    <CheckCircle2 size={15} className="text-emerald-500" />
-                  ) : (
-                    <Circle size={15} className="text-ink-muted" />
-                  )}
-                  Fechas y presupuesto
-                </li>
-                <li className="flex items-center gap-2">
-                  {responsibleDone ? (
-                    <CheckCircle2 size={15} className="text-emerald-500" />
-                  ) : (
-                    <Circle size={15} className="text-ink-muted" />
-                  )}
-                  Responsable asignado
-                </li>
-              </ul>
-            </div>
-          </div>
+              <div className="rounded-xl border border-line bg-surface p-5">
+                <h3 className="mb-3 text-sm font-semibold text-ink">{tf("sections.checklist")}</h3>
+                <ul className="space-y-2 text-sm text-ink">
+                  <CheckItem done={basicDone} label={tf("checkBasic")} />
+                  <CheckItem done={datesDone} label={tf("checkDates")} />
+                  <CheckItem done={responsibleDone} label={tf("checkResponsible")} />
+                </ul>
+              </div>
+            </RevealItem>
+          </Reveal>
         </form>
       </main>
     </>
+  );
+}
+
+export default function NewProjectPage() {
+  return (
+    <AdminOnly>
+      <NewProjectForm />
+    </AdminOnly>
   );
 }

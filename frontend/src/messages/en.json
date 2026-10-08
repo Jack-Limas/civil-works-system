@@ -1,8 +1,8 @@
 {
   "common": {
-    "appName": "Civil Works Management System",
-    "appShortName": "Obrix",
-    "appTagline": "Construction Intelligence",
+    "appName": "ObraIQ · Civil works management",
+    "appShortName": "ObraIQ",
+    "appTagline": "Intelligence for your projects",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -14,7 +14,34 @@
     "status": "Status",
     "date": "Date",
     "total": "Total",
-    "description": "Description"
+    "description": "Description",
+    "close": "Close",
+    "languages": {
+      "es": "Español",
+      "en": "English"
+    },
+    "changeLanguage": "Change language",
+    "toggleTheme": "Toggle theme",
+    "themeLight": "Light theme",
+    "themeDark": "Dark theme",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "userFallback": "User",
+    "roles": {
+      "ADMIN": "Administrator",
+      "RESIDENT_ENGINEER": "Resident engineer"
+    },
+    "viewAlerts": "View alerts",
+    "alertsCount": "{count, plural, =0 {No active alerts} one {# active alert} other {# active alerts}}",
+    "mainNav": "Main navigation",
+    "noRecords": "No records",
+    "enlargeImage": "Enlarge image",
+    "closeImage": "Close enlarged view",
+    "openFile": "Open file",
+    "noData": "—",
+    "optional": "(optional)",
+    "saving": "Saving...",
+    "back": "Back"
   },
   "auth": {
     "login": "Sign in",
@@ -27,27 +54,66 @@
     "emailRequired": "Enter a valid email",
     "passwordRequired": "Password must be at least 6 characters",
     "heroTitle": "Manage every project with full clarity",
-    "heroSubtitle": "Tracking, budgeting, and risk prediction in one place."
+    "heroSubtitle": "Tracking, budgeting, and risk prediction in one place.",
+    "signingIn": "Signing in..."
   },
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
     "materials": "Materials",
     "workers": "Workers",
-    "expenses": "Expenses",
+    "expenses": "Costs",
     "incidents": "Incidents",
     "alerts": "Alerts",
     "users": "Users"
   },
   "dashboard": {
-    "welcome": "Hello, {name}",
-    "role": "Role",
-    "title": "Main Dashboard",
-    "subtitle": "Operational summary and overall status of civil works."
+    "title": "Overview",
+    "subtitle": "Operational summary and overall status of your projects.",
+    "kpis": {
+      "activeProjects": "Active projects",
+      "activeProjectsTrend": "{total, plural, one {# project in total} other {# projects in total}}",
+      "avgProgress": "Average progress",
+      "avgProgressTrend": "Physical progress across projects",
+      "activeAlerts": "Active alerts",
+      "activeAlertsTrend": "{count, plural, =0 {No projects affected} one {# project affected} other {# projects affected}}",
+      "lowStock": "Materials at risk",
+      "lowStockTrend": "Below minimum stock"
+    },
+    "timeline": {
+      "title": "Progress of ongoing projects",
+      "seeAll": "See all",
+      "empty": "No projects in progress.",
+      "completed": "{value}% complete"
+    },
+    "alertsWidget": {
+      "title": "Important alerts",
+      "empty": "No active alerts. Everything is on track.",
+      "resolve": "Resolve",
+      "resolving": "Resolving...",
+      "resolved": "Alert marked as resolved.",
+      "badge": {
+        "HIGH": "Action required",
+        "MEDIUM": "Review",
+        "LOW": "Informational"
+      }
+    },
+    "milestones": {
+      "title": "Upcoming deliveries",
+      "empty": "No ongoing projects with a delivery date."
+    },
+    "feed": {
+      "title": "Recent field activity",
+      "seeAll": "See full log",
+      "entry": "<b>{user}</b> uploaded photo progress for <b>{project}</b>.",
+      "empty": "No evidence uploaded yet.",
+      "unknownUser": "A user",
+      "unknownProject": "a project"
+    }
   },
   "projects": {
-    "title": "Projects Management",
-    "subtitle": "Monitor and organize progress of your current civil works.",
+    "title": "Projects",
+    "subtitle": "Monitor and organize the progress of your construction projects.",
     "newProject": "New Project",
     "totalProjects": "Total Projects",
     "inProgress": "In Progress",
@@ -72,13 +138,69 @@
       "FINISHED": "Finished"
     },
     "types": {
+      "RESIDENTIAL_BUILDING": "Residential building",
+      "COMMERCIAL_BUILDING": "Commercial building",
+      "ROAD": "Road",
+      "BRIDGE": "Bridge",
+      "SCHOOL": "School",
+      "HEALTH_CENTER": "Health center",
+      "WAREHOUSE": "Warehouse",
+      "REMODELING": "Remodeling",
       "STADIUM": "Stadium",
       "POOL": "Swimming pool",
       "SYNTHETIC_FIELD": "Synthetic field",
       "RETAINING_WALL": "Retaining wall",
       "PRIVATE_WORK": "Private work",
       "OTHER": "Other"
-    }
+    },
+    "form": {
+      "responsiblePlaceholder": "Select a responsible user",
+      "responsibleHint": "Only the responsible user (and administrators) can see and manage this project.",
+      "responsibleRequired": "Select the project's responsible user",
+      "noUsers": "No users available. Create one in Users.",
+      "subtitle": "Set up the technical and financial details to start a project.",
+      "back": "Back to projects",
+      "sections": {
+        "basic": "Basic information",
+        "datesBudget": "Dates and budget",
+        "responsible": "Responsible",
+        "cover": "Main photo",
+        "preview": "Preview",
+        "checklist": "Creation summary"
+      },
+      "address": "Address",
+      "namePlaceholder": "e.g. San Juan Bosco School, Pasto",
+      "municipalityPlaceholder": "e.g. Pasto",
+      "coverDrop": "Tap to choose an image",
+      "coverHint": "It will be saved as the project's first evidence.",
+      "coverDescription": "Main project photo",
+      "coverAlt": "Main photo preview",
+      "previewName": "Project name",
+      "previewMunicipality": "Municipality",
+      "durationDays": "{days, plural, one {# day of estimated work} other {# days of estimated work}}",
+      "checkBasic": "Basic information",
+      "checkDates": "Dates and budget",
+      "checkResponsible": "Responsible assigned",
+      "save": "Save project",
+      "cancel": "Cancel",
+      "nameError": "At least 3 characters",
+      "municipalityError": "At least 2 characters",
+      "dateRequired": "Select a date",
+      "endBeforeStart": "Delivery must be after the start date",
+      "budgetError": "Enter a budget greater than zero",
+      "created": "Project created.",
+      "coverFailed": "The project was created, but the photo could not be uploaded."
+    },
+    "actions": "Actions",
+    "empty": "No projects registered yet.",
+    "emptyFiltered": "No projects match your search.",
+    "createFirst": "Create the first project",
+    "markInProgress": "Start project",
+    "markFinished": "Finish project",
+    "statusUpdated": "Project status updated.",
+    "hasAlerts": "Has active alerts",
+    "searchLabel": "Search projects",
+    "statusFilterLabel": "Filter by status"
   },
   "projectDetail": {
     "loading": "Loading project...",
@@ -119,8 +241,15 @@
     "analyzing": "Analyzing...",
     "noPredictions": "No analysis performed yet. Run one to assess risk for this project.",
     "analysisError": "Failed to complete the analysis. Please try again.",
-    "level": { "LOW": "Low", "MEDIUM": "Medium", "HIGH": "High" },
-    "source": { "RULE_BASED": "Rules", "AI_GEMINI": "Gemini AI" },
+    "level": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
+    },
+    "source": {
+      "RULE_BASED": "Rules",
+      "AI_GEMINI": "Gemini AI"
+    },
     "costSummary": "Cost Summary",
     "totalExecuted": "Total executed",
     "noExpenses": "No expenses recorded yet.",
@@ -150,60 +279,118 @@
       "submit": "Register activity",
       "saving": "Saving...",
       "invalid": "Check your data: name must be at least 3 characters and progress between 0 and 100.",
-      "error": "Failed to register activity. Please try again."
+      "error": "Failed to register activity. Please try again.",
+      "created": "Activity registered. The project progress was updated."
     },
     "evidenceForm": {
       "title": "Attach evidence",
       "description": "Description",
       "submit": "Upload",
-      "uploading": "Uploading..."
-    }
+      "uploading": "Uploading...",
+      "uploaded": "Evidence uploaded."
+    },
+    "ruleReasoning": {
+      "delay": "Physical progress {progress}% vs. expected {expected}% ({delay}-point deviation).",
+      "cost": "Executed spend {executed}% vs. physical progress {progress}% ({gap}-point gap).",
+      "generic": "Rules engine result."
+    },
+    "aiGenerated": "AI-generated text"
   },
   "materials": {
-    "title": "Materials & Inventory Control",
-    "subtitle": "Warehouse stock, consumption, and minimum stock alerts.",
-    "newMaterial": "Register Material",
-    "name": "Material Name",
-    "unit": "Unit of Measure",
-    "stockAvailable": "Available Stock",
-    "stockMinimum": "Minimum Stock",
-    "unitCost": "Unit Cost",
-    "lowStockWarning": "Materials with critical stock"
+    "title": "Materials & inventory",
+    "subtitle": "Warehouse stock and minimum stock alerts.",
+    "newMaterial": "New material",
+    "name": "Material name",
+    "unit": "Unit of measure",
+    "stockAvailable": "Available stock",
+    "stockMinimum": "Minimum stock",
+    "status": "Status",
+    "namePlaceholder": "e.g. Grey cement 50 kg",
+    "unitPlaceholder": "e.g. bags, m³, tons",
+    "create": "Create material",
+    "created": "Material created.",
+    "empty": "No materials registered yet.",
+    "lowStockWarning": "{count, plural, one {# material is below minimum stock} other {# materials are below minimum stock}}",
+    "stock": {
+      "ok": "Sufficient",
+      "low": "Low stock"
+    }
   },
   "expenses": {
-    "title": "Expenses & Cost Control",
-    "subtitle": "Detailed record of disbursements and budget execution.",
-    "newExpense": "Register Expense",
-    "concept": "Concept / Description",
-    "amount": "Amount / Cost",
+    "title": "Costs",
+    "subtitle": "Expense records and budget execution per project.",
+    "newExpense": "Register expense",
+    "description": "Description",
+    "amount": "Amount (COP)",
     "category": "Category",
-    "project": "Associated Project",
-    "supplier": "Supplier"
+    "project": "Project",
+    "date": "Date",
+    "selectProject": "Select a project to see its expenses.",
+    "empty": "This project has no expenses yet.",
+    "created": "Expense registered.",
+    "categories": {
+      "MATERIALS": "Materials",
+      "LABOR": "Labor",
+      "EQUIPMENT": "Equipment",
+      "TRANSPORT": "Transport",
+      "FUEL": "Fuel",
+      "OTHER": "Other"
+    }
   },
   "incidents": {
-    "title": "Field Incidents & Issues",
-    "subtitle": "Record of delays, equipment failures, or weather events.",
-    "newIncident": "Report Incident",
-    "type": "Incident Type",
-    "severity": "Severity Level",
-    "resolved": "Resolved",
-    "pending": "Pending Attention",
-    "severities": {
+    "title": "Field incidents",
+    "subtitle": "Delays, machinery failures, weather and other on-site events.",
+    "newIncident": "Report incident",
+    "project": "Project",
+    "type": "Incident type",
+    "priority": "Priority",
+    "status": "Status",
+    "description": "Description",
+    "date": "Date",
+    "descriptionPlaceholder": "Describe what happened and how it affects the project",
+    "create": "Report incident",
+    "created": "Incident reported.",
+    "updated": "Incident status updated.",
+    "empty": "No incidents recorded.",
+    "types": {
+      "MATERIAL_SHORTAGE": "Material shortage",
+      "ACTIVITY_DELAY": "Activity delay",
+      "WEATHER": "Weather",
+      "EQUIPMENT_DAMAGE": "Equipment damage",
+      "STAFF_ISSUE": "Staff issue",
+      "ACTIVITY_CHANGE": "Activity change",
+      "OTHER": "Other"
+    },
+    "priorities": {
       "LOW": "Low",
       "MEDIUM": "Medium",
-      "HIGH": "High",
-      "CRITICAL": "Critical"
+      "HIGH": "High"
+    },
+    "statuses": {
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "RESOLVED": "Resolved"
     }
   },
   "workers": {
-    "title": "Personnel & Workforce",
-    "subtitle": "Management of operators, crews, and assignments by project.",
-    "newWorker": "Register Worker",
-    "name": "Full Name",
-    "document": "ID Document",
-    "specialty": "Specialty / Job Title",
-    "assignedProject": "Assigned Project",
-    "phone": "Contact Phone"
+    "title": "Staff & labor",
+    "subtitle": "Workers, crews and their project assignment.",
+    "newWorker": "New worker",
+    "name": "Full name",
+    "document": "ID document",
+    "position": "Position",
+    "assignedProject": "Assigned project",
+    "unassigned": "Unassigned",
+    "status": "Status",
+    "positionPlaceholder": "e.g. Foreman, Mason, Helper",
+    "create": "Create worker",
+    "created": "Worker registered.",
+    "empty": "No workers registered yet.",
+    "statuses": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "duplicateDocument": "A worker with this ID document already exists."
   },
   "assistant": {
     "title": "Smart Assistant",
@@ -212,7 +399,16 @@
     "placeholder": "Type your question...",
     "thinking": "Assistant is thinking...",
     "errorMessage": "I couldn't process your question right now. Please try again.",
-    "emptyStateHint": "Ask me about your projects, materials, or alerts:"
+    "emptyStateHint": "Ask me about your projects, materials, or alerts:",
+    "open": "Open AI assistant",
+    "send": "Send question",
+    "you": "You",
+    "unavailable": "The AI assistant is unavailable right now. The rest of the system keeps working.",
+    "suggestions": {
+      "costRisk": "Which project has the highest cost overrun risk?",
+      "lowStock": "Which materials are low on stock?",
+      "progress": "Compare the progress of my active projects"
+    }
   },
   "users": {
     "title": "User Management",
@@ -224,6 +420,491 @@
     "roleAdmin": "Administrator",
     "roleResident": "Resident Engineer",
     "submit": "Create User",
-    "success": "User registered successfully."
+    "success": "User registered successfully.",
+    "creating": "Creating...",
+    "newUser": "New user",
+    "listTitle": "Registered users",
+    "listEmpty": "No users registered yet.",
+    "createdAt": "Created",
+    "namePlaceholder": "e.g. John Doe",
+    "emailPlaceholder": "user@obraiq.co",
+    "count": "{count, plural, one {# user} other {# users}}",
+    "createError": "The user could not be created. Make sure the email is not already registered."
+  },
+  "validation": {
+    "minChars": "Must be at least {min} characters",
+    "email": "Enter a valid email address",
+    "required": "This field is required",
+    "positive": "Must be greater than zero",
+    "range": "Must be between {min} and {max}",
+    "uuid": "Select a valid option",
+    "min": "Must be greater than or equal to {min}"
+  },
+  "errors": {
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "validation": "Some data is not valid. Please review the form.",
+    "unauthorized": "Your session expired. Please sign in again.",
+    "forbidden": "You don't have permission to do this.",
+    "notFound": "The requested resource does not exist or was removed.",
+    "conflict": "A record with this data already exists.",
+    "fileTooLarge": "The file exceeds the maximum allowed size (5 MB).",
+    "unavailable": "The service is unavailable right now. Please try later.",
+    "server": "Something went wrong on the server. Please try again.",
+    "unknown": "An unexpected error occurred.",
+    "retry": "Retry",
+    "loadFailed": "The information could not be loaded."
+  },
+  "metadata": {
+    "title": "ObraIQ · Civil works management",
+    "description": "Progress tracking, cost control and risk prediction for construction projects in Nariño, Colombia."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or was moved.",
+    "backHome": "Back to home",
+    "backDashboard": "Go to dashboard"
+  },
+  "analysis": {
+    "title": "Main thread vs Web Worker",
+    "heartbeat": "Heartbeat: <mono>{tick}</mono> — if this number freezes, the main thread is blocked.",
+    "mainThread": "Main thread (blocking)",
+    "worker": "Web Worker (background)",
+    "run": "Run analysis",
+    "idle": "Not run yet",
+    "mainRunning": "Processing... (watch whether the heartbeat freezes)",
+    "result": "{ms} ms · {anomalies, plural, one {# anomaly} other {# anomalies}}",
+    "syncBanner": "Synced across tabs via SharedWorker: {stage}",
+    "stages": {
+      "sending": "Sending data to the Worker...",
+      "mainThread": "Processing on the main thread...",
+      "projects": "Analyzing projects...",
+      "costs": "Processing costs...",
+      "materials": "Analyzing materials...",
+      "progress": "Evaluating progress...",
+      "alerts": "Generating alerts..."
+    }
+  },
+  "sharedMemory": {
+    "title": "Shared memory: postMessage vs SharedArrayBuffer",
+    "description": "<code>postMessage</code> clones data for each thread. <code>SharedArrayBuffer</code> with <code>Atomics</code> lets several threads read and write the same memory block.",
+    "checkIsolation": "Check crossOriginIsolated",
+    "tryBuffer": "Try SharedArrayBuffer",
+    "notIsolated": "SharedArrayBuffer is unavailable: the page is not isolated (crossOriginIsolated = false).",
+    "success": "Shared memory active: initial value 10, after Atomics.add(+32) = {value}, without cloning data.",
+    "error": "SharedArrayBuffer failed: {message}"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Automatic alerts generated by the rules engine.",
+    "generate": "Analyze all projects",
+    "generating": "Analyzing...",
+    "generated": "{count, plural, =0 {Analysis complete: no new alerts.} one {Analysis complete: # new alert.} other {Analysis complete: # new alerts.}}",
+    "empty": "There are no active alerts right now.",
+    "resolve": "Resolve",
+    "resolved": "Alert marked as resolved.",
+    "types": {
+      "SCHEDULE": "Schedule",
+      "FINANCIAL": "Financial",
+      "ACTIVITY": "Activity",
+      "INVENTORY": "Inventory"
+    },
+    "severity": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
+    },
+    "generic": {
+      "SCHEDULE": "Physical progress is behind what the schedule expects.",
+      "FINANCIAL": "Spending is growing faster than physical progress.",
+      "ACTIVITY": "The project has unresolved delay incidents.",
+      "INVENTORY": "Some materials are below their minimum stock."
+    },
+    "templates": {
+      "SCHEDULE": "Physical progress ({progress}%) is {delay} points behind what the schedule expects ({expected}%).",
+      "FINANCIAL": "Approved spending ({executed}%) is growing faster than physical progress ({progress}%), a {gap}-point gap.",
+      "ACTIVITY": "{count, plural, one {The project has # unresolved delay incident.} other {The project has # unresolved delay incidents.}}"
+    }
+  },
+  "evidence": {
+    "title": "Evidence log",
+    "subtitle": "Photo record of field progress.",
+    "empty": "No evidence uploaded yet.",
+    "noDescription": "No description"
+  },
+  "projectPicker": {
+    "label": "Project",
+    "placeholder": "Select a project",
+    "none": "No project",
+    "empty": "You have no available projects."
+  },
+  "forbidden": {
+    "title": "Restricted access",
+    "description": "This section is for administrators only.",
+    "back": "Back to dashboard"
+  },
+  "finance": {
+    "moduleNav": "Cost sections",
+    "tabs": {
+      "summary": "Overview",
+      "register": "Register expense",
+      "suppliers": "Suppliers",
+      "cash": "Petty cash",
+      "cashflow": "Cash flow"
+    },
+    "title": "Financial overview",
+    "subtitle": "Budget, execution and expenses awaiting approval across your projects.",
+    "kpis": {
+      "totalBudget": "Total budget",
+      "totalBudgetHint": "{count, plural, one {# project} other {# projects}}",
+      "spent": "Spent (approved)",
+      "spentHint": "{percent}% of the budget",
+      "available": "Available",
+      "availableHint": "{percent}% remaining",
+      "activeSuppliers": "Active suppliers",
+      "activeSuppliersHint": "With approved purchases",
+      "pending": "Awaiting approval",
+      "pendingHint": "{amount} under review",
+      "cpi": "Cost efficiency (CPI)",
+      "cpiHint": "{value, select, none {No approved expenses yet} other {Earned value / actual cost}}",
+      "cpiTooltip": "CPI = (budget × physical progress) ÷ approved expenses. Above 1: the work done is worth more than what was spent. Below 1: spending is ahead of progress.",
+      "milestone": "Days to next milestone",
+      "milestoneHint": "{project}",
+      "noMilestone": "No upcoming deliveries"
+    },
+    "riskBanner": {
+      "title": "Critical cost overrun risk",
+      "action": "View project",
+      "more": "{count, plural, one {and # more project at risk} other {and # more projects at risk}}"
+    },
+    "pendingNotice": {
+      "title": "{count, plural, one {# expense awaits approval} other {# expenses await approval}}",
+      "description": "Pending expenses do not count as executed budget until they are approved.",
+      "review": "Review",
+      "residentDescription": "An administrator will review your pending expenses."
+    },
+    "chart": {
+      "title": "Physical vs. financial progress by project",
+      "subtitle": "When financial progress exceeds physical progress, the project spends faster than it advances.",
+      "physical": "Physical progress",
+      "financial": "Financial progress",
+      "empty": "No projects to compare yet.",
+      "percentAxis": "%"
+    },
+    "recent": {
+      "title": "Latest expenses",
+      "seeAll": "See all",
+      "empty": "No expenses registered yet.",
+      "companyPayment": "Company payment"
+    },
+    "queue": {
+      "title": "Expenses awaiting approval",
+      "empty": "No expenses awaiting approval.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approved": "Expense approved. It now counts as executed budget.",
+      "rejected": "Expense rejected.",
+      "rejectTitle": "Reject expense",
+      "rejectReason": "Rejection reason",
+      "rejectPlaceholder": "e.g. The invoice does not belong to this project",
+      "confirmReject": "Reject expense",
+      "viewSupport": "View support",
+      "noSupport": "No support"
+    },
+    "empty": {
+      "title": "No financial activity yet",
+      "description": "Register a project's first expense to start tracking budget execution.",
+      "action": "Register expense"
+    }
+  },
+  "expense": {
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "paymentMethods": {
+      "CASH": "Cash",
+      "TRANSFER": "Bank transfer",
+      "CARD": "Card",
+      "CHECK": "Check",
+      "OTHER": "Other"
+    },
+    "fields": {
+      "project": "Project",
+      "category": "Category",
+      "supplier": "Supplier",
+      "date": "Date",
+      "paymentMethod": "Payment method",
+      "responsible": "Expense owner",
+      "amount": "Amount (COP)",
+      "description": "Description",
+      "invoiceNumber": "Invoice or receipt no.",
+      "support": "Support (invoice or receipt)",
+      "status": "Status",
+      "registeredBy": "Registered by",
+      "rejectionReason": "Rejection reason"
+    },
+    "list": {
+      "title": "Registered expenses",
+      "filters": "Filters",
+      "allStatuses": "All statuses",
+      "allCategories": "All categories",
+      "allProjects": "All projects",
+      "empty": "No expenses match these filters.",
+      "export": "Export CSV",
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    }
+  },
+  "expenseForm": {
+    "title": "Register expense",
+    "subtitle": "Record what you spend on site and attach a photo of the invoice or receipt.",
+    "projectPlaceholder": "Select the project",
+    "supplierSearch": "Search supplier by name or NIT",
+    "supplierNone": "No supplier",
+    "supplierNew": "Create supplier “{name}”",
+    "supplierNewTitle": "New supplier",
+    "supplierNit": "NIT (optional)",
+    "supplierCreated": "Supplier created and selected.",
+    "supplierSelected": "Supplier: {name}",
+    "change": "Change",
+    "methodPlaceholder": "Select a method",
+    "responsibleCompany": "{name} · direct company payment",
+    "responsibleResident": "{name} · deducted from your petty cash",
+    "amountPlaceholder": "0",
+    "descriptionPlaceholder": "Describe the items purchased or the reason for the expense",
+    "invoicePlaceholder": "e.g. FE-10234",
+    "takePhoto": "Take photo",
+    "uploadFile": "Upload file",
+    "supportHint": "JPG, PNG, WEBP or PDF · max 5 MB. Photos are compressed automatically.",
+    "compressing": "Optimizing photo...",
+    "compressed": "Photo optimized: {before} → {after}",
+    "removeFile": "Remove file",
+    "pdfAttached": "PDF attached",
+    "openPdf": "Open PDF",
+    "fileTooLarge": "The file exceeds 5 MB even after compression.",
+    "fileType": "File type not allowed. Use JPG, PNG, WEBP or PDF.",
+    "submit": "Confirm registration",
+    "submitting": "Registering...",
+    "cancel": "Cancel",
+    "createdPending": "Expense registered. It is awaiting approval.",
+    "createdApproved": "Expense registered and approved.",
+    "errors": {
+      "project": "Select the project",
+      "amount": "Enter an amount greater than zero",
+      "date": "Select the date"
+    },
+    "budget": {
+      "title": "Budget status",
+      "selectProject": "Select a project to see its budget.",
+      "assigned": "Assigned budget",
+      "executed": "Executed (approved)",
+      "available": "Available balance",
+      "executedPercent": "{percent}% executed",
+      "impactTitle": "Impact of this expense",
+      "impact": "This expense equals {percent}% of the available budget.",
+      "impactOver": "This expense exceeds the project's available budget.",
+      "impactNoBudget": "The project has no budget left."
+    },
+    "cash": {
+      "title": "Your petty cash",
+      "balance": "Current balance",
+      "after": "Balance after this expense",
+      "negative": "Will need reimbursement"
+    }
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "subtitle": "Supplier directory and approved purchase volume.",
+    "new": "New supplier",
+    "edit": "Edit supplier",
+    "topTitle": "Top suppliers by volume",
+    "topBadge": "TOP {rank}",
+    "transactions": "{count, plural, one {# purchase} other {# purchases}}",
+    "lastPurchase": "Last purchase: {date}",
+    "directory": "Supplier directory",
+    "count": "{count, plural, one {# supplier} other {# suppliers}}",
+    "search": "Search by name or NIT",
+    "fields": {
+      "name": "Name or company name",
+      "nit": "NIT (tax id)",
+      "category": "Main category",
+      "phone": "Phone",
+      "email": "Email",
+      "notes": "Notes",
+      "totalPurchased": "Total purchased",
+      "transactions": "Purchases",
+      "lastPurchase": "Last purchase"
+    },
+    "noCategory": "No category",
+    "empty": "No suppliers registered yet.",
+    "emptySearch": "No suppliers match your search.",
+    "created": "Supplier created.",
+    "updated": "Supplier updated.",
+    "deleted": "Supplier deleted.",
+    "delete": "Delete",
+    "deleteTitle": "Delete supplier",
+    "deleteConfirm": "Delete {name}? This cannot be undone.",
+    "deleteBlocked": "Cannot delete: the supplier has registered expenses.",
+    "duplicateNit": "A supplier with this NIT already exists.",
+    "export": "Export CSV",
+    "save": "Save supplier",
+    "nameError": "At least 2 characters",
+    "emailError": "Invalid email"
+  },
+  "cash": {
+    "title": "Petty cash",
+    "subtitle": "Funds sent to residents for field expenses and how they are used.",
+    "residentSubtitle": "Funds you have received and how much you have spent.",
+    "totalBalance": "Total cash balance",
+    "totalHint": "Sent {transfers} · spent {spent}",
+    "toReimburse": "To reimburse: {amount}",
+    "assign": "Assign funds",
+    "balancesTitle": "Balances by resident",
+    "myBalance": "My balance",
+    "received": "Received",
+    "spent": "Spent",
+    "pending": "Under review: {amount}",
+    "used": "{percent}% used",
+    "noTransfers": "No transfers",
+    "negative": "To reimburse",
+    "empty": "There are no resident engineers registered.",
+    "transfersTitle": "Transfers",
+    "myTransfersTitle": "Transfers received",
+    "transfersEmpty": "No transfers registered yet.",
+    "fields": {
+      "resident": "Resident",
+      "project": "Project (optional)",
+      "amount": "Amount (COP)",
+      "date": "Date",
+      "method": "Method",
+      "notes": "Notes",
+      "createdBy": "Sent by"
+    },
+    "residentPlaceholder": "Select the resident",
+    "notesPlaceholder": "e.g. Funds for minor material purchases",
+    "transferTitle": "Assign funds to a resident",
+    "submit": "Register transfer",
+    "created": "Transfer registered. The resident's balance was updated.",
+    "errors": {
+      "resident": "Select the resident",
+      "amount": "Enter an amount greater than zero"
+    }
+  },
+  "cashflow": {
+    "title": "Cash flow",
+    "subtitle": "Transfers to residents versus approved expenses, month by month.",
+    "range": {
+      "label": "Period",
+      "3": "3 months",
+      "6": "6 months",
+      "12": "12 months"
+    },
+    "chartTitle": "Transfers vs. approved expenses",
+    "transfers": "Transfers",
+    "expenses": "Approved expenses",
+    "allProjects": "All projects",
+    "allSuppliers": "All suppliers",
+    "ledgerTitle": "Transaction ledger",
+    "kind": {
+      "EXPENSE": "Expense",
+      "TRANSFER": "Transfer"
+    },
+    "fields": {
+      "date": "Date",
+      "description": "Description",
+      "project": "Project",
+      "category": "Category",
+      "type": "Type",
+      "amount": "Amount",
+      "support": "Support",
+      "person": "Person"
+    },
+    "noDescription": "No description",
+    "transferTo": "Transfer to {name}",
+    "viewSupport": "View support",
+    "empty": "No transactions in this period.",
+    "export": "Export CSV",
+    "totals": {
+      "transfers": "Total transferred",
+      "expenses": "Total approved expenses",
+      "toBeAccounted": "To be accounted for",
+      "toBeAccountedHint": "Sent to residents and not yet justified with expenses."
+    }
+  },
+  "csv": {
+    "expenses": "expenses",
+    "suppliers": "suppliers",
+    "cashflow": "cash-flow"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "login": "Sign in"
+    },
+    "hero": {
+      "eyebrow": "For construction companies in Nariño, Colombia",
+      "title": "Control every project, every peso and every risk in one place",
+      "subtitle": "ObraIQ brings together project progress, expenses with their supporting documents and cost-overrun and delay alerts, with AI-assisted risk analysis.",
+      "primary": "Go to ObraIQ",
+      "secondary": "See features",
+      "note": "Buildings, roads, bridges, schools, warehouses, remodeling and sports facilities."
+    },
+    "preview": {
+      "label": "Financial dashboard preview",
+      "budget": "Budget",
+      "spent": "Spent",
+      "available": "Available",
+      "alert": "Cost overrun risk detected",
+      "alertDetail": "Spend 72% vs. progress 38%",
+      "physical": "Physical progress",
+      "financial": "Financial progress"
+    },
+    "features": {
+      "title": "Everything project management needs",
+      "subtitle": "Built for the administrator at the office and the resident engineer on site.",
+      "tracking": {
+        "title": "Project tracking",
+        "description": "Physical progress by activity, schedule, photo evidence and field incidents for every project."
+      },
+      "costs": {
+        "title": "Cost control with receipts",
+        "description": "Residents photograph invoices from their phone; administrators approve them and manage suppliers, petty cash and cash flow in Colombian pesos."
+      },
+      "risk": {
+        "title": "Alerts and AI risk analysis",
+        "description": "Automatic rules detect delays and cost overruns; Gemini analyzes risk and answers questions about your projects. If the AI fails, the system keeps working."
+      },
+      "background": {
+        "title": "Background processing",
+        "description": "Web Workers compress photos and run analyses without freezing the interface; Worker Threads do the same on the server."
+      }
+    },
+    "how": {
+      "title": "How it works",
+      "step1": {
+        "title": "Register the project",
+        "description": "Budget, dates, project type and responsible engineer."
+      },
+      "step2": {
+        "title": "Report from the field",
+        "description": "Activities, photos and expenses with receipts, from the phone."
+      },
+      "step3": {
+        "title": "Decide with data",
+        "description": "Approve expenses, review alerts and compare physical vs. financial progress."
+      }
+    },
+    "cta": {
+      "title": "Ready to see your projects clearly?",
+      "subtitle": "Sign in with the account your company administrator gave you.",
+      "button": "Sign in"
+    },
+    "footer": {
+      "rights": "© {year} ObraIQ. Academic project — Universidad Cooperativa de Colombia.",
+      "made": "Made in Nariño, Colombia"
+    }
   }
 }

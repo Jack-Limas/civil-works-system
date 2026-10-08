@@ -9,9 +9,12 @@ export interface AnalysisResult {
   durationMs: number;
 }
 
+/** Stage keys translated under analysis.stages.* (the worker posts the same keys). */
+export type AnalysisStage = "sending" | "mainThread" | "projects" | "costs" | "materials" | "progress" | "alerts";
+
 interface RunState {
   status: "idle" | "running" | "done";
-  stage: string | null;
+  stage: AnalysisStage | null;
   result: AnalysisResult | null;
   totalElapsedMs: number | null;
 }
@@ -52,7 +55,7 @@ export function useProjectAnalysis() {
     setMainThread({
       ...IDLE,
       status: "running",
-      stage: "Procesando en el hilo principal...",
+      stage: "mainThread",
     });
 
     requestAnimationFrame(() => {
@@ -78,10 +81,10 @@ export function useProjectAnalysis() {
       setWorkerState({
         ...IDLE,
         status: "running",
-        stage: "Enviando datos al Worker...",
+        stage: "sending",
       });
 
-      broadcast({ status: "running", stage: "Enviando datos al Worker..." });
+      broadcast({ status: "running", stage: "sending" });
 
       w.onmessage = (event: MessageEvent) => {
         if (event.data.type === "STAGE") {

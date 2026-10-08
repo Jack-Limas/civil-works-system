@@ -1,51 +1,57 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useProjectAnalysis } from "@/hooks/use-project-analysis";
 import { useHeartbeat } from "@/hooks/use-heartbeat";
 
 export function AnalysisRunner() {
+  const t = useTranslations("analysis");
   const { mainThread, worker, runOnMainThread, runOnWorker } = useProjectAnalysis();
   const heartbeat = useHeartbeat();
 
+  const resultText = (run: typeof mainThread) =>
+    run.result
+      ? t("result", { ms: Math.round(run.totalElapsedMs ?? 0), anomalies: run.result.anomaliesDetected })
+      : t("idle");
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h2 className="mb-1 text-lg font-semibold">Hilo Principal vs Web Worker</h2>
-      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        Latido: <span className="font-mono">{heartbeat}</span> — si este número se congela, el hilo principal está bloqueado.
+    <div className="rounded-xl border border-line bg-surface p-5">
+      <h2 className="mb-1 text-base font-semibold text-ink">{t("title")}</h2>
+      <p className="mb-4 text-sm text-ink-muted">
+        {t.rich("heartbeat", {
+          tick: heartbeat,
+          mono: (chunks) => <span className="font-mono-data text-ink">{chunks}</span>,
+        })}
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-red-200 p-4 dark:border-red-900">
-          <h3 className="mb-2 font-medium text-red-600 dark:text-red-400">Hilo Principal (bloqueante)</h3>
+        <div className="rounded-lg border border-critical/30 p-4">
+          <h3 className="mb-2 text-sm font-medium text-critical">{t("mainThread")}</h3>
           <button
+            type="button"
             onClick={() => runOnMainThread(8000)}
-            className="mb-3 rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+            disabled={mainThread.status === "running"}
+            className="mb-3 rounded-md bg-critical px-3 py-1.5 text-sm text-white hover:bg-critical/90 disabled:opacity-50"
           >
-            Ejecutar análisis
+            {t("run")}
           </button>
-          <p className="text-sm">
-            {mainThread.status === "running"
-              ? "Procesando... (observa si el latido se congela)"
-              : mainThread.result
-              ? `✅ ${mainThread.totalElapsedMs?.toFixed(0)}ms — ${mainThread.result.anomaliesDetected} anomalías`
-              : "Sin ejecutar"}
+          <p className="text-sm text-ink" aria-live="polite">
+            {mainThread.status === "running" ? t("mainRunning") : resultText(mainThread)}
           </p>
         </div>
 
-        <div className="rounded-lg border border-green-200 p-4 dark:border-green-900">
-          <h3 className="mb-2 font-medium text-green-600 dark:text-green-400">Web Worker (segundo plano)</h3>
+        <div className="rounded-lg border border-success/30 p-4">
+          <h3 className="mb-2 text-sm font-medium text-success">{t("worker")}</h3>
           <button
+            type="button"
             onClick={() => runOnWorker(8000)}
-            className="mb-3 rounded-md bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
+            disabled={worker.status === "running"}
+            className="mb-3 rounded-md bg-success px-3 py-1.5 text-sm text-white hover:bg-success/90 disabled:opacity-50"
           >
-            Ejecutar análisis
+            {t("run")}
           </button>
-          <p className="text-sm">
-            {worker.status === "running"
-              ? worker.stage
-              : worker.result
-              ? `✅ ${worker.totalElapsedMs?.toFixed(0)}ms — ${worker.result.anomaliesDetected} anomalías`
-              : "Sin ejecutar"}
+          <p className="text-sm text-ink" aria-live="polite">
+            {worker.status === "running" && worker.stage ? t(`stages.${worker.stage}`) : resultText(worker)}
           </p>
         </div>
       </div>

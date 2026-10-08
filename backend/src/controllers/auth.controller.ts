@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { buildAuthService } from "../services/auth.service";
 
@@ -29,7 +29,12 @@ function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: 
   });
 }
 
-export function buildAuthController(app: any) {
+function clearAuthCookies(reply: FastifyReply) {
+  reply.clearCookie("accessToken", { path: "/" });
+  reply.clearCookie("refreshToken", { path: "/" });
+}
+
+export function buildAuthController(app: FastifyInstance) {
   const authService = buildAuthService(app);
 
   return {
@@ -40,31 +45,42 @@ export function buildAuthController(app: any) {
       return reply.send({ user: result.user });
     },
 
+    /**
+     * On any failure the session cookies are cleared: a stale accessToken cookie
+     * would otherwise make the frontend proxy keep treating the visitor as
+     * logged in (login -> dashboard -> 401 -> login redirect loop).
+     */
     async refresh(request: FastifyRequest, reply: FastifyReply) {
       const refreshToken = request.cookies.refreshToken;
-      if (!refreshToken) return reply.code(401).send({ error: "Missing refresh token" });
-
       const decoded = app.jwt.decode(request.cookies.accessToken || "") as { sub?: string } | null;
       const body = request.body as { userId?: string } | undefined;
       const userId = decoded?.sub ?? body?.userId;
 
-      if (!userId) return reply.code(401).send({ error: "Cannot resolve user" });
+      if (!refreshToken || !userId) {
+        clearAuthCookies(reply);
+        return reply.code(401).send({ error: "Session expired" });
+      }
 
-      const result = await authService.refresh(userId, refreshToken);
-      setAuthCookies(reply, result.accessToken, result.refreshToken);
-      return reply.send({ ok: true });
+      try {
+        const result = await authService.refresh(userId, refreshToken);
+        setAuthCookies(reply, result.accessToken, result.refreshToken);
+        return reply.send({ ok: true });
+      } catch (error) {
+        clearAuthCookies(reply);
+        throw error;
+      }
     },
 
     async logout(request: FastifyRequest, reply: FastifyReply) {
-      const user = request.user as { sub: string };
+      const user = request.user;
       await authService.logout(user.sub);
-      reply.clearCookie("accessToken", { path: "/" });
-      reply.clearCookie("refreshToken", { path: "/" });
+      clearAuthCookies(reply);
       return reply.send({ ok: true });
     },
 
     async me(request: FastifyRequest, reply: FastifyReply) {
-      return reply.send({ user: request.user });
+      const user = await authService.me(request.user.sub);
+      return reply.send({ user });
     },
 
     async register(request: FastifyRequest, reply: FastifyReply) {

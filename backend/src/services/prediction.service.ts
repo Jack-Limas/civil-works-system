@@ -2,7 +2,11 @@ import { riskContextService } from "./risk-context.service";
 import { predictionRepository } from "../repositories/prediction.repository";
 import { RuleBasedRiskStrategy } from "../strategies/risk/rule-based-risk.strategy";
 import { AIRiskStrategy } from "../strategies/risk/ai-risk.strategy";
-import { RiskStrategy, ProjectRiskAssessment } from "../strategies/risk/risk-strategy.interface";
+import {
+  RiskStrategy,
+  ProjectRiskAssessment,
+  RiskLevel,
+} from "../strategies/risk/risk-strategy.interface";
 
 export type StrategyName = "RULE_BASED" | "AI_GEMINI";
 
@@ -11,41 +15,66 @@ const strategies: Record<StrategyName, RiskStrategy> = {
   AI_GEMINI: new AIRiskStrategy(),
 };
 
+const RISK_LEVELS: readonly RiskLevel[] = ["LOW", "MEDIUM", "HIGH"];
+
+/** Shape persisted in Prediction.resultJson. */
+interface StoredRisk {
+  level: RiskLevel;
+  reasoning: string;
+  source: string;
+}
+
+function asStoredRisk(value: unknown): StoredRisk | null {
+  if (!value || typeof value !== "object") return null;
+  const { level, reasoning, source } = value as Record<string, unknown>;
+  if (typeof reasoning !== "string" || typeof source !== "string") return null;
+  if (!RISK_LEVELS.includes(level as RiskLevel)) return null;
+  return { level: level as RiskLevel, reasoning, source };
+}
+
+/**
+ * When Gemini is unavailable, rebuild the latest AI assessment stored for the
+ * project. Returns null when the project has never been analyzed with AI.
+ */
+async function findLastAiAssessment(projectId: string): Promise<ProjectRiskAssessment | null> {
+  const history = await predictionRepository.findByProject(projectId);
+  const lastAi = (type: "DELAY_RISK" | "COST_OVERRUN_RISK") =>
+    history.find((p) => p.type === type && asStoredRisk(p.resultJson)?.source === "AI_GEMINI");
+
+  const delay = lastAi("DELAY_RISK");
+  const cost = lastAi("COST_OVERRUN_RISK");
+  const delayRisk = asStoredRisk(delay?.resultJson);
+  const costRisk = asStoredRisk(cost?.resultJson);
+  if (!delay || !delayRisk || !costRisk) return null;
+
+  return {
+    delayRisk: { level: delayRisk.level, reasoning: delayRisk.reasoning },
+    costOverrunRisk: { level: costRisk.level, reasoning: costRisk.reasoning },
+    confidence: delay.confidence ?? 0,
+    source: "AI_GEMINI",
+  };
+}
+
 export const predictionService = {
+  /**
+   * Runs a strategy and stores its result. If Gemini fails, the last stored AI
+   * assessment is returned with fromCache=true and is NOT persisted again, so
+   * the history never contains duplicated "new" predictions.
+   */
   async generate(projectId: string, strategyName: StrategyName) {
-    const strategy = strategies[strategyName];
     const context = await riskContextService.build(projectId);
-    
+
     let assessment: ProjectRiskAssessment;
-
     try {
-      assessment = await strategy.analyze(context);
+      assessment = await strategies[strategyName].analyze(context);
     } catch (error) {
-      if (strategyName === "AI_GEMINI") {
-        console.warn("[predictionService] Fallback activo: Recuperando último análisis de Gemini desde PostgreSQL...");
-        const history = await predictionRepository.findByProject(projectId);
-        const lastAiDelay = history.find((p) => p.type === "DELAY_RISK" && (p.resultJson as any)?.source === "AI_GEMINI");
-        const lastAiCost = history.find((p) => p.type === "COST_OVERRUN_RISK" && (p.resultJson as any)?.source === "AI_GEMINI");
+      if (strategyName !== "AI_GEMINI") throw error;
 
-        if (lastAiDelay && lastAiCost) {
-          assessment = {
-            delayRisk: {
-              level: (lastAiDelay.resultJson as any).level,
-              reasoning: (lastAiDelay.resultJson as any).reasoning + " (Recuperado de caché por alta demanda)",
-            },
-            costOverrunRisk: {
-              level: (lastAiCost.resultJson as any).level,
-              reasoning: (lastAiCost.resultJson as any).reasoning + " (Recuperado de caché por alta demanda)",
-            },
-            confidence: lastAiDelay.confidence ?? 0.95,
-            source: "AI_GEMINI",
-          };
-        } else {
-          throw error;
-        }
-      } else {
-        throw error;
-      }
+      const cached = await findLastAiAssessment(projectId);
+      if (!cached) throw error;
+
+      console.warn("[predictionService] Gemini unavailable, serving the last stored AI assessment");
+      return { assessment: cached, predictions: [], fromCache: true };
     }
 
     const [delayPrediction, costPrediction] = await Promise.all([
@@ -63,7 +92,7 @@ export const predictionService = {
       }),
     ]);
 
-    return { assessment, predictions: [delayPrediction, costPrediction] };
+    return { assessment, predictions: [delayPrediction, costPrediction], fromCache: false };
   },
 
   async history(projectId: string) {
@@ -71,52 +100,20 @@ export const predictionService = {
   },
 
   /**
-   * Compara ambas estrategias lado a lado.
+   * Compares both strategies side by side. The AI side degrades to the last
+   * stored assessment, or to `null` when there is nothing to show.
    */
   async compareStrategies(projectId: string) {
     const context = await riskContextService.build(projectId);
+    const ruleBased = await strategies.RULE_BASED.analyze(context);
 
-    const ruleBasedResult = await strategies.RULE_BASED.analyze(context);
-
-    let aiResult: ProjectRiskAssessment;
     try {
-      aiResult = await strategies.AI_GEMINI.analyze(context);
-    } catch (error) {
-      console.warn("[compareStrategies] IA no disponible temporalmente. Buscando última predicción en BD...");
-      
-      const history = await predictionRepository.findByProject(projectId);
-      const lastAiDelay = history.find((p) => p.type === "DELAY_RISK" && (p.resultJson as any)?.source === "AI_GEMINI");
-      const lastAiCost = history.find((p) => p.type === "COST_OVERRUN_RISK" && (p.resultJson as any)?.source === "AI_GEMINI");
-
-      if (lastAiDelay && lastAiCost) {
-        aiResult = {
-          delayRisk: {
-            level: (lastAiDelay.resultJson as any).level,
-            reasoning: (lastAiDelay.resultJson as any).reasoning + " (Recuperado de BD)",
-          },
-          costOverrunRisk: {
-            level: (lastAiCost.resultJson as any).level,
-            reasoning: (lastAiCost.resultJson as any).reasoning + " (Recuperado de BD)",
-          },
-          confidence: lastAiDelay.confidence ?? 0.95,
-          source: "AI_GEMINI",
-        };
-      } else {
-        aiResult = {
-          delayRisk: { 
-            level: "MEDIUM", 
-            reasoning: "Servicio de IA de Gemini no disponible temporalmente por alta demanda en Google." 
-          },
-          costOverrunRisk: { 
-            level: "MEDIUM", 
-            reasoning: "Servicio de IA de Gemini no disponible temporalmente por alta demanda en Google." 
-          },
-          confidence: 0,
-          source: "AI_GEMINI",
-        };
-      }
+      const ai = await strategies.AI_GEMINI.analyze(context);
+      return { ruleBased, ai, aiFromCache: false };
+    } catch {
+      console.warn("[compareStrategies] Gemini unavailable, falling back to the last stored assessment");
+      const ai = await findLastAiAssessment(projectId);
+      return { ruleBased, ai, aiFromCache: ai !== null };
     }
-
-    return { ruleBased: ruleBasedResult, ai: aiResult };
   },
 };

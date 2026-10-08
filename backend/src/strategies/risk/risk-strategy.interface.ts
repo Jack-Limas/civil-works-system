@@ -23,6 +23,11 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 export interface RiskLevelResult {
   level: RiskLevel;
   reasoning: string;
+  /**
+   * Numbers behind a deterministic reasoning, so clients can render it in any
+   * language. Only the rule-based strategy fills it.
+   */
+  params?: Record<string, number>;
 }
 
 export interface ProjectRiskAssessment {

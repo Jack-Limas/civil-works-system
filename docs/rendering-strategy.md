@@ -1,0 +1,68 @@
+# Estrategia de renderizado — ObraIQ
+
+ObraIQ usa Next.js 16 (App Router). El patrón de renderizado se eligió **pantalla por pantalla** según dos preguntas: ¿el contenido es igual para todos los visitantes? y ¿depende de la sesión o cambia con cada acción del usuario?
+
+| Patrón | Dónde se usa | Idea |
+|---|---|---|
+| **SSG** (Static Site Generation) | Landing, login, páginas 404 | HTML generado en `next build`, una vez por idioma (`generateStaticParams` + `setRequestLocale`). |
+| **CSR** (Client-Side Rendering) sobre un *shell* prerenderizado | Todas las pantallas privadas | El HTML generado solo contiene la estructura traducida (sidebar, encabezado, skeletons). **Ningún dato privado** se incluye en el HTML: los datos llegan desde la API en el navegador con TanStack Query, después de validar la sesión. |
+| **SSR** | No se usa | — |
+| **ISR** | No se usa | — |
+
+## Tabla por pantalla
+
+| Pantalla | Ruta | Patrón | Justificación | Ventaja | Cuello de botella |
+|---|---|---|---|---|---|
+| Landing | `/[locale]` | SSG (Server Component) | Contenido público e idéntico para todos; valor SEO. Solo los selectores de idioma y tema son islas cliente. | Se sirve desde CDN sin tocar el backend; carga casi instantánea. | Cambiar un texto exige un nuevo build y despliegue. |
+| Login | `/[locale]/login` | SSG + formulario CSR | Página pública sin datos por usuario; el formulario necesita estado e interacción. | Primera pintura inmediata; el JS del formulario hidrata después. | El año del pie de página queda fijo al momento del build. |
+| 404 | `not-found` | Estático | Sin datos. | Costo cero. | — |
+| Panel general | `/[locale]/dashboard` | CSR | Requiere sesión; las cifras dependen del rol (el residente solo ve sus obras) y cambian con cada actividad o gasto. | Datos siempre frescos y cacheados en el cliente (TanStack Query); refetch sin recargar. | Primera carga muestra skeletons hasta que responde la API (y Neon puede tardar si la base estaba suspendida). |
+| Obras (lista) | `/[locale]/projects` | CSR | Filtros y búsqueda interactivos; lista acotada por rol. | Filtrar no hace peticiones nuevas (se filtra en memoria). | Trae hasta 100 obras por petición; con miles habría que paginar en el servidor. |
+| Detalle de obra | `/[locale]/projects/[id]` | CSR (ruta dinámica `ƒ`) | El `id` no se conoce en el build y los datos son privados. | Pestañas sin recargar; invalidación selectiva de caché al registrar actividad o evidencia. | Varias peticiones en paralelo al abrir la obra. |
+| Nueva obra | `/[locale]/projects/new` | CSR | Formulario solo para ADMIN, con validación en vivo. | Validación inmediata con zod. | — |
+| Costos — Resumen | `/[locale]/expenses` | CSR | Datos financieros **privados** que cambian con cada aprobación o giro. **No debe ser SSG/ISR**: quedarían datos de un usuario en caché compartida. | Aprobación/rechazo con actualización inmediata de KPIs, alertas y saldos (invalidación de caché). | Agregaciones en el servidor por cada visita (mitigado con `groupBy` e índices). |
+| Registrar gasto | `/[locale]/expenses/new` | CSR (mobile-first) | Formulario interactivo con cámara, compresión de fotos en Web Worker y panel de impacto en vivo. | La compresión ocurre en un hilo aparte: la interfaz no se congela con fotos de 6-12 MB. | Depende de la capacidad del celular para decodificar la imagen. |
+| Proveedores | `/[locale]/suppliers` | CSR | Directorio con búsqueda y estadísticas solo para ADMIN. | Búsqueda con *debounce*; estadísticas unidas con un `Map`. | Las estadísticas recorren todos los gastos aprobados (agregadas en BD). |
+| Caja menor | `/[locale]/cash` | CSR | Saldos por residente: dato sensible y por rol. | El residente solo recibe su propia fila desde la API. | — |
+| Flujo de caja | `/[locale]/cashflow` | CSR | Serie mensual y libro de movimientos filtrables. | Cambiar el periodo o filtro mantiene los datos previos visibles (`keepPreviousData`). | La exportación CSV recorre todas las páginas del filtro. |
+| Usuarios | `/[locale]/users` | CSR | Solo ADMIN. | — | — |
+| Materiales, novedades, trabajadores, alertas, evidencias | `/[locale]/...` | CSR | Datos privados y por rol. | — | — |
+
+## Por qué las pantallas privadas aparecen como `●` en `next build`
+
+Next.js marca como `●` (SSG) toda ruta cuyo HTML puede generarse en el build. En las pantallas privadas ese HTML es **solo el armazón** traducido de la página (layout, encabezado y skeletons de carga): son componentes `"use client"` que no leen datos en el servidor. La autenticación ocurre en dos capas:
+
+1. `src/proxy.ts` redirige al login si no existe la cookie de sesión (comprobación optimista, rápida).
+2. La API (Fastify) valida el JWT y filtra cada consulta por rol y pertenencia a la obra (la verdadera autorización).
+
+Por eso es seguro y eficiente: el armazón se sirve desde caché y los datos privados nunca forman parte de un HTML compartido.
+
+## Salida de `next build` (verificación)
+
+```
+Route (app)
+┌ ○ /_not-found
+├   /[locale]
+│ ├ ● /es
+│ └ ● /en
+├   /[locale]/login
+│ ├ ● /es/login
+│ └ ● /en/login
+├   /[locale]/dashboard            ● /es/dashboard, ● /en/dashboard   (shell; datos CSR)
+├   /[locale]/expenses             ● /es/expenses,  ● /en/expenses    (shell; datos CSR)
+├   /[locale]/expenses/new         ● ...                              (shell; datos CSR)
+├   /[locale]/suppliers, /cash, /cashflow, /projects, /projects/new,
+│   /materials, /incidents, /workers, /users, /alerts, /evidence      ● (shell; datos CSR)
+├ ƒ /[locale]/projects/[id]                                           (dinámica; datos CSR)
+ƒ Proxy (Middleware)
+
+○ (Static)  prerendered as static content
+● (SSG)     prerendered as static HTML (uses generateStaticParams)
+ƒ (Dynamic) server-rendered on demand
+```
+
+## Decisiones relacionadas
+
+- **Una sola petición de sesión**: `AuthProvider` llama `/auth/me` al montar; en páginas públicas responde 401 y la página sigue funcionando (no se redirige).
+- **COOP/COEP** (`next.config.ts`) habilitan `SharedArrayBuffer`; por eso toda imagen externa (Cloudinary) lleva `crossOrigin="anonymous"` y los PDF se abren en una pestaña nueva en vez de incrustarse.
+- **SSR/ISR**: no aportan aquí. Las páginas públicas no tienen datos que revalidar (SSG basta) y las privadas no deben cachearse en el servidor. Si en el futuro se agrega, por ejemplo, un catálogo público de obras terminadas, ISR sería la opción natural y se documentará en esta tabla.

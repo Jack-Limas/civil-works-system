@@ -1,27 +1,56 @@
+import { ExpenseStatus, Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
-import { CreateExpenseInput } from "../schemas/expense.schema";
+
+/** Relations every expense response carries so the UI never shows raw ids. */
+export const expenseInclude = {
+  project: { select: { id: true, name: true } },
+  supplier: { select: { id: true, name: true, nit: true } },
+  registeredBy: { select: { id: true, name: true, role: true } },
+  reviewedBy: { select: { id: true, name: true } },
+} satisfies Prisma.ExpenseInclude;
 
 export const expenseRepository = {
-  findMany(filters: { projectId: string; skip: number; take: number }) {
+  findMany(where: Prisma.ExpenseWhereInput, skip: number, take: number) {
     return Promise.all([
       prisma.expense.findMany({
-        where: { projectId: filters.projectId },
-        skip: filters.skip,
-        take: filters.take,
-        orderBy: { date: "desc" },
+        where,
+        skip,
+        take,
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        include: expenseInclude,
       }),
-      prisma.expense.count({ where: { projectId: filters.projectId } }),
+      prisma.expense.count({ where }),
     ]);
   },
 
-  sumByProject(projectId: string) {
+  findById(id: string) {
+    return prisma.expense.findUnique({ where: { id }, include: expenseInclude });
+  },
+
+  /** Executed spend: only APPROVED expenses count (PENDING/REJECTED never do). */
+  sumApprovedByProject(projectId: string) {
     return prisma.expense.aggregate({
-      where: { projectId },
+      where: { projectId, status: "APPROVED" },
       _sum: { amount: true },
     });
   },
 
-  create(data: CreateExpenseInput) {
-    return prisma.expense.create({ data });
+  create(data: Prisma.ExpenseUncheckedCreateInput) {
+    return prisma.expense.create({ data, include: expenseInclude });
+  },
+
+  /**
+   * Conditional transition from PENDING: two admins reviewing the same expense
+   * at once cannot both succeed. Returns the number of updated rows (0 or 1).
+   */
+  async reviewIfPending(
+    id: string,
+    data: { status: ExpenseStatus; reviewedById: string; rejectionReason: string | null }
+  ) {
+    const { count } = await prisma.expense.updateMany({
+      where: { id, status: "PENDING" },
+      data: { ...data, reviewedAt: new Date() },
+    });
+    return count;
   },
 };

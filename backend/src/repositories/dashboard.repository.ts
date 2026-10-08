@@ -1,25 +1,40 @@
 import { prisma } from "../config/prisma";
 
+/** Every aggregate accepts an optional responsibleId to scope it to a resident's projects. */
 export const dashboardRepository = {
-  countProjectsByStatus() {
-    return prisma.project.groupBy({ by: ["status"], _count: true });
+  countProjectsByStatus(responsibleId?: string) {
+    return prisma.project.groupBy({
+      by: ["status"],
+      where: { ...(responsibleId && { responsibleId }) },
+      _count: true,
+    });
   },
 
-  averageProgress() {
-    return prisma.project.aggregate({ _avg: { progressPercentage: true } });
+  averageProgress(responsibleId?: string) {
+    return prisma.project.aggregate({
+      where: { ...(responsibleId && { responsibleId }) },
+      _avg: { progressPercentage: true },
+    });
   },
 
-  totalBudget() {
-    return prisma.project.aggregate({ _sum: { budget: true } });
+  totalBudget(responsibleId?: string) {
+    return prisma.project.aggregate({
+      where: { ...(responsibleId && { responsibleId }) },
+      _sum: { budget: true },
+    });
   },
 
-  totalExecutedExpenses() {
-    return prisma.expense.aggregate({ _sum: { amount: true } });
+  totalExecutedExpenses(responsibleId?: string) {
+    return prisma.expense.aggregate({
+      where: { status: "APPROVED", ...(responsibleId && { project: { responsibleId } }) },
+      _sum: { amount: true },
+    });
   },
 
-  recentActivities(take: number) {
+  recentActivities(take: number, responsibleId?: string) {
     return prisma.activity.findMany({
       take,
+      where: { ...(responsibleId && { project: { responsibleId } }) },
       orderBy: { date: "desc" },
       include: { project: { select: { name: true } } },
     });

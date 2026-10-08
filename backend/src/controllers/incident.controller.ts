@@ -5,13 +5,13 @@ import { incidentService } from "../services/incident.service";
 export const incidentController = {
   async list(request: FastifyRequest, reply: FastifyReply) {
     const query = listIncidentsQuerySchema.parse(request.query);
-    const result = await incidentService.list(query);
+    const result = await incidentService.list(query, request.user);
     return reply.send(result);
   },
 
   async create(request: FastifyRequest, reply: FastifyReply) {
     const body = createIncidentSchema.parse(request.body);
-    const incident = await incidentService.create(body);
+    const incident = await incidentService.create(body, request.user);
     return reply.code(201).send({ data: incident });
   },
 

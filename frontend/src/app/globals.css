@@ -12,14 +12,15 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-ink: var(--sidebar-ink);
   --color-brand: #1e293b;
-  --color-accent: #ea580c;
+  --color-accent: var(--accent);
   --color-accent-soft: #fed7aa;
-  --color-critical: #dc2626;
+  --color-critical: var(--critical);
   --color-critical-soft: #fee2e2;
-  --color-warning: #d97706;
+  --color-warning: var(--warning);
   --color-warning-soft: #fef3c7;
-  --color-success: #16a34a;
+  --color-success: var(--success);
   --color-success-soft: #dcfce7;
+  --color-ai: var(--ai);
   --font-mono-data: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
@@ -32,6 +33,12 @@
   --ink-muted: #64748b;
   --sidebar: #0b0f16;
   --sidebar-ink: #cbd5e1;
+  --ai: #4f46e5;
+  /* Brand/status colors are theme-independent; exposed as variables so charts can use them */
+  --accent: #ea580c;
+  --critical: #dc2626;
+  --warning: #d97706;
+  --success: #16a34a;
 }
 
 .dark {
@@ -43,6 +50,7 @@
   --ink-muted: #94a3b8;
   --sidebar: #05070c;
   --sidebar-ink: #94a3b8;
+  --ai: #818cf8;
 }
 
 body {

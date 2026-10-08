@@ -1,104 +1,95 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Send, Bot, User } from "lucide-react";
 import { useAskAssistant } from "@/lib/assistant-service";
+import { getHttpStatus } from "@/lib/api-error";
 
 interface ChatMessage {
+  id: number;
   role: "user" | "assistant";
   text: string;
+  failed?: boolean;
 }
 
-const SUGGESTIONS = [
-  "¿Qué obra tiene mayor riesgo de sobrecosto?",
-  "¿Qué materiales están en stock bajo?",
-  "Compara el avance de mis obras activas",
-];
+const SUGGESTION_KEYS = ["costRisk", "lowStock", "progress"] as const;
 
 export function AssistantChat() {
+  const t = useTranslations("assistant");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const ask = useAskAssistant();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const nextId = useRef(1);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [messages, ask.isPending]);
 
   async function send(question: string) {
-    if (!question.trim()) return;
-    setMessages((prev) => [...prev, { role: "user", text: question }]);
+    const trimmed = question.trim();
+    if (trimmed.length < 3 || ask.isPending) return;
+    setMessages((prev) => [...prev, { id: nextId.current++, role: "user", text: trimmed }]);
     setInput("");
 
     try {
-      const answer = await ask.mutateAsync(question);
-      setMessages((prev) => [...prev, { role: "assistant", text: answer }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "No pude procesar tu pregunta en este momento. Intenta de nuevo.",
-        },
-      ]);
+      const answer = await ask.mutateAsync(trimmed);
+      setMessages((prev) => [...prev, { id: nextId.current++, role: "assistant", text: answer }]);
+    } catch (error) {
+      // 502 = Gemini down; the system keeps working without it
+      const text = getHttpStatus(error) === 502 ? t("unavailable") : t("errorMessage");
+      setMessages((prev) => [...prev, { id: nextId.current++, role: "assistant", text, failed: true }]);
     }
   }
 
   return (
-    <div className="flex h-[420px] flex-col">
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+    <div className="flex h-[min(420px,60vh)] flex-col">
+      <div className="flex-1 space-y-3 overflow-y-auto pr-1" aria-live="polite">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <p className="text-sm text-ink-muted">
-              Pregúntame sobre tus obras, materiales o alertas:
-            </p>
-            {SUGGESTIONS.map((s) => (
+            <p className="text-sm text-ink-muted">{t("emptyStateHint")}</p>
+            {SUGGESTION_KEYS.map((key) => (
               <button
-                key={s}
+                key={key}
                 type="button"
-                onClick={() => send(s)}
-                className="block w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-left text-sm hover:bg-surface text-ink transition-colors"
+                onClick={() => send(t(`suggestions.${key}`))}
+                className="block w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-surface"
               >
-                {s}
+                {t(`suggestions.${key}`)}
               </button>
             ))}
           </div>
         )}
 
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`flex gap-2 ${
-              m.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+        {messages.map((m) => (
+          <div key={m.id} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             {m.role === "assistant" && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ai/15 text-ai" aria-hidden>
                 <Bot size={14} />
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+              className={`max-w-[80%] whitespace-pre-line rounded-lg px-3 py-2 text-sm ${
                 m.role === "user"
                   ? "bg-accent text-white"
-                  : "bg-surface-2 text-ink"
+                  : m.failed
+                    ? "border border-critical/30 bg-critical/10 text-ink"
+                    : "bg-surface-2 text-ink"
               }`}
             >
+              <span className="sr-only">{m.role === "user" ? t("you") : t("title")}: </span>
               {m.text}
             </div>
             {m.role === "user" && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-muted">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-muted" aria-hidden>
                 <User size={14} />
               </div>
             )}
           </div>
         ))}
 
-        {ask.isPending && (
-          <p className="text-xs text-ink-muted animate-pulse">
-            El asistente está pensando...
-          </p>
-        )}
+        {ask.isPending && <p className="animate-pulse text-xs text-ink-muted motion-reduce:animate-none">{t("thinking")}</p>}
         <div ref={bottomRef} />
       </div>
 
@@ -112,13 +103,16 @@ export function AssistantChat() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu pregunta..."
-          className="flex-1 rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none"
+          placeholder={t("placeholder")}
+          aria-label={t("placeholder")}
+          maxLength={500}
+          className="flex-1 rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink outline-none focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
         />
         <button
           type="submit"
-          disabled={ask.isPending}
-          className="flex h-9 w-9 items-center justify-center rounded-md bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition-colors"
+          disabled={ask.isPending || input.trim().length < 3}
+          aria-label={t("send")}
+          className="flex h-9 w-9 items-center justify-center rounded-md bg-ai text-bg transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <Send size={15} />
         </button>

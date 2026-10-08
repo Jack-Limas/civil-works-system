@@ -13,7 +13,7 @@ export function runHeavyAnalysisInWorker(datasetSize: number): Promise<Inventory
 
     const worker = new Worker(workerFile, {
       workerData: { datasetSize },
-      execArgv: isTs ? ["-r", "ts-node/register"] : [],
+      execArgv: isTs ? ["-r", "ts-node/register/transpile-only"] : [],
     });
 
     worker.on("message", (result: InventoryAnalysisResult) => {

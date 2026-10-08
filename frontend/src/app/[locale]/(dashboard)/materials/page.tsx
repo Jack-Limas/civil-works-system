@@ -4,103 +4,149 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useFormatter, useTranslations } from "next-intl";
+import { AlertTriangle, Plus } from "lucide-react";
+import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { DataTable } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
+import { Field, fieldClass, primaryButtonClass } from "@/components/ui/form";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
 import { useMaterials, useCreateMaterial, Material } from "@/lib/materials-service";
+import { useAuthStore } from "@/store/auth.store";
+import { useApiErrorMessage } from "@/lib/api-error";
+import { toast } from "@/store/toast.store";
 
 const schema = z.object({
-  name: z.string().min(2, "El nombre es obligatorio"),
-  unit: z.string().min(1, "La unidad es obligatoria"),
-  stockMinimum: z.coerce.number().min(0, "El stock mínimo debe ser 0 o mayor"),
+  name: z.string().min(2),
+  unit: z.string().min(1),
+  stockMinimum: z.coerce.number().min(0),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 export default function MaterialsPage() {
+  const t = useTranslations("materials");
+  const tv = useTranslations("validation");
+  const tCommon = useTranslations("common");
+  const format = useFormatter();
+  const isAdmin = useAuthStore((s) => s.user?.role === "ADMIN");
+  const errorMessage = useApiErrorMessage();
   const [modalOpen, setModalOpen] = useState(false);
-  const { data, isLoading } = useMaterials();
+  const { data, isLoading } = useMaterials({ limit: 100 });
   const createMaterial = useCreateMaterial();
+  const materials = data?.data ?? [];
+  const lowCount = materials.filter((m) => m.stockAvailable < m.stockMinimum).length;
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
+  } = useForm<FormInput, unknown, FormValues>({ resolver: zodResolver(schema), defaultValues: { stockMinimum: 0 } });
 
   async function onSubmit(values: FormValues) {
-    await createMaterial.mutateAsync(values);
-    reset();
-    setModalOpen(false);
+    try {
+      await createMaterial.mutateAsync(values);
+      toast.success(t("created"));
+      reset();
+      setModalOpen(false);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
   }
 
-  return (
-    <div className="space-y-4 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Materiales</h1>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
-        >
-          + Nuevo material
-        </button>
-      </div>
+  const qty = (n: number, unit: string) => `${format.number(n)} ${unit}`;
 
-      <DataTable<Material>
-        rows={data?.data ?? []}
-        isLoading={isLoading}
-        rowKey={(m) => m.id}
-        columns={[
-          { header: "Nombre", accessor: (m) => m.name },
-          { header: "Unidad", accessor: (m) => m.unit },
-          { header: "Stock Disponible", accessor: (m) => m.stockAvailable },
-          { header: "Stock Mínimo", accessor: (m) => m.stockMinimum },
-        ]}
+  return (
+    <>
+      <DashboardHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          isAdmin && (
+            <button type="button" onClick={() => setModalOpen(true)} className={primaryButtonClass}>
+              <Plus size={15} aria-hidden /> {t("newMaterial")}
+            </button>
+          )
+        }
       />
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo material">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Nombre</label>
-            <input
-              {...register("name")}
-              placeholder="Ej: Cemento de alta resistencia"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+      <main className="p-4 sm:p-6">
+        <Reveal className="space-y-4">
+          {lowCount > 0 && (
+            <RevealItem>
+              <p className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-ink">
+                <AlertTriangle size={16} className="shrink-0 text-warning" aria-hidden />
+                {t("lowStockWarning", { count: lowCount })}
+              </p>
+            </RevealItem>
+          )}
+          <RevealItem>
+            <DataTable<Material>
+              rows={materials}
+              isLoading={isLoading}
+              rowKey={(m) => m.id}
+              emptyMessage={t("empty")}
+              columns={[
+                { id: "name", header: t("name"), accessor: (m) => m.name, primary: true },
+                { id: "unit", header: t("unit"), accessor: (m) => m.unit },
+                {
+                  id: "available",
+                  header: t("stockAvailable"),
+                  accessor: (m) => <span className="font-mono-data">{qty(m.stockAvailable, m.unit)}</span>,
+                  align: "right",
+                },
+                {
+                  id: "minimum",
+                  header: t("stockMinimum"),
+                  accessor: (m) => <span className="font-mono-data">{qty(m.stockMinimum, m.unit)}</span>,
+                  align: "right",
+                },
+                {
+                  id: "status",
+                  header: t("status"),
+                  accessor: (m) =>
+                    m.stockAvailable < m.stockMinimum ? (
+                      <span className="rounded-full bg-critical/15 px-2 py-0.5 text-xs font-medium text-critical">
+                        {t("stock.low")}
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success">
+                        {t("stock.ok")}
+                      </span>
+                    ),
+                },
+              ]}
             />
-            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-          </div>
+          </RevealItem>
+        </Reveal>
+      </main>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Unidad de medida</label>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("newMaterial")}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3" noValidate>
+          <Field id="material-name" label={t("name")} error={errors.name && tv("minChars", { min: 2 })}>
+            <input id="material-name" {...register("name")} placeholder={t("namePlaceholder")} className={fieldClass} />
+          </Field>
+          <Field id="material-unit" label={t("unit")} error={errors.unit && tv("required")}>
+            <input id="material-unit" {...register("unit")} placeholder={t("unitPlaceholder")} className={fieldClass} />
+          </Field>
+          <Field id="material-min" label={t("stockMinimum")} error={errors.stockMinimum && tv("min", { min: 0 })}>
             <input
-              {...register("unit")}
-              placeholder="Ej: Bultos, M3, Toneladas"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-            />
-            {errors.unit && <p className="text-xs text-red-500">{errors.unit.message}</p>}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Stock Mínimo</label>
-            <input
+              id="material-min"
               type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
               {...register("stockMinimum")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+              className={fieldClass}
             />
-            {errors.stockMinimum && <p className="text-xs text-red-500">{errors.stockMinimum.message}</p>}
-          </div>
-
-          <button
-            type="submit"
-            disabled={createMaterial.isPending}
-            className="w-full rounded-md bg-gray-900 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-gray-900"
-          >
-            {createMaterial.isPending ? "Guardando..." : "Crear material"}
+          </Field>
+          <button type="submit" disabled={createMaterial.isPending} className={`${primaryButtonClass} w-full`}>
+            {createMaterial.isPending ? tCommon("saving") : t("create")}
           </button>
         </form>
       </Modal>
-    </div>
+    </>
   );
 }

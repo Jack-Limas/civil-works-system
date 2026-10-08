@@ -16,6 +16,10 @@ import { assistantRoutes } from "./routes/assistant.routes";
 import { benchmarkRoutes } from "./routes/benchmark.routes";
 import { incidentRoutes } from "./routes/incident.routes";
 import { evidenceRoutes } from "./routes/evidence.routes";
+import { userRoutes } from "./routes/user.routes";
+import { supplierRoutes } from "./routes/supplier.routes";
+import { cashRoutes } from "./routes/cash.routes";
+import { financeRoutes } from "./routes/finance.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -35,24 +39,8 @@ async function main() {
 
   await app.register(authPlugin);
 
-  app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
-
-  // Registrar Rutas
-  await app.register(authRoutes);
-  await app.register(projectRoutes);
-  await app.register(activityRoutes);
-  await app.register(materialRoutes);
-  await app.register(workerRoutes);
-  await app.register(expenseRoutes);
-  await app.register(incidentRoutes);
-  await app.register(evidenceRoutes);
-  await app.register(alertRoutes);
-  await app.register(dashboardRoutes);
-  await app.register(predictionRoutes);
-  await app.register(benchmarkRoutes);
-  await app.register(assistantRoutes);
-
-  // Error Handler Global
+  // Global error handler. It must be set BEFORE registering the route plugins:
+  // Fastify plugins capture the error handler of their parent at registration time.
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError) {
       return reply.code(400).send({
@@ -65,9 +53,36 @@ async function main() {
       return reply.code(error.statusCode).send({ error: error.message });
     }
 
-    request.log.error(error);
+    // Fastify/plugin client errors (malformed JSON, file too large, ...) keep their 4xx status
+    const statusCode = (error as { statusCode?: number }).statusCode;
+    if (statusCode && statusCode >= 400 && statusCode < 500) {
+      return reply.code(statusCode).send({ error: (error as Error).message });
+    }
+
+    request.log.error({ err: error }, "Unhandled error");
     return reply.code(500).send({ error: "Internal server error" });
   });
+
+  app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
+
+  // Registrar Rutas
+  await app.register(authRoutes);
+  await app.register(userRoutes);
+  await app.register(projectRoutes);
+  await app.register(activityRoutes);
+  await app.register(materialRoutes);
+  await app.register(workerRoutes);
+  await app.register(expenseRoutes);
+  await app.register(supplierRoutes);
+  await app.register(cashRoutes);
+  await app.register(financeRoutes);
+  await app.register(incidentRoutes);
+  await app.register(evidenceRoutes);
+  await app.register(alertRoutes);
+  await app.register(dashboardRoutes);
+  await app.register(predictionRoutes);
+  await app.register(benchmarkRoutes);
+  await app.register(assistantRoutes);
 
   try {
     await app.listen({ port: Number(env.PORT), host: "0.0.0.0" });

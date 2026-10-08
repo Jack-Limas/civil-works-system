@@ -1,27 +1,17 @@
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 
+/**
+ * next-themes injects a blocking script that applies the stored theme before
+ * paint, so the provider must wrap the tree from the first render. Rendering
+ * children without it until mount caused a full remount of the app and a
+ * flash of the light theme.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(timer);
-  }, []);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      disableTransitionOnChange
-    >
+    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
       {children}
     </NextThemesProvider>
   );

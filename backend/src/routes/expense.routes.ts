@@ -6,5 +6,11 @@ export async function expenseRoutes(app: FastifyInstance) {
 
   app.get("/expenses", expenseController.list);
   app.get("/expenses/project/:projectId/indicators", expenseController.indicators);
-  app.post("/expenses", expenseController.create); // admin e ingeniero residente
+  // Both roles register expenses; the initial status depends on the role
+  app.post("/expenses", expenseController.create);
+  app.patch<{ Params: { id: string } }>(
+    "/expenses/:id/review",
+    { preHandler: [app.authorize(["ADMIN"])] },
+    expenseController.review
+  );
 }

@@ -22,6 +22,14 @@ enum ProjectType {
   RETAINING_WALL
   PRIVATE_WORK
   OTHER
+  RESIDENTIAL_BUILDING
+  COMMERCIAL_BUILDING
+  ROAD
+  BRIDGE
+  SCHOOL
+  HEALTH_CENTER
+  WAREHOUSE
+  REMODELING
 }
 
 enum ProjectStatus {
@@ -60,6 +68,20 @@ enum IncidentType {
   OTHER
 }
 
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+  CHECK
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum Priority {
   LOW
   MEDIUM
@@ -95,18 +117,23 @@ enum PredictionType {
 // ---------- MODELS ----------
 
 model User {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  passwordHash  String
-  role          Role     @default(RESIDENT_ENGINEER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(RESIDENT_ENGINEER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   projectsInCharge Project[]      @relation("ProjectResponsible")
   activities       Activity[]     @relation("ActivityResponsible")
   evidenceUploaded Evidence[]     @relation("EvidenceUploadedBy")
   refreshTokens    RefreshToken[]
+
+  expensesRegistered    Expense[]      @relation("ExpenseRegisteredBy")
+  expensesReviewed      Expense[]      @relation("ExpenseReviewedBy")
+  fundTransfersReceived FundTransfer[] @relation("FundTransferResident")
+  fundTransfersCreated  FundTransfer[] @relation("FundTransferCreatedBy")
 
   @@map("users")
 }
@@ -124,29 +151,30 @@ model RefreshToken {
 }
 
 model Project {
-  id                  String        @id @default(uuid())
-  name                String
-  type                ProjectType
-  municipality        String
-  address             String?
-  startDate           DateTime
-  estimatedEndDate    DateTime
-  budget              Decimal       @db.Decimal(14, 2)
-  status              ProjectStatus @default(PLANNED)
-  progressPercentage  Float         @default(0)
-  responsibleId       String
-  responsible         User          @relation("ProjectResponsible", fields: [responsibleId], references: [id])
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                 String        @id @default(uuid())
+  name               String
+  type               ProjectType
+  municipality       String
+  address            String?
+  startDate          DateTime
+  estimatedEndDate   DateTime
+  budget             Decimal       @db.Decimal(14, 2)
+  status             ProjectStatus @default(PLANNED)
+  progressPercentage Float         @default(0)
+  responsibleId      String
+  responsible        User          @relation("ProjectResponsible", fields: [responsibleId], references: [id])
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  activities          Activity[]
-  workers             Worker[]
-  inventoryMovements  InventoryMovement[]
-  expenses            Expense[]
-  incidents           Incident[]
-  evidence            Evidence[]
-  alerts              Alert[]
-  predictions         Prediction[]
+  activities         Activity[]
+  workers            Worker[]
+  inventoryMovements InventoryMovement[]
+  expenses           Expense[]
+  incidents          Incident[]
+  evidence           Evidence[]
+  alerts             Alert[]
+  predictions        Prediction[]
+  fundTransfers      FundTransfer[]
 
   @@map("projects")
 }
@@ -164,20 +192,20 @@ model Activity {
   observations       String?
   createdAt          DateTime @default(now())
 
-  evidence           Evidence[]
+  evidence Evidence[]
 
   @@map("activities")
 }
 
 model Worker {
-  id             String       @id @default(uuid())
-  name           String
-  documentId     String       @unique
-  position       String
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id])
-  status         WorkerStatus @default(ACTIVE)
-  createdAt      DateTime     @default(now())
+  id         String       @id @default(uuid())
+  name       String
+  documentId String       @unique
+  position   String
+  projectId  String?
+  project    Project?     @relation(fields: [projectId], references: [id])
+  status     WorkerStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now())
 
   @@map("workers")
 }
@@ -191,7 +219,7 @@ model Material {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  movements      InventoryMovement[]
+  movements InventoryMovement[]
 
   @@map("materials")
 }
@@ -219,7 +247,66 @@ model Expense {
   date        DateTime        @default(now())
   description String?
 
+  // --- Finance module (additive: every column is nullable or has a default) ---
+  supplierId      String?
+  supplier        Supplier?      @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  paymentMethod   PaymentMethod?
+  invoiceNumber   String?
+  supportUrl      String?
+  registeredById  String?
+  registeredBy    User?          @relation("ExpenseRegisteredBy", fields: [registeredById], references: [id])
+  // APPROVED by default so expenses created before this module keep counting
+  status          ExpenseStatus  @default(APPROVED)
+  reviewedById    String?
+  reviewedBy      User?          @relation("ExpenseReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+
+  @@index([projectId, date])
+  @@index([registeredById])
+  @@index([status])
+  @@index([supplierId])
   @@map("expenses")
+}
+
+model Supplier {
+  id        String           @id @default(uuid())
+  name      String
+  // Colombian tax id; optional, unique when present (Postgres allows many NULLs)
+  nit       String?          @unique
+  category  ExpenseCategory?
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  expenses Expense[]
+
+  @@index([name])
+  @@map("suppliers")
+}
+
+/// Money the ADMIN sends to a resident engineer for field expenses.
+model FundTransfer {
+  id          String         @id @default(uuid())
+  residentId  String
+  resident    User           @relation("FundTransferResident", fields: [residentId], references: [id])
+  projectId   String?
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  amount      Decimal        @db.Decimal(14, 2)
+  date        DateTime       @default(now())
+  method      PaymentMethod?
+  notes       String?
+  createdById String
+  createdBy   User           @relation("FundTransferCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime       @default(now())
+
+  @@index([residentId])
+  @@index([projectId, date])
+  @@index([date])
+  @@map("fund_transfers")
 }
 
 model Incident {
@@ -259,18 +346,20 @@ model Alert {
   severity  Priority    @default(MEDIUM)
   status    AlertStatus @default(ACTIVE)
   createdAt DateTime    @default(now())
+  // Numbers behind the message so the UI can render it in any language
+  params    Json?
 
   @@map("alerts")
 }
 
 model Prediction {
-  id           String         @id @default(uuid())
-  projectId    String
-  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  type         PredictionType
-  resultJson   Json
-  confidence   Float?
-  generatedAt  DateTime       @default(now())
+  id          String         @id @default(uuid())
+  projectId   String
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        PredictionType
+  resultJson  Json
+  confidence  Float?
+  generatedAt DateTime       @default(now())
 
   @@map("predictions")
 }

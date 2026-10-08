@@ -21,7 +21,7 @@ export const materialController = {
 
   async registerMovement(request: FastifyRequest, reply: FastifyReply) {
     const body = createMovementSchema.parse(request.body);
-    const result = await materialService.registerMovement(body);
+    const result = await materialService.registerMovement(body, request.user);
     return reply.code(201).send({ data: result });
   },
 

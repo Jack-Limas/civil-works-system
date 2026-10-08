@@ -1,13 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { env } from "./env";
 
-const apiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+// Both values are validated at startup by the env schema
+export const geminiClient = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
-if (!apiKey) {
-  throw new Error("GEMINI_API_KEY no está configurada en las variables de entorno.");
-}
-
-export const geminiClient = new GoogleGenAI({ apiKey });
-
-// Lee el modelo desde el .env y si no existe usa gemini-3.8-flash por defecto
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+/** Model name comes from GEMINI_MODEL so it can change without touching code. */
+export const GEMINI_MODEL = env.GEMINI_MODEL;

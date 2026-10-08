@@ -1,32 +1,41 @@
-import { apiClient } from "./api-client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createResourceHooks } from "./create-resource-hooks";
+
+export const INCIDENT_TYPES = [
+  "MATERIAL_SHORTAGE",
+  "ACTIVITY_DELAY",
+  "WEATHER",
+  "EQUIPMENT_DAMAGE",
+  "STAFF_ISSUE",
+  "ACTIVITY_CHANGE",
+  "OTHER",
+] as const;
+export const INCIDENT_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
+export const INCIDENT_STATUSES = ["OPEN", "IN_REVIEW", "RESOLVED"] as const;
+
+export type IncidentType = (typeof INCIDENT_TYPES)[number];
+export type IncidentPriority = (typeof INCIDENT_PRIORITIES)[number];
+export type IncidentStatus = (typeof INCIDENT_STATUSES)[number];
 
 export interface Incident {
   id: string;
   projectId: string;
-  type: string;
-  priority: "LOW" | "MEDIUM" | "HIGH";
+  type: IncidentType;
+  priority: IncidentPriority;
   description: string;
-  status: string;
+  status: IncidentStatus;
+  date: string;
+  project?: { id: string; name: string };
 }
 
-export function useIncidents() {
-  return useQuery({
-    queryKey: ["incidents", "list"],
-    queryFn: async () => {
-      const { data } = await apiClient.get<{ data: Incident[] }>("/incidents");
-      return data;
-    },
-  });
+export interface CreateIncidentInput {
+  projectId: string;
+  type: IncidentType;
+  priority: IncidentPriority;
+  description: string;
 }
 
-export function useCreateIncident() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (payload: Omit<Incident, "id" | "status">) => {
-      const { data } = await apiClient.post("/incidents", payload);
-      return data.data;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["incidents"] }),
-  });
-}
+export const {
+  useList: useIncidents,
+  useCreate: useCreateIncident,
+  useUpdate: useUpdateIncident,
+} = createResourceHooks<Incident, CreateIncidentInput, { status: IncidentStatus }>("incidents", "/incidents");

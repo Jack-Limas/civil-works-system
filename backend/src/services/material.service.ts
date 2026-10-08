@@ -3,6 +3,8 @@ import { inventoryMovementRepository } from "../repositories/inventory-movement.
 import { CreateMaterialInput, CreateMovementInput, ListMaterialsQuery } from "../schemas/material.schema";
 import { AppError } from "../utils/app-error";
 import { Material } from "@prisma/client";
+import { RequestUser } from "../types/auth";
+import { projectAccess } from "./project-access.service";
 
 export const materialService = {
   async list(query: ListMaterialsQuery) {
@@ -19,22 +21,15 @@ export const materialService = {
     return materialRepository.create(data);
   },
 
-  async registerMovement(data: CreateMovementInput) {
+  async registerMovement(data: CreateMovementInput, requester: RequestUser) {
     const material = await materialRepository.findById(data.materialId);
     if (!material) throw new AppError(404, "Material not found");
+    if (data.projectId) await projectAccess.assert(requester, data.projectId);
 
-    if (data.type === "OUT" && material.stockAvailable < data.quantity) {
-      throw new AppError(400, "Insufficient stock for this movement");
-    }
+    const result = await inventoryMovementRepository.registerAtomic(data);
+    if (!result) throw new AppError(400, "Insufficient stock for this movement");
 
-    const delta = data.type === "IN" ? data.quantity : -data.quantity;
-
-    const [movement, updatedMaterial] = await Promise.all([
-      inventoryMovementRepository.create(data),
-      materialRepository.adjustStock(data.materialId, delta),
-    ]);
-
-    return { movement, material: updatedMaterial };
+    return result;
   },
 
   /**

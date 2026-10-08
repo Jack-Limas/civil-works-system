@@ -1,75 +1,72 @@
 "use client";
 
+import { nameInitial } from "@/lib/initials";
+import { useFormatter, useTranslations } from "next-intl";
 import { useEvidenceList } from "@/lib/evidence-service";
 import { Link } from "@/i18n/navigation";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 export function FieldActivityFeed() {
-  const { data } = useEvidenceList();
-  const items = (data?.data ?? []).slice(0, 3);
+  const t = useTranslations("dashboard.feed");
+  const format = useFormatter();
+  const { data, isLoading } = useEvidenceList(undefined, 3);
+  const items = data?.data ?? [];
 
   return (
-    <div className="rounded-xl border border-line bg-surface p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-ink">Actividad Reciente en Campo</h2>
-        <Link href="/evidence" className="text-xs text-accent hover:underline">
-          Ver bitácora completa
+    <section className="rounded-xl border border-line bg-surface p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold text-ink">{t("title")}</h2>
+        <Link href="/evidence" className="shrink-0 text-xs text-accent hover:underline">
+          {t("seeAll")}
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {items.map((item, index) => {
-          const raw = item as unknown as {
-            id?: string;
-            imageUrl?: string;
-            url?: string;
-            description?: string;
-            date?: string;
-            createdAt?: string;
-            uploadedBy?: { name?: string };
-            user?: { name?: string };
-            project?: { name?: string };
-          };
+      {isLoading && (
+        <div className="space-y-4" aria-busy="true">
+          {[0, 1].map((i) => (
+            <div key={i} className="flex gap-3">
+              <div className="h-8 w-8 animate-pulse rounded-full bg-surface-2 motion-reduce:animate-none" />
+              <div className="h-24 flex-1 animate-pulse rounded-lg bg-surface-2 motion-reduce:animate-none" />
+            </div>
+          ))}
+        </div>
+      )}
 
-          const id = raw.id ?? `evidence-${index}`;
-          const imageUrl = raw.imageUrl || raw.url || "";
-          const dateStr = raw.date || raw.createdAt || new Date().toISOString();
-          const userName = raw.uploadedBy?.name || raw.user?.name || "Usuario";
-          const projectName = raw.project?.name || "una obra";
-          const description = raw.description || "Evidencia";
-
+      <ul className="space-y-4">
+        {items.map((item) => {
+          const userName = item.uploadedBy?.name ?? t("unknownUser");
           return (
-            <div key={id} className="flex gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-medium text-accent">
-                {userName[0]?.toUpperCase() ?? "?"}
+            <li key={item.id} className="flex gap-3">
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-medium text-accent"
+                aria-hidden
+              >
+                {nameInitial(userName)}
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-ink">
-                  <span className="font-medium text-ink">{userName}</span>{" "}
-                  registró avance fotográfico en{" "}
-                  <span className="font-medium text-ink">{projectName}</span>.
-                </p>
-                <p className="mb-2 text-xs text-ink-muted">
-                  {new Date(dateStr).toLocaleDateString("es-CO", {
-                    day: "numeric",
-                    month: "short",
+                  {t.rich("entry", {
+                    user: userName,
+                    project: item.project?.name ?? t("unknownProject"),
+                    b: (chunks) => <span className="font-medium">{chunks}</span>,
                   })}
                 </p>
-                {imageUrl && (
+                <p className="mb-2 text-xs text-ink-muted">
+                  {format.dateTime(new Date(item.date), { day: "numeric", month: "short" })}
+                </p>
+                {item.imageUrl && (
                   <ImageLightbox
-                    src={imageUrl}
-                    alt={description}
+                    src={item.imageUrl}
+                    alt={item.description ?? item.project?.name ?? ""}
                     thumbClassName="h-24 w-32 rounded-lg border border-line object-cover"
                   />
                 )}
               </div>
-            </div>
+            </li>
           );
         })}
-        {items.length === 0 && (
-          <p className="text-sm text-ink-muted">Sin evidencias registradas aún.</p>
-        )}
-      </div>
-    </div>
+      </ul>
+      {!isLoading && items.length === 0 && <p className="text-sm text-ink-muted">{t("empty")}</p>}
+    </section>
   );
 }

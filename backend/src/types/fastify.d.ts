@@ -1,15 +1,17 @@
 import "@fastify/jwt";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { RequestUser, Role } from "./auth";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: { sub: string; role: "ADMIN" | "RESIDENT_ENGINEER" };
-    user: { sub: string; role: "ADMIN" | "RESIDENT_ENGINEER" };
+    payload: RequestUser;
+    user: RequestUser;
   }
 }
 
 declare module "fastify" {
   interface FastifyInstance {
-    authenticate: (request: any, reply: any) => Promise<void>;
-    authorize: (roles: Array<"ADMIN" | "RESIDENT_ENGINEER">) => (request: any, reply: any) => Promise<void>;
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authorize: (roles: Role[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }

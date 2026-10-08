@@ -3,6 +3,8 @@ import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { env } from "../config/env";
+import { AppError } from "../utils/app-error";
+import { Role } from "../types/auth";
 
 export default fp(async (app: FastifyInstance) => {
   await app.register(fastifyCookie, { secret: env.COOKIE_SECRET });
@@ -12,19 +14,20 @@ export default fp(async (app: FastifyInstance) => {
     cookie: { cookieName: "accessToken", signed: false },
   });
 
-  app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
+  // Throwing (instead of reply.send without return) guarantees the route
+  // handler never runs after a failed check.
+  app.decorate("authenticate", async (request: FastifyRequest, _reply: FastifyReply) => {
     try {
       await request.jwtVerify();
     } catch {
-      reply.code(401).send({ error: "Unauthorized: invalid or expired token" });
+      throw new AppError(401, "Unauthorized: invalid or expired token");
     }
   });
 
-  app.decorate("authorize", (roles: Array<"ADMIN" | "RESIDENT_ENGINEER">) => {
-    return async (request: FastifyRequest, reply: FastifyReply) => {
-      const user = request.user as { role: "ADMIN" | "RESIDENT_ENGINEER" };
-      if (!user || !roles.includes(user.role)) {
-        reply.code(403).send({ error: "Forbidden: insufficient permissions" });
+  app.decorate("authorize", (roles: Role[]) => {
+    return async (request: FastifyRequest, _reply: FastifyReply) => {
+      if (!request.user || !roles.includes(request.user.role)) {
+        throw new AppError(403, "Forbidden: insufficient permissions");
       }
     };
   });

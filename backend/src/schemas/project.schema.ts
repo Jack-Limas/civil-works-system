@@ -2,7 +2,22 @@ import { z } from "zod";
 
 export const createProjectSchema = z.object({
   name: z.string().min(3),
-  type: z.enum(["STADIUM", "POOL", "SYNTHETIC_FIELD", "RETAINING_WALL", "PRIVATE_WORK", "OTHER"]),
+  type: z.enum([
+    "RESIDENTIAL_BUILDING",
+    "COMMERCIAL_BUILDING",
+    "ROAD",
+    "BRIDGE",
+    "SCHOOL",
+    "HEALTH_CENTER",
+    "WAREHOUSE",
+    "REMODELING",
+    "STADIUM",
+    "POOL",
+    "SYNTHETIC_FIELD",
+    "RETAINING_WALL",
+    "PRIVATE_WORK",
+    "OTHER",
+  ]),
   municipality: z.string().min(2),
   address: z.string().optional(),
   startDate: z.coerce.date(),

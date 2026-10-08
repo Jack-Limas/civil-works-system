@@ -6,5 +6,5 @@ export async function workerRoutes(app: FastifyInstance) {
 
   app.get("/workers", workerController.list);
   app.post("/workers", { preHandler: [app.authorize(["ADMIN"])] }, workerController.create);
-  app.patch("/workers/:id", { preHandler: [app.authorize(["ADMIN"])] }, workerController.update);
+  app.patch<{ Params: { id: string } }>("/workers/:id", { preHandler: [app.authorize(["ADMIN"])] }, workerController.update);
 }

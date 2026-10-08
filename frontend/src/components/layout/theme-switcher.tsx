@@ -1,27 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { Moon, Sun } from "lucide-react";
 
+const subscribe = () => () => {};
+
 export function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const t = useTranslations("common");
+  const { resolvedTheme, setTheme } = useTheme();
+  // true only on the client: avoids a hydration mismatch without setState in an effect
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
-  useEffect(() => {
-    const timer = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(timer);
-  }, []);
+  if (!mounted) return <div className="h-9 w-9" aria-hidden />;
 
-  if (!mounted) return <div className="h-8 w-8" />;
+  const isDark = resolvedTheme === "dark";
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-      aria-label="Toggle theme"
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface text-ink hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+      aria-label={t("toggleTheme")}
+      title={isDark ? t("themeLight") : t("themeDark")}
     >
-      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      {isDark ? <Sun size={17} /> : <Moon size={17} />}
     </button>
   );
 }

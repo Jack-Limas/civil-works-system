@@ -1,8 +1,8 @@
 {
   "common": {
-    "appName": "Sistema de Obras Civiles",
-    "appShortName": "Obrix",
-    "appTagline": "Construction Intelligence",
+    "appName": "ObraIQ · Gestión de obras civiles",
+    "appShortName": "ObraIQ",
+    "appTagline": "Inteligencia para tus obras",
     "loading": "Cargando...",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -14,7 +14,34 @@
     "status": "Estado",
     "date": "Fecha",
     "total": "Total",
-    "description": "Descripción"
+    "description": "Descripción",
+    "close": "Cerrar",
+    "languages": {
+      "es": "Español",
+      "en": "English"
+    },
+    "changeLanguage": "Cambiar idioma",
+    "toggleTheme": "Cambiar tema",
+    "themeLight": "Tema claro",
+    "themeDark": "Tema oscuro",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "userFallback": "Usuario",
+    "roles": {
+      "ADMIN": "Administrador",
+      "RESIDENT_ENGINEER": "Ingeniero residente"
+    },
+    "viewAlerts": "Ver alertas",
+    "alertsCount": "{count, plural, =0 {Sin alertas activas} one {# alerta activa} other {# alertas activas}}",
+    "mainNav": "Navegación principal",
+    "noRecords": "Sin registros",
+    "enlargeImage": "Ampliar imagen",
+    "closeImage": "Cerrar vista ampliada",
+    "openFile": "Abrir archivo",
+    "noData": "—",
+    "optional": "(opcional)",
+    "saving": "Guardando...",
+    "back": "Volver"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -27,27 +54,66 @@
     "emailRequired": "Ingresa un correo válido",
     "passwordRequired": "La contraseña debe tener al menos 6 caracteres",
     "heroTitle": "Gestiona cada obra con claridad total",
-    "heroSubtitle": "Seguimiento, presupuesto y predicción de riesgos en un solo lugar."
+    "heroSubtitle": "Seguimiento, presupuesto y predicción de riesgos en un solo lugar.",
+    "signingIn": "Ingresando..."
   },
   "nav": {
     "dashboard": "Panel general",
     "projects": "Obras",
     "materials": "Materiales",
     "workers": "Trabajadores",
-    "expenses": "Gastos",
+    "expenses": "Costos",
     "incidents": "Novedades",
     "alerts": "Alertas",
     "users": "Usuarios"
   },
   "dashboard": {
-    "welcome": "Hola, {name}",
-    "role": "Rol",
-    "title": "Dashboard Principal",
-    "subtitle": "Resumen operativo y estado general de las obras."
+    "title": "Panel general",
+    "subtitle": "Resumen operativo y estado general de tus obras.",
+    "kpis": {
+      "activeProjects": "Obras activas",
+      "activeProjectsTrend": "{total, plural, one {# obra en total} other {# obras en total}}",
+      "avgProgress": "Avance promedio",
+      "avgProgressTrend": "Avance físico de todas las obras",
+      "activeAlerts": "Alertas activas",
+      "activeAlertsTrend": "{count, plural, =0 {Ninguna obra afectada} one {# obra afectada} other {# obras afectadas}}",
+      "lowStock": "Materiales en riesgo",
+      "lowStockTrend": "Bajo el stock mínimo"
+    },
+    "timeline": {
+      "title": "Avance de obras en ejecución",
+      "seeAll": "Ver todas",
+      "empty": "No hay obras en ejecución.",
+      "completed": "{value}% completado"
+    },
+    "alertsWidget": {
+      "title": "Alertas importantes",
+      "empty": "Sin alertas activas. Todo va según lo esperado.",
+      "resolve": "Resolver",
+      "resolving": "Resolviendo...",
+      "resolved": "Alerta marcada como resuelta.",
+      "badge": {
+        "HIGH": "Acción requerida",
+        "MEDIUM": "Revisar",
+        "LOW": "Informativa"
+      }
+    },
+    "milestones": {
+      "title": "Próximas entregas",
+      "empty": "Sin obras en ejecución con fecha de entrega."
+    },
+    "feed": {
+      "title": "Actividad reciente en campo",
+      "seeAll": "Ver bitácora completa",
+      "entry": "<b>{user}</b> registró avance fotográfico en <b>{project}</b>.",
+      "empty": "Aún no hay evidencias registradas.",
+      "unknownUser": "Un usuario",
+      "unknownProject": "una obra"
+    }
   },
   "projects": {
-    "title": "Gestión de Proyectos",
-    "subtitle": "Monitorea y organiza el avance de tus obras actuales.",
+    "title": "Obras",
+    "subtitle": "Monitorea y organiza el avance de tus obras de construcción.",
     "newProject": "Nuevo Proyecto",
     "totalProjects": "Total Proyectos",
     "inProgress": "En Curso",
@@ -72,13 +138,69 @@
       "FINISHED": "Finalizada"
     },
     "types": {
+      "RESIDENTIAL_BUILDING": "Edificación residencial",
+      "COMMERCIAL_BUILDING": "Edificación comercial",
+      "ROAD": "Vía",
+      "BRIDGE": "Puente",
+      "SCHOOL": "Colegio",
+      "HEALTH_CENTER": "Centro de salud",
+      "WAREHOUSE": "Bodega",
+      "REMODELING": "Remodelación",
       "STADIUM": "Estadio",
       "POOL": "Piscina",
       "SYNTHETIC_FIELD": "Cancha sintética",
       "RETAINING_WALL": "Muro de contención",
       "PRIVATE_WORK": "Obra particular",
       "OTHER": "Otro"
-    }
+    },
+    "form": {
+      "responsiblePlaceholder": "Selecciona un responsable",
+      "responsibleHint": "Solo el responsable (y los administradores) podrá ver y gestionar esta obra.",
+      "responsibleRequired": "Selecciona el responsable de la obra",
+      "noUsers": "No hay usuarios disponibles. Crea uno en Usuarios.",
+      "subtitle": "Configura los datos técnicos y financieros para iniciar una obra.",
+      "back": "Volver a obras",
+      "sections": {
+        "basic": "Información básica",
+        "datesBudget": "Fechas y presupuesto",
+        "responsible": "Responsable",
+        "cover": "Fotografía principal",
+        "preview": "Vista previa",
+        "checklist": "Resumen de creación"
+      },
+      "address": "Dirección",
+      "namePlaceholder": "Ej: Colegio San Juan Bosco, Pasto",
+      "municipalityPlaceholder": "Ej: Pasto",
+      "coverDrop": "Toca para elegir una imagen",
+      "coverHint": "Se guardará como la primera evidencia de la obra.",
+      "coverDescription": "Foto principal de la obra",
+      "coverAlt": "Vista previa de la fotografía principal",
+      "previewName": "Nombre de la obra",
+      "previewMunicipality": "Municipio",
+      "durationDays": "{days, plural, one {# día de ejecución estimada} other {# días de ejecución estimada}}",
+      "checkBasic": "Información básica",
+      "checkDates": "Fechas y presupuesto",
+      "checkResponsible": "Responsable asignado",
+      "save": "Guardar obra",
+      "cancel": "Cancelar",
+      "nameError": "Mínimo 3 caracteres",
+      "municipalityError": "Mínimo 2 caracteres",
+      "dateRequired": "Selecciona una fecha",
+      "endBeforeStart": "La entrega debe ser posterior al inicio",
+      "budgetError": "Ingresa un presupuesto mayor que cero",
+      "created": "Obra creada correctamente.",
+      "coverFailed": "La obra se creó, pero no se pudo subir la fotografía."
+    },
+    "actions": "Acciones",
+    "empty": "Aún no hay obras registradas.",
+    "emptyFiltered": "Ninguna obra coincide con la búsqueda.",
+    "createFirst": "Crear la primera obra",
+    "markInProgress": "Iniciar obra",
+    "markFinished": "Finalizar obra",
+    "statusUpdated": "Estado de la obra actualizado.",
+    "hasAlerts": "Tiene alertas activas",
+    "searchLabel": "Buscar obras",
+    "statusFilterLabel": "Filtrar por estado"
   },
   "projectDetail": {
     "loading": "Cargando obra...",
@@ -119,8 +241,15 @@
     "analyzing": "Analizando...",
     "noPredictions": "Aún no hay análisis. Ejecuta uno para ver el riesgo de esta obra.",
     "analysisError": "No se pudo completar el análisis. Intenta de nuevo.",
-    "level": { "LOW": "Bajo", "MEDIUM": "Medio", "HIGH": "Alto" },
-    "source": { "RULE_BASED": "Reglas", "AI_GEMINI": "IA Gemini" },
+    "level": {
+      "LOW": "Bajo",
+      "MEDIUM": "Medio",
+      "HIGH": "Alto"
+    },
+    "source": {
+      "RULE_BASED": "Reglas",
+      "AI_GEMINI": "IA Gemini"
+    },
     "costSummary": "Resumen de costos",
     "totalExecuted": "Total ejecutado",
     "noExpenses": "Aún no hay gastos registrados.",
@@ -150,60 +279,118 @@
       "submit": "Registrar actividad",
       "saving": "Guardando...",
       "invalid": "Revisa los datos: nombre de mínimo 3 caracteres y avance entre 0 y 100.",
-      "error": "No se pudo registrar la actividad. Intenta de nuevo."
+      "error": "No se pudo registrar la actividad. Intenta de nuevo.",
+      "created": "Actividad registrada. El avance de la obra se actualizó."
     },
     "evidenceForm": {
       "title": "Adjuntar evidencia",
       "description": "Descripción",
       "submit": "Subir",
-      "uploading": "Subiendo..."
-    }
+      "uploading": "Subiendo...",
+      "uploaded": "Evidencia subida correctamente."
+    },
+    "ruleReasoning": {
+      "delay": "Avance físico {progress}% vs. esperado {expected}% (desviación de {delay} puntos).",
+      "cost": "Gasto ejecutado {executed}% vs. avance físico {progress}% (brecha de {gap} puntos).",
+      "generic": "Resultado del motor de reglas."
+    },
+    "aiGenerated": "texto generado por IA"
   },
   "materials": {
-    "title": "Control de Materiales e Inventario",
-    "subtitle": "Existencias en bodega, consumo y alertas de stock mínimo.",
-    "newMaterial": "Registrar Material",
-    "name": "Nombre del Material",
-    "unit": "Unidad de Medida",
-    "stockAvailable": "Stock Disponible",
-    "stockMinimum": "Stock Mínimo",
-    "unitCost": "Costo Unitario",
-    "lowStockWarning": "Materiales con stock crítico"
+    "title": "Materiales e inventario",
+    "subtitle": "Existencias en bodega y alertas de stock mínimo.",
+    "newMaterial": "Nuevo material",
+    "name": "Nombre del material",
+    "unit": "Unidad de medida",
+    "stockAvailable": "Stock disponible",
+    "stockMinimum": "Stock mínimo",
+    "status": "Estado",
+    "namePlaceholder": "Ej: Cemento gris 50 kg",
+    "unitPlaceholder": "Ej: bultos, m³, toneladas",
+    "create": "Crear material",
+    "created": "Material creado correctamente.",
+    "empty": "Aún no hay materiales registrados.",
+    "lowStockWarning": "{count, plural, one {# material está bajo el stock mínimo} other {# materiales están bajo el stock mínimo}}",
+    "stock": {
+      "ok": "Suficiente",
+      "low": "Stock bajo"
+    }
   },
   "expenses": {
-    "title": "Control de Gastos y Costos",
-    "subtitle": "Registro detallado de desembolsos y ejecución presupuestal.",
-    "newExpense": "Registrar Gasto",
-    "concept": "Concepto / Descripción",
-    "amount": "Monto / Valor",
+    "title": "Costos",
+    "subtitle": "Registro de gastos y ejecución presupuestal por obra.",
+    "newExpense": "Registrar gasto",
+    "description": "Descripción",
+    "amount": "Monto (COP)",
     "category": "Categoría",
-    "project": "Obra Asociada",
-    "supplier": "Proveedor"
+    "project": "Obra",
+    "date": "Fecha",
+    "selectProject": "Selecciona una obra para ver sus gastos.",
+    "empty": "Esta obra aún no tiene gastos registrados.",
+    "created": "Gasto registrado correctamente.",
+    "categories": {
+      "MATERIALS": "Materiales",
+      "LABOR": "Mano de obra",
+      "EQUIPMENT": "Equipos",
+      "TRANSPORT": "Transporte",
+      "FUEL": "Combustible",
+      "OTHER": "Otros"
+    }
   },
   "incidents": {
-    "title": "Novedades e Inconvenientes de Campo",
-    "subtitle": "Registro de retrasos, fallas de maquinaria o eventos climáticos.",
-    "newIncident": "Reportar Novedad",
-    "type": "Tipo de Novedad",
-    "severity": "Nivel de Severidad",
-    "resolved": "Resuelto",
-    "pending": "Pendiente de Atención",
-    "severities": {
+    "title": "Novedades de campo",
+    "subtitle": "Retrasos, fallas de maquinaria, clima y otros eventos en obra.",
+    "newIncident": "Reportar novedad",
+    "project": "Obra",
+    "type": "Tipo de novedad",
+    "priority": "Prioridad",
+    "status": "Estado",
+    "description": "Descripción",
+    "date": "Fecha",
+    "descriptionPlaceholder": "Describe qué pasó y cómo afecta la obra",
+    "create": "Reportar novedad",
+    "created": "Novedad reportada correctamente.",
+    "updated": "Estado de la novedad actualizado.",
+    "empty": "No hay novedades registradas.",
+    "types": {
+      "MATERIAL_SHORTAGE": "Falta de material",
+      "ACTIVITY_DELAY": "Retraso de actividad",
+      "WEATHER": "Clima",
+      "EQUIPMENT_DAMAGE": "Daño de equipo",
+      "STAFF_ISSUE": "Problema de personal",
+      "ACTIVITY_CHANGE": "Cambio de actividad",
+      "OTHER": "Otro"
+    },
+    "priorities": {
       "LOW": "Baja",
       "MEDIUM": "Media",
-      "HIGH": "Alta",
-      "CRITICAL": "Crítica"
+      "HIGH": "Alta"
+    },
+    "statuses": {
+      "OPEN": "Abierta",
+      "IN_REVIEW": "En revisión",
+      "RESOLVED": "Resuelta"
     }
   },
   "workers": {
-    "title": "Personal y Mano de Obra",
-    "subtitle": "Gestión de operarios, cuadrillas y asignaciones por obra.",
-    "newWorker": "Registrar Trabajador",
-    "name": "Nombre Completo",
-    "document": "Documento de Identidad",
-    "specialty": "Especialidad / Cargo",
-    "assignedProject": "Obra Asignada",
-    "phone": "Teléfono de Contacto"
+    "title": "Personal y mano de obra",
+    "subtitle": "Operarios, cuadrillas y su asignación por obra.",
+    "newWorker": "Nuevo trabajador",
+    "name": "Nombre completo",
+    "document": "Documento de identidad",
+    "position": "Cargo",
+    "assignedProject": "Obra asignada",
+    "unassigned": "Sin asignar",
+    "status": "Estado",
+    "positionPlaceholder": "Ej: Maestro de obra, Oficial, Ayudante",
+    "create": "Crear trabajador",
+    "created": "Trabajador registrado correctamente.",
+    "empty": "Aún no hay trabajadores registrados.",
+    "statuses": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "duplicateDocument": "Ya existe un trabajador con ese documento."
   },
   "assistant": {
     "title": "Asistente Inteligente",
@@ -212,7 +399,16 @@
     "placeholder": "Escribe tu pregunta...",
     "thinking": "El asistente está pensando...",
     "errorMessage": "No pude procesar tu pregunta en este momento. Intenta de nuevo.",
-    "emptyStateHint": "Pregúntame sobre tus obras, materiales o alertas:"
+    "emptyStateHint": "Pregúntame sobre tus obras, materiales o alertas:",
+    "open": "Abrir asistente de IA",
+    "send": "Enviar pregunta",
+    "you": "Tú",
+    "unavailable": "El asistente de IA no está disponible en este momento. El resto del sistema sigue funcionando.",
+    "suggestions": {
+      "costRisk": "¿Qué obra tiene mayor riesgo de sobrecosto?",
+      "lowStock": "¿Qué materiales están en stock bajo?",
+      "progress": "Compara el avance de mis obras activas"
+    }
   },
   "users": {
     "title": "Gestión de Usuarios",
@@ -224,6 +420,491 @@
     "roleAdmin": "Administrador",
     "roleResident": "Ingeniero residente",
     "submit": "Crear usuario",
-    "success": "Usuario registrado correctamente."
+    "success": "Usuario registrado correctamente.",
+    "creating": "Creando...",
+    "newUser": "Nuevo usuario",
+    "listTitle": "Usuarios registrados",
+    "listEmpty": "Aún no hay usuarios registrados.",
+    "createdAt": "Creado",
+    "namePlaceholder": "Ej. Juan Pérez",
+    "emailPlaceholder": "usuario@obraiq.co",
+    "count": "{count, plural, one {# usuario} other {# usuarios}}",
+    "createError": "No se pudo crear el usuario. Verifica que el correo no esté registrado."
+  },
+  "validation": {
+    "minChars": "Debe tener al menos {min} caracteres",
+    "email": "Ingresa un correo electrónico válido",
+    "required": "Este campo es obligatorio",
+    "positive": "Debe ser un valor mayor que cero",
+    "range": "Debe estar entre {min} y {max}",
+    "uuid": "Selecciona una opción válida",
+    "min": "Debe ser mayor o igual a {min}"
+  },
+  "errors": {
+    "network": "No hay conexión con el servidor. Revisa tu internet e intenta de nuevo.",
+    "validation": "Algunos datos no son válidos. Revisa el formulario.",
+    "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "notFound": "El recurso solicitado no existe o fue eliminado.",
+    "conflict": "Ya existe un registro con esos datos.",
+    "fileTooLarge": "El archivo supera el tamaño máximo permitido (5 MB).",
+    "unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
+    "server": "Ocurrió un error en el servidor. Intenta de nuevo.",
+    "unknown": "Ocurrió un error inesperado.",
+    "retry": "Reintentar",
+    "loadFailed": "No se pudo cargar la información."
+  },
+  "metadata": {
+    "title": "ObraIQ · Gestión de obras civiles",
+    "description": "Seguimiento, control de costos y predicción de riesgos para obras de construcción en Nariño."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o fue movida.",
+    "backHome": "Volver al inicio",
+    "backDashboard": "Ir al panel"
+  },
+  "analysis": {
+    "title": "Hilo principal vs Web Worker",
+    "heartbeat": "Latido: <mono>{tick}</mono> — si este número se congela, el hilo principal está bloqueado.",
+    "mainThread": "Hilo principal (bloqueante)",
+    "worker": "Web Worker (segundo plano)",
+    "run": "Ejecutar análisis",
+    "idle": "Sin ejecutar",
+    "mainRunning": "Procesando... (observa si el latido se congela)",
+    "result": "{ms} ms · {anomalies, plural, one {# anomalía} other {# anomalías}}",
+    "syncBanner": "Sincronizado entre pestañas vía SharedWorker: {stage}",
+    "stages": {
+      "sending": "Enviando datos al Worker...",
+      "mainThread": "Procesando en el hilo principal...",
+      "projects": "Analizando obras...",
+      "costs": "Procesando costos...",
+      "materials": "Analizando materiales...",
+      "progress": "Evaluando avances...",
+      "alerts": "Generando alertas..."
+    }
+  },
+  "sharedMemory": {
+    "title": "Memoria compartida: postMessage vs SharedArrayBuffer",
+    "description": "<code>postMessage</code> clona los datos en cada hilo. <code>SharedArrayBuffer</code> con <code>Atomics</code> permite leer y escribir el mismo bloque de memoria desde varios hilos.",
+    "checkIsolation": "Verificar crossOriginIsolated",
+    "tryBuffer": "Probar SharedArrayBuffer",
+    "notIsolated": "No se puede crear SharedArrayBuffer: la página no está aislada (crossOriginIsolated = false).",
+    "success": "Memoria compartida activa: valor inicial 10, tras Atomics.add(+32) = {value}, sin clonar datos.",
+    "error": "Error al usar SharedArrayBuffer: {message}"
+  },
+  "alerts": {
+    "title": "Alertas",
+    "subtitle": "Alertas automáticas generadas por el motor de reglas.",
+    "generate": "Analizar todas las obras",
+    "generating": "Analizando...",
+    "generated": "{count, plural, =0 {Análisis completo: no se generaron alertas nuevas.} one {Análisis completo: # alerta nueva.} other {Análisis completo: # alertas nuevas.}}",
+    "empty": "No hay alertas activas en este momento.",
+    "resolve": "Resolver",
+    "resolved": "Alerta marcada como resuelta.",
+    "types": {
+      "SCHEDULE": "Cronograma",
+      "FINANCIAL": "Financiera",
+      "ACTIVITY": "Actividad",
+      "INVENTORY": "Inventario"
+    },
+    "severity": {
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta"
+    },
+    "generic": {
+      "SCHEDULE": "El avance físico está por debajo de lo esperado según el cronograma.",
+      "FINANCIAL": "El gasto ejecutado crece más rápido que el avance físico.",
+      "ACTIVITY": "La obra tiene novedades de retraso sin resolver.",
+      "INVENTORY": "Hay materiales por debajo del stock mínimo."
+    },
+    "templates": {
+      "SCHEDULE": "El avance físico ({progress}%) está {delay} puntos por debajo del esperado según el cronograma ({expected}%).",
+      "FINANCIAL": "Los gastos aprobados ({executed}%) crecen más rápido que el avance físico ({progress}%), con una brecha de {gap} puntos.",
+      "ACTIVITY": "{count, plural, one {La obra tiene # novedad de retraso sin resolver.} other {La obra tiene # novedades de retraso sin resolver.}}"
+    }
+  },
+  "evidence": {
+    "title": "Bitácora de evidencias",
+    "subtitle": "Registro fotográfico del avance en campo.",
+    "empty": "Aún no hay evidencias registradas.",
+    "noDescription": "Sin descripción"
+  },
+  "projectPicker": {
+    "label": "Obra",
+    "placeholder": "Selecciona una obra",
+    "none": "Sin obra asignada",
+    "empty": "No tienes obras disponibles."
+  },
+  "forbidden": {
+    "title": "Acceso restringido",
+    "description": "Esta sección es solo para administradores.",
+    "back": "Volver al panel"
+  },
+  "finance": {
+    "moduleNav": "Secciones de costos",
+    "tabs": {
+      "summary": "Resumen",
+      "register": "Registrar gasto",
+      "suppliers": "Proveedores",
+      "cash": "Caja menor",
+      "cashflow": "Flujo de caja"
+    },
+    "title": "Resumen financiero",
+    "subtitle": "Presupuesto, ejecución y gastos por aprobar de tus obras.",
+    "kpis": {
+      "totalBudget": "Presupuesto total",
+      "totalBudgetHint": "{count, plural, one {# obra} other {# obras}}",
+      "spent": "Gastado (aprobado)",
+      "spentHint": "{percent}% del presupuesto",
+      "available": "Disponible",
+      "availableHint": "{percent}% restante",
+      "activeSuppliers": "Proveedores activos",
+      "activeSuppliersHint": "Con compras aprobadas",
+      "pending": "Gastos por aprobar",
+      "pendingHint": "{amount} en revisión",
+      "cpi": "Eficiencia de costos (CPI)",
+      "cpiHint": "{value, select, none {Sin gastos aprobados aún} other {Valor ganado / costo real}}",
+      "cpiTooltip": "CPI = (presupuesto × avance físico) ÷ gastos aprobados. Mayor que 1: el trabajo hecho vale más de lo gastado. Menor que 1: se está gastando más de lo que se avanza.",
+      "milestone": "Días al próximo hito",
+      "milestoneHint": "{project}",
+      "noMilestone": "Sin entregas próximas"
+    },
+    "riskBanner": {
+      "title": "Riesgo crítico de sobrecosto",
+      "action": "Ver obra",
+      "more": "{count, plural, one {y # obra más en riesgo} other {y # obras más en riesgo}}"
+    },
+    "pendingNotice": {
+      "title": "{count, plural, one {# gasto espera aprobación} other {# gastos esperan aprobación}}",
+      "description": "Los gastos pendientes no cuentan en el presupuesto ejecutado hasta que se aprueben.",
+      "review": "Revisar",
+      "residentDescription": "Tus gastos pendientes serán revisados por un administrador."
+    },
+    "chart": {
+      "title": "Avance físico vs. financiero por obra",
+      "subtitle": "Si el avance financiero supera al físico, la obra gasta más rápido de lo que avanza.",
+      "physical": "Avance físico",
+      "financial": "Avance financiero",
+      "empty": "Aún no hay obras para comparar.",
+      "percentAxis": "%"
+    },
+    "recent": {
+      "title": "Últimos gastos",
+      "seeAll": "Ver todos",
+      "empty": "Aún no hay gastos registrados.",
+      "companyPayment": "Pago de la empresa"
+    },
+    "queue": {
+      "title": "Gastos por aprobar",
+      "empty": "No hay gastos pendientes de aprobación.",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "approved": "Gasto aprobado. Ya cuenta en el presupuesto ejecutado.",
+      "rejected": "Gasto rechazado.",
+      "rejectTitle": "Rechazar gasto",
+      "rejectReason": "Motivo del rechazo",
+      "rejectPlaceholder": "Ej: La factura no corresponde a la obra",
+      "confirmReject": "Rechazar gasto",
+      "viewSupport": "Ver soporte",
+      "noSupport": "Sin soporte"
+    },
+    "empty": {
+      "title": "Aún no hay movimientos financieros",
+      "description": "Registra el primer gasto de una obra para empezar a ver la ejecución presupuestal.",
+      "action": "Registrar gasto"
+    }
+  },
+  "expense": {
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobado",
+      "REJECTED": "Rechazado"
+    },
+    "paymentMethods": {
+      "CASH": "Efectivo",
+      "TRANSFER": "Transferencia",
+      "CARD": "Tarjeta",
+      "CHECK": "Cheque",
+      "OTHER": "Otro"
+    },
+    "fields": {
+      "project": "Obra",
+      "category": "Categoría",
+      "supplier": "Proveedor",
+      "date": "Fecha",
+      "paymentMethod": "Método de pago",
+      "responsible": "Responsable del gasto",
+      "amount": "Monto (COP)",
+      "description": "Descripción",
+      "invoiceNumber": "N.º de factura o recibo",
+      "support": "Soporte (factura o recibo)",
+      "status": "Estado",
+      "registeredBy": "Registrado por",
+      "rejectionReason": "Motivo de rechazo"
+    },
+    "list": {
+      "title": "Gastos registrados",
+      "filters": "Filtros",
+      "allStatuses": "Todos los estados",
+      "allCategories": "Todas las categorías",
+      "allProjects": "Todas las obras",
+      "empty": "No hay gastos con estos filtros.",
+      "export": "Exportar CSV",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {page} de {total}"
+    }
+  },
+  "expenseForm": {
+    "title": "Registrar gasto",
+    "subtitle": "Registra lo que gastas en obra y adjunta la foto de la factura o recibo.",
+    "projectPlaceholder": "Selecciona la obra",
+    "supplierSearch": "Buscar proveedor por nombre o NIT",
+    "supplierNone": "Sin proveedor",
+    "supplierNew": "Crear proveedor «{name}»",
+    "supplierNewTitle": "Nuevo proveedor",
+    "supplierNit": "NIT (opcional)",
+    "supplierCreated": "Proveedor creado y seleccionado.",
+    "supplierSelected": "Proveedor: {name}",
+    "change": "Cambiar",
+    "methodPlaceholder": "Selecciona un método",
+    "responsibleCompany": "{name} · pago directo de la empresa",
+    "responsibleResident": "{name} · se descuenta de tu caja menor",
+    "amountPlaceholder": "0",
+    "descriptionPlaceholder": "Detalla los ítems comprados o el motivo del gasto",
+    "invoicePlaceholder": "Ej: FE-10234",
+    "takePhoto": "Tomar foto",
+    "uploadFile": "Subir archivo",
+    "supportHint": "JPG, PNG, WEBP o PDF · máx. 5 MB. Las fotos se comprimen automáticamente.",
+    "compressing": "Optimizando foto...",
+    "compressed": "Foto optimizada: {before} → {after}",
+    "removeFile": "Quitar archivo",
+    "pdfAttached": "PDF adjunto",
+    "openPdf": "Abrir PDF",
+    "fileTooLarge": "El archivo supera 5 MB incluso después de comprimirlo.",
+    "fileType": "Formato no permitido. Usa JPG, PNG, WEBP o PDF.",
+    "submit": "Confirmar registro",
+    "submitting": "Registrando...",
+    "cancel": "Cancelar",
+    "createdPending": "Gasto registrado. Queda pendiente de aprobación.",
+    "createdApproved": "Gasto registrado y aprobado.",
+    "errors": {
+      "project": "Selecciona la obra",
+      "amount": "Ingresa un monto mayor que cero",
+      "date": "Selecciona la fecha"
+    },
+    "budget": {
+      "title": "Estado del presupuesto",
+      "selectProject": "Selecciona una obra para ver su presupuesto.",
+      "assigned": "Presupuesto asignado",
+      "executed": "Ejecutado (aprobado)",
+      "available": "Saldo disponible",
+      "executedPercent": "{percent}% ejecutado",
+      "impactTitle": "Impacto de este gasto",
+      "impact": "Este gasto equivale al {percent}% del presupuesto disponible.",
+      "impactOver": "Este gasto supera el presupuesto disponible de la obra.",
+      "impactNoBudget": "La obra ya no tiene presupuesto disponible."
+    },
+    "cash": {
+      "title": "Tu caja menor",
+      "balance": "Saldo actual",
+      "after": "Saldo después de este gasto",
+      "negative": "Quedará por reembolsar"
+    }
+  },
+  "suppliers": {
+    "title": "Proveedores",
+    "subtitle": "Directorio de proveedores y volumen de compras aprobadas.",
+    "new": "Nuevo proveedor",
+    "edit": "Editar proveedor",
+    "topTitle": "Proveedores con mayor volumen",
+    "topBadge": "TOP {rank}",
+    "transactions": "{count, plural, one {# compra} other {# compras}}",
+    "lastPurchase": "Última compra: {date}",
+    "directory": "Directorio de proveedores",
+    "count": "{count, plural, one {# proveedor} other {# proveedores}}",
+    "search": "Buscar por nombre o NIT",
+    "fields": {
+      "name": "Nombre o razón social",
+      "nit": "NIT",
+      "category": "Categoría principal",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "notes": "Notas",
+      "totalPurchased": "Total comprado",
+      "transactions": "Compras",
+      "lastPurchase": "Última compra"
+    },
+    "noCategory": "Sin categoría",
+    "empty": "Aún no hay proveedores registrados.",
+    "emptySearch": "Ningún proveedor coincide con la búsqueda.",
+    "created": "Proveedor creado.",
+    "updated": "Proveedor actualizado.",
+    "deleted": "Proveedor eliminado.",
+    "delete": "Eliminar",
+    "deleteTitle": "Eliminar proveedor",
+    "deleteConfirm": "¿Eliminar a {name}? Esta acción no se puede deshacer.",
+    "deleteBlocked": "No se puede eliminar: el proveedor tiene gastos registrados.",
+    "duplicateNit": "Ya existe un proveedor con ese NIT.",
+    "export": "Exportar CSV",
+    "save": "Guardar proveedor",
+    "nameError": "Mínimo 2 caracteres",
+    "emailError": "Correo no válido"
+  },
+  "cash": {
+    "title": "Caja menor",
+    "subtitle": "Fondos girados a residentes para gastos en campo y su uso.",
+    "residentSubtitle": "Fondos que te han girado y cuánto has gastado.",
+    "totalBalance": "Balance total de caja",
+    "totalHint": "Girado {transfers} · gastado {spent}",
+    "toReimburse": "Por reembolsar: {amount}",
+    "assign": "Asignar fondos",
+    "balancesTitle": "Saldos por residente",
+    "myBalance": "Mi saldo",
+    "received": "Recibido",
+    "spent": "Gastado",
+    "pending": "En revisión: {amount}",
+    "used": "{percent}% usado",
+    "noTransfers": "Sin giros",
+    "negative": "Por reembolsar",
+    "empty": "No hay ingenieros residentes registrados.",
+    "transfersTitle": "Giros",
+    "myTransfersTitle": "Giros recibidos",
+    "transfersEmpty": "Aún no hay giros registrados.",
+    "fields": {
+      "resident": "Residente",
+      "project": "Obra (opcional)",
+      "amount": "Monto (COP)",
+      "date": "Fecha",
+      "method": "Método",
+      "notes": "Notas",
+      "createdBy": "Girado por"
+    },
+    "residentPlaceholder": "Selecciona el residente",
+    "notesPlaceholder": "Ej: Fondos para compra de materiales menores",
+    "transferTitle": "Asignar fondos a un residente",
+    "submit": "Registrar giro",
+    "created": "Giro registrado. El saldo del residente se actualizó.",
+    "errors": {
+      "resident": "Selecciona el residente",
+      "amount": "Ingresa un monto mayor que cero"
+    }
+  },
+  "cashflow": {
+    "title": "Flujo de caja",
+    "subtitle": "Giros a residentes frente a gastos aprobados, mes a mes.",
+    "range": {
+      "label": "Periodo",
+      "3": "3 meses",
+      "6": "6 meses",
+      "12": "12 meses"
+    },
+    "chartTitle": "Giros vs. gastos aprobados",
+    "transfers": "Giros",
+    "expenses": "Gastos aprobados",
+    "allProjects": "Todas las obras",
+    "allSuppliers": "Todos los proveedores",
+    "ledgerTitle": "Libro de movimientos",
+    "kind": {
+      "EXPENSE": "Gasto",
+      "TRANSFER": "Giro"
+    },
+    "fields": {
+      "date": "Fecha",
+      "description": "Descripción",
+      "project": "Obra",
+      "category": "Categoría",
+      "type": "Tipo",
+      "amount": "Monto",
+      "support": "Soporte",
+      "person": "Persona"
+    },
+    "noDescription": "Sin descripción",
+    "transferTo": "Giro a {name}",
+    "viewSupport": "Ver soporte",
+    "empty": "No hay movimientos en este periodo.",
+    "export": "Exportar CSV",
+    "totals": {
+      "transfers": "Total girado",
+      "expenses": "Total gastos aprobados",
+      "toBeAccounted": "Por rendir",
+      "toBeAccountedHint": "Girado a residentes que aún no se justifica con gastos."
+    }
+  },
+  "csv": {
+    "expenses": "gastos",
+    "suppliers": "proveedores",
+    "cashflow": "flujo-de-caja"
+  },
+  "landing": {
+    "nav": {
+      "features": "Funcionalidades",
+      "how": "Cómo funciona",
+      "login": "Iniciar sesión"
+    },
+    "hero": {
+      "eyebrow": "Para constructoras de Nariño",
+      "title": "Controla cada obra, cada peso y cada riesgo en un solo lugar",
+      "subtitle": "ObraIQ centraliza el avance de tus obras, los gastos con sus soportes y las alertas de sobrecosto y retraso, con análisis de riesgo asistido por IA.",
+      "primary": "Entrar a ObraIQ",
+      "secondary": "Ver funcionalidades",
+      "note": "Edificaciones, vías, puentes, colegios, bodegas, remodelaciones y obra deportiva."
+    },
+    "preview": {
+      "label": "Vista previa del panel financiero",
+      "budget": "Presupuesto",
+      "spent": "Gastado",
+      "available": "Disponible",
+      "alert": "Riesgo de sobrecosto detectado",
+      "alertDetail": "Gasto 72% vs. avance 38%",
+      "physical": "Avance físico",
+      "financial": "Avance financiero"
+    },
+    "features": {
+      "title": "Todo lo que necesita la gestión de una obra",
+      "subtitle": "Diseñado para el administrador en la oficina y para el ingeniero residente en campo.",
+      "tracking": {
+        "title": "Seguimiento de obras",
+        "description": "Avance físico por actividades, cronograma, evidencias fotográficas y novedades de campo en cada obra."
+      },
+      "costs": {
+        "title": "Control de costos con soportes",
+        "description": "El residente fotografía la factura desde el celular; el administrador aprueba, controla proveedores, caja menor y flujo de caja en pesos colombianos."
+      },
+      "risk": {
+        "title": "Alertas y riesgo con IA",
+        "description": "Reglas automáticas detectan atrasos y sobrecostos; Gemini analiza el riesgo y responde preguntas sobre tus obras. Si la IA falla, el sistema sigue funcionando."
+      },
+      "background": {
+        "title": "Procesamiento en segundo plano",
+        "description": "Web Workers comprimen fotos y ejecutan análisis sin congelar la interfaz; Worker Threads hacen lo mismo en el servidor."
+      }
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "step1": {
+        "title": "Registra la obra",
+        "description": "Presupuesto, fechas, tipo de obra y responsable."
+      },
+      "step2": {
+        "title": "Reporta desde campo",
+        "description": "Actividades, fotos y gastos con su soporte, desde el celular."
+      },
+      "step3": {
+        "title": "Decide con datos",
+        "description": "Aprueba gastos, revisa alertas y compara avance físico vs. financiero."
+      }
+    },
+    "cta": {
+      "title": "¿Listo para ver tus obras con claridad?",
+      "subtitle": "Ingresa con la cuenta que te asignó el administrador de tu constructora.",
+      "button": "Iniciar sesión"
+    },
+    "footer": {
+      "rights": "© {year} ObraIQ. Proyecto académico — Universidad Cooperativa de Colombia.",
+      "made": "Hecho en Nariño, Colombia"
+    }
   }
 }

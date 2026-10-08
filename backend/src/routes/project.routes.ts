@@ -10,7 +10,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.post("/projects", { preHandler: [app.authorize(["ADMIN"])] }, projectController.create);
   
   // PERMITIR QUE TANTO ADMIN COMO RESIDENTE PUEDAN ACTUALIZAR LA OBRA
-  app.patch("/projects/:id", { preHandler: [app.authorize(["ADMIN", "RESIDENT_ENGINEER"])] }, projectController.update);
+  app.patch<{ Params: { id: string } }>("/projects/:id", { preHandler: [app.authorize(["ADMIN", "RESIDENT_ENGINEER"])] }, projectController.update);
   
-  app.delete("/projects/:id", { preHandler: [app.authorize(["ADMIN"])] }, projectController.remove);
+  app.delete<{ Params: { id: string } }>("/projects/:id", { preHandler: [app.authorize(["ADMIN"])] }, projectController.remove);
 }

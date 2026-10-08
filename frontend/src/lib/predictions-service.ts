@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export interface Prediction {
   id: string;
   type: string;
-  resultJson: { level: string; reasoning: string; source: string };
+  resultJson: { level: string; reasoning: string; source: string; params?: Record<string, number> };
   confidence: number | null;
   generatedAt: string;
 }

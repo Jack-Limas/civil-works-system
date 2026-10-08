@@ -1,18 +1,22 @@
 import { dashboardRepository } from "../repositories/dashboard.repository";
 import { materialService } from "./material.service";
 import { alertRepository } from "../repositories/alert.repository";
+import { RequestUser } from "../types/auth";
+import { projectAccess } from "./project-access.service";
 
 export const dashboardService = {
-  async getGeneralSummary() {
+  async getGeneralSummary(requester: RequestUser) {
+    const responsibleId = projectAccess.scope(requester);
     const [statusCounts, avgProgress, totalBudget, totalExpenses, lowStockMaterials, activeAlerts, alertsByProject] =
       await Promise.all([
-        dashboardRepository.countProjectsByStatus(),
-        dashboardRepository.averageProgress(),
-        dashboardRepository.totalBudget(),
-        dashboardRepository.totalExecutedExpenses(),
+        dashboardRepository.countProjectsByStatus(responsibleId),
+        dashboardRepository.averageProgress(responsibleId),
+        dashboardRepository.totalBudget(responsibleId),
+        dashboardRepository.totalExecutedExpenses(responsibleId),
+        // Inventory is company-wide (materials are not tied to a project), so it is not scoped
         materialService.getLowStockMaterials(),
-        alertRepository.countActive(),
-        alertRepository.countActiveByProject(),
+        alertRepository.countActive(responsibleId),
+        alertRepository.countActiveByProject(responsibleId),
       ]);
 
     const statusMap: Record<string, number> = {};
@@ -38,7 +42,7 @@ export const dashboardService = {
     };
   },
 
-  async getRecentActivity(take = 10) {
-    return dashboardRepository.recentActivities(take);
+  async getRecentActivity(requester: RequestUser, take = 10) {
+    return dashboardRepository.recentActivities(take, projectAccess.scope(requester));
   },
 };

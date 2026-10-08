@@ -1,5 +1,6 @@
 import { apiClient } from "./api-client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { createResourceHooks } from "./create-resource-hooks";
 
 export interface Material {
   id: string;
@@ -9,42 +10,22 @@ export interface Material {
   stockMinimum: number;
 }
 
-export interface LowStockMaterial {
-  id: string;
+export interface CreateMaterialInput {
   name: string;
   unit: string;
-  stockAvailable: number;
   stockMinimum: number;
 }
 
-export function useMaterials() {
-  return useQuery({
-    queryKey: ["materials", "list"],
-    queryFn: async () => {
-      const { data } = await apiClient.get<{ data: Material[] }>("/materials");
-      return data;
-    },
-  });
-}
-
-export function useCreateMaterial() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (payload: Omit<Material, "id" | "stockAvailable">) => {
-      const { data } = await apiClient.post("/materials", payload);
-      return data.data;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["materials"] }),
-  });
-}
+export const { useList: useMaterials, useCreate: useCreateMaterial } = createResourceHooks<
+  Material,
+  CreateMaterialInput
+>("materials", "/materials");
 
 export function useLowStockMaterials() {
   return useQuery({
     queryKey: ["materials", "low-stock"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ data: LowStockMaterial[] }>(
-        "/materials/low-stock"
-      );
+      const { data } = await apiClient.get<{ data: Material[] }>("/materials/low-stock");
       return data.data;
     },
   });

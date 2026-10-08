@@ -21,11 +21,4 @@ export const materialRepository = {
   create(data: CreateMaterialInput) {
     return prisma.material.create({ data });
   },
-
-  adjustStock(id: string, delta: number) {
-    return prisma.material.update({
-      where: { id },
-      data: { stockAvailable: { increment: delta } },
-    });
-  },
 };

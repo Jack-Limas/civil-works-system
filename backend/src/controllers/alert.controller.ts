@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { alertService } from "../services/alert.service";
+import { projectAccess } from "../services/project-access.service";
 
 export const alertController = {
   async list(request: FastifyRequest, reply: FastifyReply) {
@@ -9,11 +10,12 @@ export const alertController = {
       status: query.status,
       page: Number(query.page) || 1,
       limit: Number(query.limit) || 20,
-    });
+    }, request.user);
     return reply.send(result);
   },
 
   async generateForProject(request: FastifyRequest<{ Params: { projectId: string } }>, reply: FastifyReply) {
+    await projectAccess.assert(request.user, request.params.projectId);
     const alerts = await alertService.generateForProject(request.params.projectId);
     return reply.send({ data: alerts, message: `${alerts.length} new alert(s) generated` });
   },

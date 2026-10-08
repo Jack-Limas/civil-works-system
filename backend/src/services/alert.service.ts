@@ -5,6 +5,10 @@ import { prisma } from "../config/prisma";
 import { AppError } from "../utils/app-error";
 import { Project } from "@prisma/client";
 import { RISK_THRESHOLDS } from "../config/risk-thresholds";
+import { RequestUser } from "../types/auth";
+import { projectAccess } from "./project-access.service";
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
 
 function calculateExpectedProgress(project: Project): number {
   const now = Date.now();
@@ -27,6 +31,7 @@ async function evaluateScheduleRisk(project: Project) {
       shouldAlert: true,
       message: `El avance físico (${project.progressPercentage.toFixed(1)}%) está ${delay.toFixed(1)} puntos por debajo del avance esperado según el cronograma (${expectedProgress.toFixed(1)}%).`,
       severity: delay > RISK_THRESHOLDS.SCHEDULE_DELAY * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      params: { progress: round1(project.progressPercentage), expected: round1(expectedProgress), delay: round1(delay) },
     };
   }
   return { shouldAlert: false };
@@ -40,6 +45,11 @@ async function evaluateFinancialRisk(project: Project) {
       shouldAlert: true,
       message: `Los gastos ejecutados (${indicators.executedPercentage.toFixed(1)}%) crecen más rápido que el avance físico (${project.progressPercentage.toFixed(1)}%), con una brecha de ${indicators.financialVsPhysicalGap.toFixed(1)} puntos.`,
       severity: indicators.financialVsPhysicalGap > RISK_THRESHOLDS.FINANCIAL_GAP * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      params: {
+        executed: round1(indicators.executedPercentage),
+        progress: round1(project.progressPercentage),
+        gap: round1(indicators.financialVsPhysicalGap),
+      },
     };
   }
   return { shouldAlert: false };
@@ -55,6 +65,7 @@ async function evaluateActivityRisk(project: Project) {
       shouldAlert: true,
       message: `La obra tiene ${openDelayIncidents} novedad(es) de tipo retraso de actividad sin resolver.`,
       severity: openDelayIncidents >= 3 ? ("HIGH" as const) : ("MEDIUM" as const),
+      params: { count: openDelayIncidents },
     };
   }
   return { shouldAlert: false };
@@ -62,7 +73,12 @@ async function evaluateActivityRisk(project: Project) {
 
 const RULES: Array<{
   type: "SCHEDULE" | "FINANCIAL" | "ACTIVITY";
-  evaluate: (project: Project) => Promise<{ shouldAlert: boolean; message?: string; severity?: "LOW" | "MEDIUM" | "HIGH" }>;
+  evaluate: (project: Project) => Promise<{
+    shouldAlert: boolean;
+    message?: string;
+    severity?: "LOW" | "MEDIUM" | "HIGH";
+    params?: Record<string, number>;
+  }>;
 }> = [
   { type: "SCHEDULE", evaluate: evaluateScheduleRisk },
   { type: "FINANCIAL", evaluate: evaluateFinancialRisk },
@@ -70,11 +86,17 @@ const RULES: Array<{
 ];
 
 export const alertService = {
-  async list(filters: { projectId?: string; status?: "ACTIVE" | "RESOLVED"; page: number; limit: number }) {
+  async list(
+    filters: { projectId?: string; status?: "ACTIVE" | "RESOLVED"; page: number; limit: number },
+    requester: RequestUser
+  ) {
+    if (filters.projectId) await projectAccess.assert(requester, filters.projectId);
+
     const skip = (filters.page - 1) * filters.limit;
     const [alerts, total] = await alertRepository.findMany({
       projectId: filters.projectId,
       status: filters.status,
+      responsibleId: projectAccess.scope(requester),
       skip,
       take: filters.limit,
     });
@@ -107,6 +129,7 @@ export const alertService = {
         type: rule.type,
         message: result.message!,
         severity: result.severity!,
+        params: result.params,
       });
       createdAlerts.push(alert);
     }

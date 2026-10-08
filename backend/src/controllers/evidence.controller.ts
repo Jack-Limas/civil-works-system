@@ -1,8 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { evidenceService } from "../services/evidence.service";
 import { AppError } from "../utils/app-error";
-
-type RequestUser = { sub: string };
+import { assertValidImageFile } from "../utils/file-validation";
 
 export const evidenceController = {
   async list(request: FastifyRequest, reply: FastifyReply) {
@@ -11,7 +10,7 @@ export const evidenceController = {
       projectId: query.projectId,
       page: Number(query.page) || 1,
       limit: Number(query.limit) || 20,
-    });
+    }, request.user);
     return reply.send(result);
   },
 
@@ -27,7 +26,8 @@ export const evidenceController = {
     if (!projectId) throw new AppError(400, "projectId is required");
 
     const buffer = await data.toBuffer();
-    const user = request.user as RequestUser;
+    assertValidImageFile(buffer, data.mimetype, data.file.truncated);
+    const user = request.user;
 
     const evidence = await evidenceService.upload({
       projectId,
@@ -35,7 +35,7 @@ export const evidenceController = {
       description,
       buffer,
       uploadedById: user.sub,
-    });
+    }, user);
 
     return reply.code(201).send({ data: evidence });
   },

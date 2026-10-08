@@ -15,7 +15,6 @@ export interface CreateActivityInput {
   date: string;
   name: string;
   progressPercentage: number;
-  responsibleId: string;
   observations?: string;
 }
 

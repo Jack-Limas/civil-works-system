@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface Alert {
   id: string;
-  type: "SCHEDULE" | "FINANCIAL" | "ACTIVITY";
+  type: "SCHEDULE" | "FINANCIAL" | "ACTIVITY" | "INVENTORY";
   message: string;
+  /** Numbers behind the rule, used to render the message in any language */
+  params?: Record<string, number> | null;
   severity: "LOW" | "MEDIUM" | "HIGH";
   status: "ACTIVE" | "RESOLVED";
   project: { id: string; name: string };
@@ -23,11 +25,17 @@ export function useAlerts(status?: "ACTIVE" | "RESOLVED") {
   });
 }
 
+export interface GenerateAlertsResult {
+  projectsAnalyzed: number;
+  projectsWithNewAlerts: number;
+  details: Array<{ projectId: string; projectName: string; alertsCreated: number }>;
+}
+
 export function useGenerateAlerts() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.post("/alerts/generate");
+      const { data } = await apiClient.post<{ data: GenerateAlertsResult }>("/alerts/generate");
       return data.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["alerts"] }),

@@ -1,58 +1,63 @@
 "use client";
 
-import { useProjects } from "@/lib/projects-service";
+import { useMemo } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import { Calendar } from "lucide-react";
-
-// Interfaz local para evitar el error de ESLint sin depender de @/types/project
-interface MilestoneProject {
-  id: string;
-  name: string;
-  municipality: string;
-  estimatedEndDate?: string;
-}
+import { useProjects } from "@/lib/projects-service";
+import { Link } from "@/i18n/navigation";
 
 export function UpcomingMilestonesWidget() {
-  const { data } = useProjects({ status: "IN_PROGRESS" });
+  const t = useTranslations("dashboard.milestones");
+  const format = useFormatter();
+  const { data, isLoading } = useProjects({ status: "IN_PROGRESS", limit: 50 });
 
-  const projects = [...(data?.data ?? [])]
-    .filter((p: MilestoneProject) => p.estimatedEndDate)
-    .sort(
-      (a: MilestoneProject, b: MilestoneProject) =>
-        new Date(a.estimatedEndDate!).getTime() - new Date(b.estimatedEndDate!).getTime()
-    )
-    .slice(0, 3);
+  const projects = useMemo(
+    () =>
+      [...(data?.data ?? [])]
+        .sort((a, b) => new Date(a.estimatedEndDate).getTime() - new Date(b.estimatedEndDate).getTime())
+        .slice(0, 3),
+    [data]
+  );
 
   return (
-    <div className="rounded-xl border border-line bg-surface p-5">
+    <section className="rounded-xl border border-line bg-surface p-5">
       <div className="mb-3 flex items-center gap-2">
-        <Calendar size={16} className="text-brand" />
-        <h2 className="text-sm font-semibold">Próximos Hitos de Entrega</h2>
+        <Calendar size={16} className="text-accent" aria-hidden />
+        <h2 className="text-sm font-semibold text-ink">{t("title")}</h2>
       </div>
 
-      <div className="space-y-3">
-        {projects.map((p: MilestoneProject) => {
-          const date = new Date(p.estimatedEndDate!);
+      {isLoading && (
+        <div className="space-y-3" aria-busy="true">
+          {[0, 1].map((i) => (
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-surface-2 motion-reduce:animate-none" />
+          ))}
+        </div>
+      )}
+
+      <ul className="space-y-3">
+        {projects.map((p) => {
+          const date = new Date(p.estimatedEndDate);
           return (
-            <div key={p.id} className="flex items-center gap-3">
-              <div className="flex h-10 w-10 flex-col items-center justify-center rounded-lg bg-surface-2 text-center">
+            <li key={p.id} className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-surface-2 text-center">
                 <span className="text-[10px] font-medium uppercase text-ink-muted">
-                  {date.toLocaleDateString("es-CO", { month: "short" })}
+                  {format.dateTime(date, { month: "short" })}
                 </span>
-                <span className="font-mono-data text-sm font-semibold leading-none">
-                  {date.getDate()}
+                <span className="font-mono-data text-sm font-semibold leading-none text-ink">
+                  {format.dateTime(date, { day: "numeric" })}
                 </span>
               </div>
-              <div>
-                <p className="text-sm font-medium">{p.name}</p>
+              <div className="min-w-0">
+                <Link href={`/projects/${p.id}`} className="block truncate text-sm font-medium text-ink hover:text-accent">
+                  {p.name}
+                </Link>
                 <p className="text-xs text-ink-muted">{p.municipality}</p>
               </div>
-            </div>
+            </li>
           );
         })}
-        {projects.length === 0 && (
-          <p className="text-sm text-ink-muted">Sin obras en ejecución.</p>
-        )}
-      </div>
-    </div>
+      </ul>
+      {!isLoading && projects.length === 0 && <p className="text-sm text-ink-muted">{t("empty")}</p>}
+    </section>
   );
 }

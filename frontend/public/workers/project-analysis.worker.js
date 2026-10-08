@@ -15,13 +15,9 @@ function simulateAnalysis(datasetSize) {
   return { processedRecords: datasetSize, anomaliesDetected, durationMs: performance.now() - start };
 }
 
-const STAGES = [
-  "Analizando obras...",
-  "Procesando costos...",
-  "Analizando materiales...",
-  "Evaluando avances...",
-  "Generando alertas...",
-];
+// Stage identifiers, not texts: the UI translates them (analysis.stages.*)
+// so the worker stays language-agnostic.
+const STAGES = ["projects", "costs", "materials", "progress", "alerts"];
 
 self.onmessage = function (event) {
   if (event.data.type !== "RUN_ANALYSIS") return;

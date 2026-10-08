@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { CheckCircle2, XCircle } from "lucide-react";
+
+type DemoResult = { ok: true; value: number } | { ok: false; message: string | null };
 
 export function SharedMemoryDemo() {
+  const t = useTranslations("sharedMemory");
   const [isolated, setIsolated] = useState<boolean | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<DemoResult | null>(null);
 
   function checkIsolation() {
     setIsolated(typeof window !== "undefined" && window.crossOriginIsolated === true);
@@ -12,63 +17,70 @@ export function SharedMemoryDemo() {
 
   function runSharedBufferDemo() {
     if (typeof window === "undefined" || !window.crossOriginIsolated) {
-      setResult("❌ No se puede crear SharedArrayBuffer: la página no está crossOriginIsolated.");
+      setResult({ ok: false, message: null });
       return;
     }
 
     try {
-      // Reservamos un bloque de memoria compartida para 4 enteros de 32 bits (16 bytes)
+      // Shared block for 4 Int32 values (16 bytes); no copy is made between threads
       const buffer = new SharedArrayBuffer(4 * Int32Array.BYTES_PER_ELEMENT);
       const sharedArray = new Int32Array(buffer);
-
-      // Asignación inicial en memoria
       sharedArray[0] = 10;
-
-      // Operación atómica de modificación sincrónica en RAM
+      // Atomic read-modify-write on shared memory
       Atomics.add(sharedArray, 0, 32);
-
-      setResult(
-        `✅ Memoria compartida activa: valor inicial 10, tras Atomics.add(+32) = ${sharedArray[0]} (lectura/escritura en buffer compartido sin clonar datos).`
-      );
+      setResult({ ok: true, value: sharedArray[0] });
     } catch (error) {
-      setResult(`❌ Error ejecutando SharedArrayBuffer: ${String(error)}`);
+      setResult({ ok: false, message: String(error) });
     }
   }
 
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h2 className="mb-1 text-lg font-semibold">Memoria Compartida: postMessage vs SharedArrayBuffer</h2>
-      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        <code className="font-semibold text-indigo-600 dark:text-indigo-400">postMessage</code> clona y duplica los datos en cada hilo.{" "}
-        <code className="font-semibold text-indigo-600 dark:text-indigo-400">SharedArrayBuffer</code> con{" "}
-        <code className="font-semibold text-indigo-600 dark:text-indigo-400">Atomics</code> permite lectura y escritura simultánea sobre el mismo espacio de memoria RAM.
-      </p>
+  const code = (chunks: React.ReactNode) => <code className="font-mono-data font-semibold text-ai">{chunks}</code>;
 
-      <div className="flex gap-2">
+  return (
+    <div className="rounded-xl border border-line bg-surface p-5">
+      <h2 className="mb-1 text-base font-semibold text-ink">{t("title")}</h2>
+      <p className="mb-4 text-sm text-ink-muted">{t.rich("description", { code })}</p>
+
+      <div className="flex flex-wrap gap-2">
         <button
+          type="button"
           onClick={checkIsolation}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+          className="rounded-md border border-line px-3 py-1.5 text-sm text-ink hover:bg-surface-2"
         >
-          Verificar crossOriginIsolated
+          {t("checkIsolation")}
         </button>
         <button
+          type="button"
           onClick={runSharedBufferDemo}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
+          className="rounded-md bg-ai px-3 py-1.5 text-sm text-bg hover:opacity-90"
         >
-          Probar SharedArrayBuffer
+          {t("tryBuffer")}
         </button>
       </div>
 
       {isolated !== null && (
-        <p className="mt-3 text-sm">
+        <p className="mt-3 text-sm text-ink">
           window.crossOriginIsolated ={" "}
-          <span className={`font-mono font-bold ${isolated ? "text-green-600" : "text-red-500"}`}>
+          <span className={`font-mono-data font-bold ${isolated ? "text-success" : "text-critical"}`}>
             {String(isolated)}
           </span>
         </p>
       )}
 
-      {result && <p className="mt-2 text-sm font-medium">{result}</p>}
+      {result && (
+        <p className="mt-2 flex items-start gap-2 text-sm font-medium text-ink" aria-live="polite">
+          {result.ok ? (
+            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" aria-hidden />
+          ) : (
+            <XCircle size={16} className="mt-0.5 shrink-0 text-critical" aria-hidden />
+          )}
+          {result.ok
+            ? t("success", { value: result.value })
+            : result.message
+              ? t("error", { message: result.message })
+              : t("notIsolated")}
+        </p>
+      )}
     </div>
   );
 }

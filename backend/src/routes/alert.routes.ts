@@ -7,5 +7,5 @@ export async function alertRoutes(app: FastifyInstance) {
   app.get("/alerts", alertController.list);
   app.post("/alerts/generate", { preHandler: [app.authorize(["ADMIN"])] }, alertController.generateForAll);
   app.post("/alerts/generate/:projectId", alertController.generateForProject);
-  app.patch("/alerts/:id/resolve", { preHandler: [app.authorize(["ADMIN"])] }, alertController.resolve);
+  app.patch<{ Params: { id: string } }>("/alerts/:id/resolve", { preHandler: [app.authorize(["ADMIN"])] }, alertController.resolve);
 }

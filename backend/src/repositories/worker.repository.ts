@@ -11,6 +11,7 @@ export const workerRepository = {
         skip: filters.skip,
         take: filters.take,
         orderBy: { name: "asc" },
+        include: { project: { select: { id: true, name: true } } },
       }),
       prisma.worker.count({ where }),
     ]);

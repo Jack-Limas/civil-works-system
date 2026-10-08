@@ -6,7 +6,7 @@ export const createActivitySchema = z.object({
   name: z.string().min(3),
   description: z.string().optional(),
   progressPercentage: z.number().min(0).max(100),
-  responsibleId: z.string().uuid(),
+  // responsibleId is intentionally absent: the server takes it from the session
   observations: z.string().optional(),
 });
 
