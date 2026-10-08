@@ -2,8 +2,12 @@ import { prisma } from "../config/prisma";
 import { CreateWorkerInput, UpdateWorkerInput } from "../schemas/worker.schema";
 
 export const workerRepository = {
-  findMany(filters: { projectId?: string; skip: number; take: number }) {
-    const where = { ...(filters.projectId && { projectId: filters.projectId }) };
+  /** responsibleId limits the list to workers assigned to that resident's projects. */
+  findMany(filters: { projectId?: string; responsibleId?: string; skip: number; take: number }) {
+    const where = {
+      ...(filters.projectId && { projectId: filters.projectId }),
+      ...(filters.responsibleId && { project: { responsibleId: filters.responsibleId } }),
+    };
 
     return Promise.all([
       prisma.worker.findMany({

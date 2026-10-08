@@ -5,7 +5,7 @@ import { workerService } from "../services/worker.service";
 export const workerController = {
   async list(request: FastifyRequest, reply: FastifyReply) {
     const query = listWorkersQuerySchema.parse(request.query);
-    const result = await workerService.list(query);
+    const result = await workerService.list(query, request.user);
     return reply.send(result);
   },
 
