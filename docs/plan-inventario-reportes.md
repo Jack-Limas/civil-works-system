@@ -34,5 +34,5 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
   - [x] 8.2 Report view `/reports/[type]` (filters, KPIs, charts, meta, CSV, print, AI summary)
   - [x] 8.3 Daily log `/reports/daily` (admin list/detail/review)
   - [x] 8.4 Resident "My daily log" with today's prefilled report
-- [ ] Step 9 — Demo data (categories, costs, movements, rejected-linked warning, 60-day consumption, 15-20 days of logs)
+- [x] Step 9 — Demo data (categories, costs, movements, rejected-linked warning, 60-day consumption, 15-20 days of logs)
 - [ ] Step 10 — Close-out (builds, rendering doc, walkthrough both roles, regressions, report)
