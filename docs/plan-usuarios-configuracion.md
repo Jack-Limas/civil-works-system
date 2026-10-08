@@ -10,10 +10,10 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
 
 ## Steps
 - [x] Step 0 — State check (main has the non-squash merge, baseline checks green, sidebar/route audit, tag + branch, this plan)
-- [ ] Step 1 — CLAUDE.md domain sections (users, audit, settings, incidents, workers)
-- [ ] Step 2 — Hardening
-  - [ ] 2.1 Assistant: 15–20 s timeout + one retry, 502 with truncated cause in the log
-  - [ ] 2.2 Fix audit bugs: `/workers` leaks every worker (with document) to residents
+- [x] Step 1 — CLAUDE.md domain sections (users, audit, settings, incidents, workers)
+- [x] Step 2 — Hardening
+  - [x] 2.1 Assistant: 15–20 s timeout + one retry, 502 with truncated cause in the log
+  - [x] 2.2 Fix audit bugs: `/workers` leaks every worker (with document) to residents
 - [ ] Step 3 — Additive schema (User, AuditLog, SystemSetting, Incident history, Evidence.incidentId, Worker.phone) — STOP-1
 - [ ] Step 4 — Backend
   - [ ] 4.1 Audit service + GET /audit-logs (+ export) and events wired in existing modules
