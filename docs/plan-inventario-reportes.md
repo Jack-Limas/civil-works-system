@@ -8,7 +8,7 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
 - [x] Step 1 — CLAUDE.md: inventory and reports domain rules
 - [x] Step 2 — DELETE /projects/:id returns 409 when the project has accounting/inventory/log data
   - Note: field reports join the dependency check once the table exists (Step 3)
-- [ ] Step 3 — Additive schema (MaterialCategory, movement columns, Weather, FieldReportStatus, FieldReport) — **STOP-1: owner approval + Neon backup before applying** — migration 20261008150000_inventory_reports created, WAITING FOR APPROVAL
+- [x] Step 3 — Additive schema (MaterialCategory, movement columns, Weather, FieldReportStatus, FieldReport) — **STOP-1: owner approval + Neon backup before applying** — approved; Neon backup branch created by owner; applied with migrate deploy on 2026-10-08; 14 table counts identical before/after; existing movements read fine with new columns NULL
 - [ ] Step 4 — Inventory backend
   - [ ] 4.1 Thresholds config and material status engine (single source, also behind /materials/low-stock)
   - [ ] 4.2 GET /materials (search, filters, status, coverage, need, last movement, admin-only cost), /materials/summary, /materials/:id
