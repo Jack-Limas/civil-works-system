@@ -50,7 +50,7 @@ async function main() {
     }
 
     if (error instanceof AppError) {
-      return reply.code(error.statusCode).send({ error: error.message });
+      return reply.code(error.statusCode).send({ error: error.message, ...error.extra });
     }
 
     // Fastify/plugin client errors (malformed JSON, file too large, ...) keep their 4xx status
