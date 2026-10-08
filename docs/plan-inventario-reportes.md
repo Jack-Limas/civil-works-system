@@ -9,14 +9,14 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
 - [x] Step 2 — DELETE /projects/:id returns 409 when the project has accounting/inventory/log data
   - Note: field reports join the dependency check once the table exists (Step 3)
 - [x] Step 3 — Additive schema (MaterialCategory, movement columns, Weather, FieldReportStatus, FieldReport) — **STOP-1: owner approval + Neon backup before applying** — approved; Neon backup branch created by owner; applied with migrate deploy on 2026-10-08; 14 table counts identical before/after; existing movements read fine with new columns NULL
-- [ ] Step 4 — Inventory backend
-  - [ ] 4.1 Thresholds config and material status engine (single source, also behind /materials/low-stock)
-  - [ ] 4.2 GET /materials (search, filters, status, coverage, need, last movement, admin-only cost), /materials/summary, /materials/:id
-  - [ ] 4.3 POST/PATCH /materials with role rules
-  - [ ] 4.4 Movements: role rules on POST, GET /materials/movements with filters, no PATCH/DELETE
-  - [ ] 4.5 POST /expenses inventoryEntry (single transaction)
-  - [ ] 4.6 Inventory in the assistant context (role-filtered)
-  - [ ] 4.7 curl checks both roles (400/403/404, insufficient stock, concurrency)
+- [x] Step 4 — Inventory backend
+  - [x] 4.1 Thresholds config and material status engine (single source, also behind /materials/low-stock)
+  - [x] 4.2 GET /materials (search, filters, status, coverage, need, last movement, admin-only cost), /materials/summary, /materials/:id
+  - [x] 4.3 POST/PATCH /materials with role rules
+  - [x] 4.4 Movements: role rules on POST, GET /materials/movements with filters, no PATCH/DELETE
+  - [x] 4.5 POST /expenses inventoryEntry (single transaction)
+  - [x] 4.6 Inventory in the assistant context (role-filtered)
+  - [x] 4.7 curl checks both roles (400/403/404, insufficient stock, concurrency) — 33/33 passed; test rows removed
 - [ ] Step 5 — Reports backend
   - [ ] 5.1 Report meta + Server-Timing; /reports/progress, /financial (admin), /materials, /incidents
   - [ ] 5.2 Field reports: list, compile, create (409 per project/day), detail, edit, review
