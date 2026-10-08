@@ -837,7 +837,13 @@
   "csv": {
     "expenses": "expenses",
     "suppliers": "suppliers",
-    "cashflow": "cash-flow"
+    "cashflow": "cash-flow",
+    "inventory": "inventory",
+    "movements": "movements",
+    "progress": "progress-report",
+    "financial": "financial-report",
+    "materials": "materials-report",
+    "incidents": "incidents-report"
   },
   "landing": {
     "nav": {

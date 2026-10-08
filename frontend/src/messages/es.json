@@ -837,7 +837,13 @@
   "csv": {
     "expenses": "gastos",
     "suppliers": "proveedores",
-    "cashflow": "flujo-de-caja"
+    "cashflow": "flujo-de-caja",
+    "inventory": "inventario",
+    "movements": "movimientos",
+    "progress": "reporte-avance",
+    "financial": "reporte-financiero",
+    "materials": "reporte-materiales",
+    "incidents": "reporte-novedades"
   },
   "landing": {
     "nav": {

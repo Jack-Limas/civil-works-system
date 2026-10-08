@@ -44,6 +44,7 @@ const SEARCH_DEBOUNCE_MS = 250;
 
 export function AdminInventory() {
   const t = useTranslations("inventory");
+  const tCsv = useTranslations("csv");
   const format = useFormatter();
   const formatCOP = useFormatCOP();
   const reduceMotion = useReducedMotion();
@@ -69,7 +70,7 @@ export function AdminInventory() {
 
   function handleExport() {
     exportCsv(
-      `obraiq-inventario-${new Date().toISOString().slice(0, 10)}`,
+      `obraiq-${tCsv("inventory")}-${new Date().toISOString().slice(0, 10)}`,
       [
         t("fields.name"),
         t("fields.category"),

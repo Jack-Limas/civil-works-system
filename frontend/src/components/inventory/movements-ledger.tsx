@@ -28,6 +28,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
   const tCurrency = useTranslations("reports");
   const tCommon = useTranslations("common");
   const tList = useTranslations("expense.list");
+  const tCsv = useTranslations("csv");
   const format = useFormatter();
   const formatCOP = useFormatCOP();
   const errorMessage = useApiErrorMessage();
@@ -67,7 +68,7 @@ export function MovementsLedger({ fixedMaterialId }: { fixedMaterialId?: string 
         m.notes,
       ]);
       exportCsv(
-        `obraiq-movimientos-${new Date().toISOString().slice(0, 10)}`,
+        `obraiq-${tCsv("movements")}-${new Date().toISOString().slice(0, 10)}`,
         [
           t("ledger.date"),
           t("movement.type"),
