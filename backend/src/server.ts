@@ -21,6 +21,7 @@ import { supplierRoutes } from "./routes/supplier.routes";
 import { cashRoutes } from "./routes/cash.routes";
 import { financeRoutes } from "./routes/finance.routes";
 import { reportRoutes } from "./routes/report.routes";
+import { fieldReportRoutes } from "./routes/field-report.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
@@ -83,6 +84,7 @@ async function main() {
   await app.register(cashRoutes);
   await app.register(financeRoutes);
   await app.register(reportRoutes);
+  await app.register(fieldReportRoutes);
   await app.register(incidentRoutes);
   await app.register(evidenceRoutes);
   await app.register(alertRoutes);
