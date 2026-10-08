@@ -1348,6 +1348,8 @@
       "reviewed": "Log marked as reviewed.",
       "reviewedBy": "Reviewed by {name} on {date}",
       "noIssues": "No observations.",
+      "compiled": "Recorded that day on site",
+      "nothingCompiled": "No activities, photos, material use or expenses were recorded on this project that day.",
       "open": "View details"
     }
   }

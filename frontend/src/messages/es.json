@@ -1348,6 +1348,8 @@
       "reviewed": "Bitácora marcada como revisada.",
       "reviewedBy": "Revisada por {name} el {date}",
       "noIssues": "Sin observaciones.",
+      "compiled": "Registrado ese día en la obra",
+      "nothingCompiled": "Ese día no se registraron actividades, fotos, consumos ni gastos en esta obra.",
       "open": "Ver detalle"
     }
   }

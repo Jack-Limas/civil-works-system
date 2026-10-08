@@ -45,7 +45,7 @@ function Section({ icon: Icon, title, count, children }: { icon: LucideIcon; tit
 }
 
 /** What the system already knows about the day: activities, incidents, photos, materials and expenses. */
-export function CompiledDaySections({ compiled }: { compiled: CompiledDay }) {
+export function CompiledDaySections({ compiled, emptyText }: { compiled: CompiledDay; emptyText?: string }) {
   const t = useTranslations("fieldReports");
   const tIncidents = useTranslations("incidents");
   const tCategory = useTranslations("expenses.categories");
@@ -55,7 +55,7 @@ export function CompiledDaySections({ compiled }: { compiled: CompiledDay }) {
   const total = Object.values(compiled.counts).reduce((a, b) => a + b, 0);
 
   if (total === 0) {
-    return <p className="rounded-lg border border-dashed border-line p-4 text-center text-sm text-ink-muted">{t("form.nothingCompiled")}</p>;
+    return <p className="rounded-lg border border-dashed border-line p-4 text-center text-sm text-ink-muted">{emptyText ?? t("form.nothingCompiled")}</p>;
   }
 
   return (

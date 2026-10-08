@@ -72,7 +72,7 @@ export function FieldReportDetail({ id, onClose }: { id: string; onClose: () => 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-base font-semibold text-ink">{report.project.name}</p>
-          <p className="text-sm capitalize text-ink-muted">{logDate(report.date)}</p>
+          <p className="text-sm first-letter:uppercase text-ink-muted">{logDate(report.date)}</p>
           <p className="text-xs text-ink-muted">
             {t("fields.author")}: {report.author.name}
           </p>
@@ -112,8 +112,8 @@ export function FieldReportDetail({ id, onClose }: { id: string; onClose: () => 
       </div>
 
       <div className="border-t border-line pt-4">
-        <h3 className="mb-3 text-sm font-semibold text-ink">{t("form.compiled")}</h3>
-        <CompiledDaySections compiled={report.compiled} />
+        <h3 className="mb-3 text-sm font-semibold text-ink">{t("detail.compiled")}</h3>
+        <CompiledDaySections compiled={report.compiled} emptyText={t("detail.nothingCompiled")} />
       </div>
 
       {report.status === "REVIEWED" && report.reviewedBy && report.reviewedAt && (
