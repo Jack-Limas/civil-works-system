@@ -105,7 +105,7 @@ export function ReportKpi({ label, children, tone, hint }: { label: string; chil
   return (
     <div className="print-avoid-break rounded-xl border border-line bg-surface p-4">
       <p className="text-xs font-medium text-ink-muted">{label}</p>
-      <div className={`mt-1 font-mono-data text-xl font-semibold sm:text-2xl ${tone ?? "text-ink"}`}>{children}</div>
+      <div className={`mt-1 whitespace-nowrap font-mono-data text-xl font-semibold 2xl:text-2xl ${tone ?? "text-ink"}`}>{children}</div>
       {hint && <div className="mt-0.5 text-xs text-ink-muted">{hint}</div>}
     </div>
   );
