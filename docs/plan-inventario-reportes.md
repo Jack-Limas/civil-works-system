@@ -22,7 +22,7 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
   - [x] 5.2 Field reports: list, compile, create (409 per project/day), detail, edit, review
   - [x] 5.3 POST /reports/summary with Gemini (server-side data, locale, 502, 10 s rate limit)
   - [x] 5.4 curl checks both roles — 40/40 passed (Gemini 503 handled with retry + 502; success path verified)
-- [ ] Step 6 — Frontend base (types, hooks, i18n inventory/reports/fieldReports, sidebar, print utilities)
+- [x] Step 6 — Frontend base (types, hooks, i18n inventory/reports/fieldReports, sidebar, print utilities)
 - [ ] Step 7 — Inventory screens
   - [ ] 7.1 Admin inventory `/materials`
   - [ ] 7.2 Admin movements `/materials/movements`
