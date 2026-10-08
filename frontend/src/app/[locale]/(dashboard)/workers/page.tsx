@@ -81,7 +81,9 @@ export default function WorkersPage() {
             emptyMessage={t("empty")}
             columns={[
               { id: "name", header: t("name"), accessor: (w) => w.name, primary: true },
-              { id: "document", header: t("document"), accessor: (w) => <span className="font-mono-data">{w.documentId}</span> },
+              ...(isAdmin
+                ? [{ id: "document", header: t("document"), accessor: (w: Worker) => <span className="font-mono-data">{w.documentId}</span> }]
+                : []),
               { id: "position", header: t("position"), accessor: (w) => w.position },
               { id: "project", header: t("assignedProject"), accessor: (w) => w.project?.name ?? t("unassigned") },
               {

@@ -3,7 +3,8 @@ import { createResourceHooks } from "./create-resource-hooks";
 export interface Worker {
   id: string;
   name: string;
-  documentId: string;
+  /** Only sent to admins (sensitive personal data) */
+  documentId?: string;
   position: string;
   projectId: string | null;
   status: "ACTIVE" | "INACTIVE";
