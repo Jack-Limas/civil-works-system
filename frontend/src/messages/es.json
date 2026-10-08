@@ -60,12 +60,13 @@
   "nav": {
     "dashboard": "Panel general",
     "projects": "Obras",
-    "materials": "Materiales",
+    "materials": "Inventario",
     "workers": "Trabajadores",
     "expenses": "Costos",
     "incidents": "Novedades",
     "alerts": "Alertas",
-    "users": "Usuarios"
+    "users": "Usuarios",
+    "reports": "Reportes"
   },
   "dashboard": {
     "title": "Panel general",
@@ -905,6 +906,442 @@
     "footer": {
       "rights": "© {year} ObraIQ. Proyecto académico — Universidad Cooperativa de Colombia.",
       "made": "Hecho en Nariño, Colombia"
+    }
+  },
+  "inventory": {
+    "title": "Inventario",
+    "subtitle": "Existencias de la bodega central, consumo por obra y alertas de abastecimiento.",
+    "residentSubtitle": "Consulta el stock disponible y registra lo que consumes en obra.",
+    "tabs": {
+      "stock": "Inventario",
+      "movements": "Movimientos"
+    },
+    "moduleNav": "Secciones de inventario",
+    "newMaterial": "Nuevo material",
+    "editMaterial": "Editar material",
+    "registerMovement": "Registrar movimiento",
+    "registerEntry": "Registrar entrada",
+    "registerConsumption": "Registrar consumo",
+    "kpis": {
+      "materials": "Referencias",
+      "materialsHint": "{count, plural, one {# sin categoría} other {# sin categoría}}",
+      "out": "Agotados",
+      "outHint": "Sin existencias",
+      "critical": "Críticos",
+      "criticalHint": "Bajo el mínimo o < 7 días",
+      "warning": "En alerta",
+      "warningHint": "Cobertura < 14 días",
+      "value": "Valor estimado",
+      "valueHint": "{count, plural, one {# material con costo} other {# materiales con costo}}",
+      "valueTooltip": "Estimado: stock × último costo unitario conocido. Los materiales sin costo registrado no suman.",
+      "movements": "Movimientos del mes",
+      "movementsHint": "Entradas y salidas"
+    },
+    "critical": {
+      "title": "Materiales críticos",
+      "subtitle": "Ordenados por cobertura: los primeros se acaban antes.",
+      "empty": "Ningún material está en estado crítico. ¡Buen abastecimiento!",
+      "coverage": "Cobertura",
+      "need": "Necesidad 30 días",
+      "suggested": "Compra sugerida",
+      "stockOfMin": "{stock} de {min} {unit}",
+      "buy": "Registrar compra"
+    },
+    "list": {
+      "title": "Inventario general",
+      "search": "Buscar material",
+      "allCategories": "Todas las categorías",
+      "noCategory": "Sin categoría",
+      "allStatuses": "Todos los estados",
+      "sort": {
+        "label": "Ordenar por",
+        "name": "Nombre",
+        "coverage": "Cobertura",
+        "stock": "Stock",
+        "status": "Estado"
+      },
+      "empty": "No hay materiales con estos filtros.",
+      "emptyAll": "Aún no hay materiales registrados.",
+      "export": "Exportar CSV"
+    },
+    "fields": {
+      "material": "Material",
+      "name": "Nombre",
+      "unit": "Unidad",
+      "category": "Categoría",
+      "stock": "Stock",
+      "minimum": "Stock mínimo",
+      "status": "Estado",
+      "coverage": "Cobertura",
+      "dailyConsumption": "Consumo diario",
+      "need": "Necesidad 30 días",
+      "suggested": "Compra sugerida",
+      "lastMovement": "Último movimiento",
+      "lastCost": "Último costo",
+      "value": "Valor estimado",
+      "actions": "Acciones"
+    },
+    "coverageDays": "{days} días",
+    "noCoverage": "—",
+    "noCoverageHint": "Sin consumo en los últimos 30 días",
+    "categories": {
+      "CEMENT_CONCRETE": "Cemento y concreto",
+      "STEEL": "Acero",
+      "AGGREGATES": "Agregados",
+      "MASONRY": "Mampostería",
+      "WOOD": "Madera",
+      "ELECTRICAL": "Eléctricos",
+      "PLUMBING": "Hidrosanitarios",
+      "FINISHES": "Acabados",
+      "TOOLS_EQUIPMENT": "Herramientas y equipos",
+      "OTHER": "Otros"
+    },
+    "status": {
+      "OUT": "Agotado",
+      "CRITICAL": "Crítico",
+      "WARNING": "En alerta",
+      "OK": "Óptimo"
+    },
+    "movementType": {
+      "IN": "Entrada",
+      "OUT": "Salida"
+    },
+    "form": {
+      "namePlaceholder": "Ej: Cemento gris 50 kg",
+      "unitPlaceholder": "Ej: bultos, m³, varillas",
+      "residentNote": "Solo el administrador define la categoría y el stock mínimo.",
+      "created": "Material creado.",
+      "updated": "Material actualizado.",
+      "duplicate": "Ya existe un material con ese nombre.",
+      "save": "Guardar material",
+      "nameError": "Mínimo 2 caracteres",
+      "unitError": "Indica la unidad",
+      "minError": "Debe ser 0 o mayor"
+    },
+    "movement": {
+      "title": "Registrar movimiento",
+      "consumptionTitle": "Registrar consumo",
+      "type": "Tipo de movimiento",
+      "in": "Entrada",
+      "out": "Salida",
+      "inHint": "Llega material a bodega",
+      "outHint": "Sale material hacia una obra",
+      "material": "Material",
+      "materialPlaceholder": "Busca y elige un material",
+      "quantity": "Cantidad",
+      "quantityIn": "Cantidad ({unit})",
+      "project": "Obra",
+      "projectOptional": "Obra (opcional)",
+      "supplier": "Proveedor (opcional)",
+      "unitCost": "Costo unitario (COP, opcional)",
+      "expense": "Gasto de materiales vinculado (opcional)",
+      "expensePlaceholder": "Sin gasto vinculado",
+      "notes": "Nota",
+      "notesPlaceholder": "Ej: Despacho para fundición de placa",
+      "available": "Disponible: {stock} {unit}",
+      "afterOut": "Quedarán {stock} {unit}",
+      "insufficient": "No hay suficiente stock para esta salida.",
+      "submit": "Registrar",
+      "submitConsumption": "Registrar consumo",
+      "saving": "Registrando...",
+      "registered": "Movimiento registrado.",
+      "belowMinimum": "{name} quedó bajo su stock mínimo ({stock} {unit}).",
+      "errors": {
+        "material": "Elige un material",
+        "quantity": "Ingresa una cantidad mayor que cero",
+        "project": "Elige la obra"
+      }
+    },
+    "ledger": {
+      "title": "Libro de movimientos",
+      "subtitle": "Registro inmutable: las correcciones se hacen con un movimiento compensatorio.",
+      "allMaterials": "Todos los materiales",
+      "allProjects": "Todas las obras",
+      "allTypes": "Entradas y salidas",
+      "onlyWarnings": "Solo advertencias",
+      "empty": "No hay movimientos con estos filtros.",
+      "warning": "Gasto rechazado",
+      "warningHint": "El gasto vinculado fue rechazado. Si el material no llegó, registra una salida compensatoria.",
+      "registeredBy": "Registrado por",
+      "linkedExpense": "Gasto vinculado",
+      "noProject": "Bodega",
+      "export": "Exportar CSV",
+      "unitCost": "Costo unit."
+    },
+    "detail": {
+      "back": "Volver al inventario",
+      "notFound": "Este material no existe.",
+      "stockChart": "Evolución del stock",
+      "range": {
+        "30": "30 días",
+        "90": "90 días"
+      },
+      "stockLine": "Stock",
+      "inBar": "Entradas",
+      "outBar": "Salidas",
+      "byProject": "Consumo por obra",
+      "byProjectEmpty": "Sin consumo registrado en el periodo.",
+      "unassigned": "Sin obra: {quantity} {unit}",
+      "movements": "Últimos movimientos",
+      "explain": "Estado calculado por reglas: cobertura = stock ÷ consumo diario promedio de los últimos 30 días."
+    },
+    "resident": {
+      "searchPlaceholder": "Buscar en bodega",
+      "recentTitle": "Mis movimientos recientes",
+      "recentEmpty": "Aún no registras consumos.",
+      "stockTitle": "Stock disponible",
+      "createInline": "¿No está? Créalo",
+      "quickTip": "Registra el consumo apenas salga el material de bodega."
+    },
+    "expenseEntry": {
+      "toggle": "Registrar también en inventario",
+      "hint": "Suma esta compra al stock de la bodega.",
+      "material": "Material comprado",
+      "quantity": "Cantidad recibida",
+      "unitCostAuto": "Costo unitario: {cost}"
+    }
+  },
+  "reports": {
+    "title": "Centro de reportes",
+    "subtitle": "Informes calculados en el servidor con los datos de tus obras.",
+    "residentSubtitle": "Informes y bitácora de tus obras.",
+    "open": "Abrir reporte",
+    "types": {
+      "progress": {
+        "title": "Avance de obra",
+        "description": "Avance físico vs. cronograma, actividades y días restantes."
+      },
+      "financial": {
+        "title": "Financiero",
+        "description": "Presupuesto, gasto aprobado, CPI y gasto por categoría."
+      },
+      "materials": {
+        "title": "Consumo de materiales",
+        "description": "Entradas, salidas, consumo por obra y materiales críticos."
+      },
+      "incidents": {
+        "title": "Novedades",
+        "description": "Novedades por tipo, prioridad y estado en el periodo."
+      },
+      "daily": {
+        "title": "Bitácora diaria",
+        "description": "Reportes diarios de campo enviados por los residentes."
+      }
+    },
+    "pendingLogs": "Bitácoras por revisar",
+    "pendingLogsEmpty": "No hay bitácoras pendientes de revisión.",
+    "seeAllLogs": "Ver bitácora",
+    "filters": {
+      "project": "Obra",
+      "allProjects": "Todas las obras",
+      "from": "Desde",
+      "to": "Hasta",
+      "presets": {
+        "7": "7 días",
+        "30": "30 días",
+        "90": "90 días"
+      },
+      "apply": "Aplicar"
+    },
+    "meta": "Generado en {ms} ms · {count, plural, one {# registro} other {# registros}}",
+    "metaBy": "Generado por {name} el {date}",
+    "period": "Periodo: {from} – {to}",
+    "export": "Exportar CSV",
+    "print": "Imprimir / PDF",
+    "back": "Volver al centro de reportes",
+    "empty": "No hay datos para este periodo.",
+    "ai": {
+      "title": "Resumen ejecutivo con IA",
+      "button": "Generar resumen con IA",
+      "regenerate": "Generar de nuevo",
+      "loading": "Gemini está analizando el reporte...",
+      "error": "No se pudo generar el resumen. La IA no está disponible en este momento.",
+      "rateLimited": "Espera unos segundos antes de pedir otro resumen.",
+      "retry": "Reintentar",
+      "disclaimer": "Texto generado por IA a partir de las cifras del reporte. Verifica antes de decidir.",
+      "hint": "Opcional: un resumen con los hallazgos clave y una recomendación."
+    },
+    "printHeader": {
+      "generatedBy": "Generado por",
+      "generatedAt": "Fecha de generación",
+      "period": "Periodo",
+      "project": "Obra",
+      "allProjects": "Todas las obras"
+    },
+    "progress": {
+      "kpis": {
+        "projects": "Obras",
+        "averageProgress": "Avance promedio",
+        "onTrack": "Al día",
+        "delayed": "Atrasadas",
+        "activities": "Actividades en el periodo"
+      },
+      "chart": "Actividades registradas por día",
+      "progressChart": "Avance real vs. esperado",
+      "real": "Real",
+      "expected": "Esperado",
+      "cols": {
+        "project": "Obra",
+        "status": "Estado",
+        "progress": "Avance",
+        "expected": "Esperado",
+        "delay": "Desviación",
+        "gain": "Avance en el periodo",
+        "activities": "Actividades",
+        "lastActivity": "Última actividad",
+        "daysRemaining": "Días restantes",
+        "responsible": "Responsable"
+      },
+      "onTrack": "Al día",
+      "late": "Atrasada",
+      "overdue": "Vencida"
+    },
+    "financial": {
+      "kpis": {
+        "budget": "Presupuesto total",
+        "approved": "Gasto aprobado",
+        "inPeriod": "Aprobado en el periodo",
+        "pending": "Por aprobar",
+        "cpi": "CPI global",
+        "overrun": "Obras en sobrecosto",
+        "transfers": "Giros en el periodo"
+      },
+      "chart": "Gasto aprobado por día",
+      "byCategory": "Gasto por categoría en el periodo",
+      "cols": {
+        "project": "Obra",
+        "budget": "Presupuesto",
+        "approved": "Aprobado",
+        "inPeriod": "En el periodo",
+        "pending": "Por aprobar",
+        "executed": "Ejecutado",
+        "physical": "Avance físico",
+        "gap": "Brecha",
+        "cpi": "CPI"
+      }
+    },
+    "materials": {
+      "kpis": {
+        "movements": "Movimientos",
+        "in": "Entradas",
+        "out": "Salidas",
+        "materials": "Materiales movidos",
+        "critical": "Materiales críticos",
+        "warnings": "Advertencias"
+      },
+      "chart": "Movimientos por día",
+      "byProject": "Consumo por obra",
+      "cols": {
+        "material": "Material",
+        "category": "Categoría",
+        "in": "Entradas",
+        "out": "Salidas",
+        "net": "Neto",
+        "stock": "Stock actual",
+        "status": "Estado",
+        "coverage": "Cobertura",
+        "project": "Obra",
+        "outMovements": "Salidas",
+        "materialsCount": "Materiales"
+      }
+    },
+    "incidents": {
+      "kpis": {
+        "total": "Novedades",
+        "open": "Abiertas",
+        "inReview": "En revisión",
+        "resolved": "Resueltas",
+        "high": "Prioridad alta"
+      },
+      "chart": "Novedades por día",
+      "byType": "Novedades por tipo",
+      "cols": {
+        "date": "Fecha",
+        "project": "Obra",
+        "type": "Tipo",
+        "priority": "Prioridad",
+        "status": "Estado",
+        "description": "Descripción"
+      }
+    },
+    "csvCurrency": "Moneda: COP"
+  },
+  "fieldReports": {
+    "title": "Bitácora diaria",
+    "subtitle": "Reportes de campo enviados por los residentes, con el resumen automático del día.",
+    "myTitle": "Mi bitácora",
+    "mySubtitle": "Tu reporte diario de obra en menos de un minuto.",
+    "today": "Reporte de hoy",
+    "todayDate": "Hoy, {date}",
+    "todayPending": "Aún no envías el reporte de hoy",
+    "todaySent": "Reporte de hoy enviado",
+    "todayAction": "Hacer el reporte de hoy",
+    "todayEdit": "Ver o editar",
+    "chooseProject": "Elige la obra",
+    "history": "Historial",
+    "historyEmpty": "Aún no hay reportes enviados.",
+    "empty": "No hay bitácoras con estos filtros.",
+    "pendingCount": "{count, plural, =0 {Nada por revisar} one {# por revisar} other {# por revisar}}",
+    "status": {
+      "SUBMITTED": "Por revisar",
+      "REVIEWED": "Revisada"
+    },
+    "allStatuses": "Todos los estados",
+    "weather": {
+      "label": "Clima",
+      "SUNNY": "Soleado",
+      "CLOUDY": "Nublado",
+      "RAINY": "Lluvioso",
+      "STORMY": "Tormenta"
+    },
+    "fields": {
+      "date": "Fecha",
+      "project": "Obra",
+      "author": "Residente",
+      "weather": "Clima",
+      "workers": "Personal en obra",
+      "summary": "Resumen del día",
+      "issues": "Observaciones y problemas",
+      "status": "Estado"
+    },
+    "workersCount": "{count, plural, one {# persona} other {# personas}}",
+    "form": {
+      "title": "Reporte del {date}",
+      "newTitle": "Nuevo reporte diario",
+      "compiled": "Lo que ya registraste hoy",
+      "compiledHint": "El sistema lo agrega automáticamente al reporte.",
+      "nothingCompiled": "Hoy no hay actividades, fotos, consumos ni gastos registrados en esta obra.",
+      "summaryPlaceholder": "Ej: Se fundió la placa del tercer piso, se avanzó en mampostería del eje B...",
+      "issuesPlaceholder": "Ej: Faltó arena en la tarde; la lluvia detuvo trabajos 2 horas.",
+      "decrease": "Menos personal",
+      "increase": "Más personal",
+      "submit": "Enviar reporte",
+      "update": "Guardar cambios",
+      "saving": "Enviando...",
+      "created": "Reporte enviado al administrador.",
+      "updated": "Reporte actualizado.",
+      "exists": "Ya enviaste el reporte de este día. Te llevamos a él.",
+      "summaryError": "Escribe al menos 10 caracteres",
+      "readOnly": "Este reporte ya fue revisado y no se puede editar.",
+      "cancel": "Cancelar"
+    },
+    "sections": {
+      "activities": "Actividades",
+      "incidents": "Novedades",
+      "evidence": "Fotos",
+      "materials": "Materiales",
+      "expenses": "Gastos"
+    },
+    "detail": {
+      "title": "Bitácora del {date}",
+      "close": "Cerrar",
+      "review": "Marcar como revisada",
+      "reviewNote": "Comentario para el residente (opcional)",
+      "reviewNotePlaceholder": "Ej: Bien documentado; adjuntar fotos de la fundición.",
+      "reviewed": "Bitácora marcada como revisada.",
+      "reviewedBy": "Revisada por {name} el {date}",
+      "noIssues": "Sin observaciones.",
+      "open": "Ver detalle"
     }
   }
 }
