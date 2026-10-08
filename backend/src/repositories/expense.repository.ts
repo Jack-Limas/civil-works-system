@@ -7,6 +7,9 @@ export const expenseInclude = {
   supplier: { select: { id: true, name: true, nit: true } },
   registeredBy: { select: { id: true, name: true, role: true } },
   reviewedBy: { select: { id: true, name: true } },
+  inventoryMovements: {
+    select: { id: true, type: true, quantity: true, material: { select: { id: true, name: true, unit: true } } },
+  },
 } satisfies Prisma.ExpenseInclude;
 
 export const expenseRepository = {
@@ -35,8 +38,8 @@ export const expenseRepository = {
     });
   },
 
-  create(data: Prisma.ExpenseUncheckedCreateInput) {
-    return prisma.expense.create({ data, include: expenseInclude });
+  create(data: Prisma.ExpenseUncheckedCreateInput, db: Prisma.TransactionClient | typeof prisma = prisma) {
+    return db.expense.create({ data, include: expenseInclude });
   },
 
   /**

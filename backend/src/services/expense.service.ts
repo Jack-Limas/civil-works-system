@@ -1,4 +1,7 @@
 import { Prisma } from "@prisma/client";
+import { prisma } from "../config/prisma";
+import { materialRepository } from "../repositories/material.repository";
+import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
 import { expenseRepository } from "../repositories/expense.repository";
 import { projectRepository } from "../repositories/project.repository";
 import { supplierRepository } from "../repositories/supplier.repository";
@@ -52,16 +55,50 @@ export const expenseService = {
       throw new AppError(404, "Supplier not found");
     }
 
+    const { inventoryEntry, ...expenseData } = data;
+    if (inventoryEntry) {
+      if (expenseData.category !== "MATERIALS") {
+        throw new AppError(400, "An inventory entry can only accompany a MATERIALS expense");
+      }
+      if (!(await materialRepository.findById(inventoryEntry.materialId))) {
+        throw new AppError(404, "Material not found");
+      }
+    }
+
     const supportUrl = support ? await uploadBuffer(support.buffer, "civil-works-expense-support") : undefined;
     const isAdmin = projectAccess.isAdmin(requester);
-
-    return expenseRepository.create({
-      ...data,
+    const record: Prisma.ExpenseUncheckedCreateInput = {
+      ...expenseData,
       supportUrl,
       registeredById: requester.sub,
       status: isAdmin ? "APPROVED" : "PENDING",
       ...(isAdmin && { reviewedById: requester.sub, reviewedAt: new Date() }),
+    };
+
+    if (!inventoryEntry) return expenseRepository.create(record);
+
+    // Expense + stock IN in one transaction: either both exist or neither does
+    const expenseId = await prisma.$transaction(async (tx) => {
+      const expense = await expenseRepository.create(record, tx);
+      const unitCost = inventoryEntry.unitCost ?? expenseData.amount / inventoryEntry.quantity;
+      await inventoryMovementRepository.registerAtomic(
+        {
+          materialId: inventoryEntry.materialId,
+          type: "IN",
+          quantity: inventoryEntry.quantity,
+          projectId: expense.projectId,
+          expenseId: expense.id,
+          supplierId: expense.supplierId,
+          unitCost: Math.round(unitCost * 100) / 100,
+          date: expense.date,
+          notes: expense.description,
+          registeredById: requester.sub,
+        },
+        tx
+      );
+      return expense.id;
     });
+    return (await expenseRepository.findById(expenseId))!;
   },
 
   /** Admin decision on a PENDING expense. Returns the updated expense. */
