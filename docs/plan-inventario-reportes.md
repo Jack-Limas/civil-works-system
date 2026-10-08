@@ -6,7 +6,8 @@ To resume: read `CLAUDE.md`, this file and `git log --oneline pre-inventory-repo
 
 - [x] Step 0 — Safety net (tags, branch, this plan)
 - [x] Step 1 — CLAUDE.md: inventory and reports domain rules
-- [ ] Step 2 — DELETE /projects/:id returns 409 when the project has accounting/inventory/log data
+- [x] Step 2 — DELETE /projects/:id returns 409 when the project has accounting/inventory/log data
+  - Note: field reports join the dependency check once the table exists (Step 3)
 - [ ] Step 3 — Additive schema (MaterialCategory, movement columns, Weather, FieldReportStatus, FieldReport) — **STOP-1: owner approval + Neon backup before applying**
 - [ ] Step 4 — Inventory backend
   - [ ] 4.1 Thresholds config and material status engine (single source, also behind /materials/low-stock)
