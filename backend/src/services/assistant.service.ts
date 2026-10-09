@@ -1,8 +1,7 @@
-import { generateText } from "../utils/gemini-call";
+import { aiFailureError, generateText } from "../utils/gemini-call";
 import { settingsService } from "./settings.service";
 import { prisma } from "../config/prisma";
 import { inventoryAnalysis } from "./inventory-analysis.service";
-import { AppError } from "../utils/app-error";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
 
@@ -116,8 +115,8 @@ export const assistantService = {
     )}\n\nPregunta: ${question}`;
 
     // 20 s budget with one retry; the cause of a failure is logged inside generateText
-    const answer = await generateText("assistant", prompt, SYSTEM_INSTRUCTION);
-    if (!answer) throw new AppError(502, "The AI assistant is unavailable right now");
-    return answer;
+    const result = await generateText("assistant", prompt, SYSTEM_INSTRUCTION);
+    if (!result.ok) throw aiFailureError(result, "The AI assistant is unavailable right now");
+    return result.text;
   },
 };
