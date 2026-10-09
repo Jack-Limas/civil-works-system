@@ -432,7 +432,9 @@
       "errors": {
         "project": "Elige la obra",
         "description": "Escribe al menos 5 caracteres"
-      }
+      },
+      "photoHint": "JPG, PNG o WEBP · máx. 5 MB. Las fotos se comprimen automáticamente.",
+      "photoType": "Formato no permitido. Usa JPG, PNG o WEBP."
     },
     "detail": {
       "title": "Novedad",

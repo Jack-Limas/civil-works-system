@@ -432,7 +432,9 @@
       "errors": {
         "project": "Choose the project",
         "description": "Enter at least 5 characters"
-      }
+      },
+      "photoHint": "JPG, PNG or WEBP · max 5 MB. Photos are compressed automatically.",
+      "photoType": "Format not allowed. Use JPG, PNG or WEBP."
     },
     "detail": {
       "title": "Incident",
