@@ -33,5 +33,11 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
   - [x] 6.4 Settings
   - [x] 6.5 Audit history
   - [x] 6.6 My profile
-- [ ] Step 7 — Demo data (users incl. inactive and must-change, incidents with history/photos, workers, audit events) + clean
-- [ ] Step 8 — Close-out (checks, rendering doc, walkthrough both roles, regressions, report)
+- [x] Step 7 — Demo data (users incl. inactive and must-change, incidents with history/photos, workers, audit events) + clean
+- [x] Step 8 — Close-out (checks, rendering doc, walkthrough both roles, regressions, report)
+
+## Close-out notes (2026-10-09)
+- Checks: backend build, frontend tsc, lint, i18n:check (1491 keys) and build all green.
+- Demo data loaded; the real-data guard matched before/after seed:demo, seed:demo:clean and seed:demo.
+- AI: the 10 s server deadline caused 504s; replaced by a client-side abort, LOW reasoning (~5 s) and an explicit AI_QUOTA_EXCEEDED error. The free tier of the configured model allows 20 requests per day.
+
