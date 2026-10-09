@@ -48,15 +48,17 @@ export const projectRepository = {
    * Used to refuse deleting projects that already carry accounting or field data.
    */
   async countDependents(id: string) {
-    const [expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports] = await Promise.all([
+    const [expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports, incidents] = await Promise.all([
       prisma.expense.count({ where: { projectId: id } }),
       prisma.activity.count({ where: { projectId: id } }),
       prisma.evidence.count({ where: { projectId: id } }),
       prisma.inventoryMovement.count({ where: { projectId: id } }),
       prisma.fundTransfer.count({ where: { projectId: id } }),
       prisma.fieldReport.count({ where: { projectId: id } }),
+      // Incidents are resolved, never deleted (they carry their status history)
+      prisma.incident.count({ where: { projectId: id } }),
     ]);
-    return { expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports };
+    return { expenses, activities, evidence, inventoryMovements, fundTransfers, fieldReports, incidents };
   },
 
   delete(id: string) {
