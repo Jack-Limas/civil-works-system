@@ -5,7 +5,7 @@ import { RequestUser } from "../types/auth";
 import { AppError } from "../utils/app-error";
 import { reportService } from "./report.service";
 
-/** One summary request every 10 s per user (in memory; enough for a single API instance). */
+/** One summary request every 10 s per user, counted from the start and the end of the previous one (in memory). */
 const RATE_LIMIT_MS = 10_000;
 const lastRequestByUser = new Map<string, number>();
 /** Rows sent to the model are capped to keep the prompt small and fast. */
@@ -55,6 +55,8 @@ export const reportSummaryService = {
     // Time budget and the single retry (Gemini sometimes answers 503 "high demand") live in generateText
     const summary = await generateText("reportSummary", `Report (${input.type}):
 ${JSON.stringify(compact)}`, systemInstruction(input.locale));
+    // The 10 s window also counts from the end of the call: a slow failure must not allow an instant retry
+    lastRequestByUser.set(requester.sub, Date.now());
     if (summary) return { summary, model: GEMINI_MODEL, basedOn: meta };
     throw new AppError(502, "The AI summary is unavailable right now");
   },
