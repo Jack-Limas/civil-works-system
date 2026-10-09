@@ -5,6 +5,7 @@ import { userRepository } from "../repositories/user.repository";
 import { CreateFundTransferInput, ListFundTransfersQuery } from "../schemas/fund-transfer.schema";
 import { AppError } from "../utils/app-error";
 import { RequestUser } from "../types/auth";
+import { audit, AUDIT_ACTIONS } from "./audit.service";
 
 export const fundTransferService = {
   /** Admin: every transfer (optionally filtered). Resident: only transfers they received. */
@@ -34,6 +35,16 @@ export const fundTransferService = {
       throw new AppError(404, "Project not found");
     }
 
-    return fundTransferRepository.create({ ...input, createdById: requester.sub });
+    const transfer = await fundTransferRepository.create({ ...input, createdById: requester.sub });
+    await audit.log(
+      {
+        action: AUDIT_ACTIONS.transferCreated,
+        entityType: "transfer",
+        entityId: transfer.id,
+        metadata: { residentId: resident.id, residentName: resident.name, amount: transfer.amount, projectId: transfer.projectId, method: transfer.method },
+      },
+      audit.context(requester)
+    );
+    return transfer;
   },
 };
