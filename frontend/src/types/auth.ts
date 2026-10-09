@@ -5,4 +5,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role: Role;
+  /** True after an admin created the account or reset its password */
+  mustChangePassword?: boolean;
+  phone?: string | null;
+  lastLoginAt?: string | null;
 }
