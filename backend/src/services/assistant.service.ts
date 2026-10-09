@@ -1,4 +1,5 @@
 import { generateText } from "../utils/gemini-call";
+import { settingsService } from "./settings.service";
 import { prisma } from "../config/prisma";
 import { inventoryAnalysis } from "./inventory-analysis.service";
 import { AppError } from "../utils/app-error";
@@ -18,6 +19,8 @@ clara y profesional, como lo haría un analista de obra experimentado.`;
 
 /** Context sent to Gemini: a resident only ever sees data from their own projects. */
 async function buildSystemContext(requester: RequestUser) {
+  // Same thresholds the inventory screens use, so the AI explains the same statuses
+  const thresholds = await settingsService.get();
   const responsibleId = projectAccess.scope(requester);
 
   const [projects, analyzedMaterials, activeAlerts] = await Promise.all([
@@ -92,7 +95,7 @@ async function buildSystemContext(requester: RequestUser) {
       ...(isAdmin && { lastUnitCostCOP: m.lastUnitCost }),
     }));
   const inventory = {
-    statusLegend: "OUT=agotado, CRITICAL=bajo el mínimo o cobertura < 7 días, WARNING=cobertura < 14 días",
+    statusLegend: `OUT=agotado, CRITICAL=bajo el mínimo o cobertura < ${thresholds.criticalCoverageDays} días, WARNING=cobertura < ${thresholds.warningCoverageDays} días`,
     totalMaterials: analyzedMaterials.length,
     materialsNeedingAttention: inventoryNeedingAttention,
     ...(isAdmin && {
