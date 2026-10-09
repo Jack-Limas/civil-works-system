@@ -42,6 +42,12 @@ export function apiErrorCode(error: unknown): string | undefined {
   return isAxiosError<{ code?: string }>(error) ? error.response?.data?.code : undefined;
 }
 
+/** Whole hours until an AI quota resets (the API sends retryAfterSeconds); 0 = "a few minutes". */
+export function quotaHours(error: unknown): number {
+  const seconds = isAxiosError<{ retryAfterSeconds?: number | null }>(error) ? error.response?.data?.retryAfterSeconds : undefined;
+  return seconds ? Math.floor(seconds / 3600) : 0;
+}
+
 let refreshPromise: Promise<void> | null = null;
 
 /** One refresh at a time: concurrent 401s wait for the same request. */

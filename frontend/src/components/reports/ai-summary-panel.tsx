@@ -7,6 +7,7 @@ import { RefreshCw, Sparkles } from "lucide-react";
 import { secondaryButtonClass } from "@/components/ui/form";
 import { useReportSummary } from "@/lib/reports-service";
 import { getHttpStatus } from "@/lib/api-error";
+import { apiErrorCode, quotaHours } from "@/lib/api-client";
 import type { ReportParams, ReportType } from "@/types/reports";
 
 /** Inline **bold** only; everything else is plain text (no HTML is ever injected). */
@@ -64,6 +65,7 @@ export function AiSummaryPanel({ type, params }: { type: ReportType; params: Rep
   const summary = useReportSummary();
   const generate = () => summary.mutate({ type, locale, ...params });
   const status = getHttpStatus(summary.error);
+  const quota = apiErrorCode(summary.error) === "AI_QUOTA_EXCEEDED";
 
   return (
     <section className="print-avoid-break relative overflow-hidden rounded-xl border border-ai/30 bg-surface p-5">
@@ -120,9 +122,9 @@ export function AiSummaryPanel({ type, params }: { type: ReportType; params: Rep
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               role="alert"
-              className={`mt-4 rounded-lg px-3 py-2 text-sm ${status === 429 ? "bg-warning/10 text-warning" : "bg-critical/10 text-critical"}`}
+              className={`mt-4 rounded-lg px-3 py-2 text-sm ${status === 429 || quota ? "bg-warning/10 text-warning" : "bg-critical/10 text-critical"}`}
             >
-              {status === 429 ? t("rateLimited") : t("error")}
+              {quota ? t("quotaExceeded", { hours: quotaHours(summary.error) }) : status === 429 ? t("rateLimited") : t("error")}
             </motion.p>
           )}
           {summary.data && !summary.isPending && (

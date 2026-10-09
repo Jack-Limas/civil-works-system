@@ -587,7 +587,8 @@
       "costRisk": "¿Qué obra tiene mayor riesgo de sobrecosto?",
       "lowStock": "¿Qué materiales están en stock bajo?",
       "progress": "Compara el avance de mis obras activas"
-    }
+    },
+    "quotaExceeded": "Se agotó la cuota gratuita diaria de Gemini. Vuelve a intentar {hours, plural, =0 {en unos minutos} one {en # hora} other {en # horas}}. El resto del sistema sigue funcionando."
   },
   "users": {
     "title": "Usuarios",
@@ -1459,7 +1460,8 @@
       "rateLimited": "Espera unos segundos antes de pedir otro resumen.",
       "retry": "Reintentar",
       "disclaimer": "Texto generado por IA a partir de las cifras del reporte. Verifica antes de decidir.",
-      "hint": "Opcional: un resumen con los hallazgos clave y una recomendación."
+      "hint": "Opcional: un resumen con los hallazgos clave y una recomendación.",
+      "quotaExceeded": "Se agotó la cuota gratuita diaria de Gemini. Vuelve a intentar {hours, plural, =0 {en unos minutos} one {en # hora} other {en # horas}}."
     },
     "printHeader": {
       "generatedBy": "Generado por",

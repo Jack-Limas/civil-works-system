@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Send, Bot, User } from "lucide-react";
 import { useAskAssistant } from "@/lib/assistant-service";
 import { getHttpStatus } from "@/lib/api-error";
+import { apiErrorCode, quotaHours } from "@/lib/api-client";
 
 interface ChatMessage {
   id: number;
@@ -37,8 +38,13 @@ export function AssistantChat() {
       const answer = await ask.mutateAsync(trimmed);
       setMessages((prev) => [...prev, { id: nextId.current++, role: "assistant", text: answer }]);
     } catch (error) {
-      // 502 = Gemini down; the system keeps working without it
-      const text = getHttpStatus(error) === 502 ? t("unavailable") : t("errorMessage");
+      // 503 AI_QUOTA_EXCEEDED = free daily quota spent; 502 = Gemini down. The system keeps working without it
+      const text =
+        apiErrorCode(error) === "AI_QUOTA_EXCEEDED"
+          ? t("quotaExceeded", { hours: quotaHours(error) })
+          : getHttpStatus(error) === 502
+            ? t("unavailable")
+            : t("errorMessage");
       setMessages((prev) => [...prev, { id: nextId.current++, role: "assistant", text, failed: true }]);
     }
   }
