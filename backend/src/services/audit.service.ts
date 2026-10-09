@@ -89,6 +89,14 @@ const ALLOWED_KEYS = new Set([
   "method",
   "description",
   "revokedSessions",
+  // system settings (inside before/after)
+  "companyName",
+  "scheduleDelayThreshold",
+  "financialGapThreshold",
+  "consumptionWindowDays",
+  "criticalCoverageDays",
+  "warningCoverageDays",
+  "planningHorizonDays",
 ]);
 const SECRET_KEY = /pass|hash|token|secret|cookie|authorization|api.?key/i;
 const MAX_DEPTH = 3;
