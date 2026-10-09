@@ -26,12 +26,12 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
   - [x] 4.6 Workers (filters, KPIs, detail, create/edit, deactivate/activate, role-filtered fields)
   - [x] 4.7 curl checks both roles — users/auth 48/48, inventory 33/33, reports 39/39 (AI 502 handled: Gemini quota exhausted)
 - [x] Step 5 — Frontend base (types, hooks, i18n namespaces, sidebar, profile entry, /change-password, PASSWORD_CHANGE_REQUIRED handling)
-- [ ] Step 6 — Screens
-  - [ ] 6.1 Incidents (admin + resident)
-  - [ ] 6.2 Workers (admin + resident)
-  - [ ] 6.3 Users list, create (temp password once), detail/edit
-  - [ ] 6.4 Settings
-  - [ ] 6.5 Audit history
-  - [ ] 6.6 My profile
+- [x] Step 6 — Screens
+  - [x] 6.1 Incidents (admin + resident)
+  - [x] 6.2 Workers (admin + resident)
+  - [x] 6.3 Users list, create (temp password once), detail/edit
+  - [x] 6.4 Settings
+  - [x] 6.5 Audit history
+  - [x] 6.6 My profile
 - [ ] Step 7 — Demo data (users incl. inactive and must-change, incidents with history/photos, workers, audit events) + clean
 - [ ] Step 8 — Close-out (checks, rendering doc, walkthrough both roles, regressions, report)
