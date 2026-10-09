@@ -7,24 +7,12 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Link } from "@/i18n/navigation";
 import { exportCsv } from "@/lib/export-csv";
 import { ChartCard, ReportKpi, TableCard, axisTick, tooltipStyle, useDayLabel } from "./report-ui";
-import type { IncidentPriority, IncidentStatus } from "@/lib/incidents-service";
+import { IncidentPriorityBadge, IncidentStatusBadge } from "@/components/incidents/incident-badges";
 import type { IncidentsReport } from "@/types/reports";
 
 type Row = IncidentsReport["rows"][number];
 
 const SLICE_COLORS = ["var(--critical)", "var(--warning)", "var(--accent)", "var(--ai)", "var(--success)", "var(--ink-muted)", "var(--line)"];
-
-const PRIORITY_TONE: Record<IncidentPriority, string> = {
-  HIGH: "bg-critical/15 text-critical",
-  MEDIUM: "bg-warning/15 text-warning",
-  LOW: "bg-surface-2 text-ink-muted",
-};
-
-const STATUS_TONE: Record<IncidentStatus, string> = {
-  OPEN: "text-critical",
-  IN_REVIEW: "text-warning",
-  RESOLVED: "text-success",
-};
 
 export function IncidentsReportView({ report }: { report: IncidentsReport }) {
   const t = useTranslations("reports.incidents");
@@ -146,14 +134,12 @@ export function IncidentsReportView({ report }: { report: IncidentsReport }) {
             {
               id: "priority",
               header: t("cols.priority"),
-              accessor: (r) => (
-                <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_TONE[r.priority]}`}>{tIncidents(`priorities.${r.priority}`)}</span>
-              ),
+              accessor: (r) => <IncidentPriorityBadge priority={r.priority} />,
             },
             {
               id: "status",
               header: t("cols.status"),
-              accessor: (r) => <span className={`whitespace-nowrap text-sm font-medium ${STATUS_TONE[r.status]}`}>{tIncidents(`statuses.${r.status}`)}</span>,
+              accessor: (r) => <IncidentStatusBadge status={r.status} />,
             },
           ]}
         />
