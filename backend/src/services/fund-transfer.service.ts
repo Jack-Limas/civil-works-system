@@ -31,6 +31,7 @@ export const fundTransferService = {
     if (resident.role !== "RESIDENT_ENGINEER") {
       throw new AppError(400, "Funds can only be transferred to resident engineers");
     }
+    if (!resident.isActive) throw new AppError(400, "The resident is deactivated", { code: "USER_INACTIVE" });
     if (input.projectId && !(await projectRepository.findById(input.projectId))) {
       throw new AppError(404, "Project not found");
     }

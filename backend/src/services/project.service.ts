@@ -30,6 +30,7 @@ export const projectService = {
   async create(data: CreateProjectInput) {
     const responsible = await userRepository.findById(data.responsibleId);
     if (!responsible) throw new AppError(400, "Responsible user does not exist");
+    if (!responsible.isActive) throw new AppError(400, "The responsible user is deactivated", { code: "USER_INACTIVE" });
 
     if (data.estimatedEndDate <= data.startDate) {
       throw new AppError(400, "Estimated end date must be after start date");
