@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { buildAuthService } from "../services/auth.service";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "../utils/password";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -12,6 +13,11 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.enum(["ADMIN", "RESIDENT_ENGINEER"]),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  newPassword: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
 });
 
 function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string) {
@@ -40,7 +46,10 @@ export function buildAuthController(app: FastifyInstance) {
   return {
     async login(request: FastifyRequest, reply: FastifyReply) {
       const body = loginSchema.parse(request.body);
-      const result = await authService.login(body.email, body.password);
+      const result = await authService.login(body.email, body.password, {
+        ip: request.ip,
+        userAgent: request.headers["user-agent"],
+      });
       setAuthCookies(reply, result.accessToken, result.refreshToken);
       return reply.send({ user: result.user });
     },
@@ -72,8 +81,7 @@ export function buildAuthController(app: FastifyInstance) {
     },
 
     async logout(request: FastifyRequest, reply: FastifyReply) {
-      const user = request.user;
-      await authService.logout(user.sub);
+      await authService.logout(request.user);
       clearAuthCookies(reply);
       return reply.send({ ok: true });
     },
@@ -83,9 +91,17 @@ export function buildAuthController(app: FastifyInstance) {
       return reply.send({ user });
     },
 
+    /** Signs out every other session; this one gets a fresh token pair. */
+    async changePassword(request: FastifyRequest, reply: FastifyReply) {
+      const body = changePasswordSchema.parse(request.body);
+      const result = await authService.changePassword(request.user, body.currentPassword, body.newPassword);
+      setAuthCookies(reply, result.accessToken, result.refreshToken);
+      return reply.send({ user: result.user, revokedSessions: result.revokedSessions });
+    },
+
     async register(request: FastifyRequest, reply: FastifyReply) {
       const body = registerSchema.parse(request.body);
-      const user = await authService.register(body);
+      const user = await authService.register(body, request.user);
       return reply.code(201).send({ user });
     },
   };

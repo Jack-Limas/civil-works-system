@@ -24,4 +24,7 @@ export const userRepository = {
   create(data: { name: string; email: string; passwordHash: string; role: Role }) {
     return prisma.user.create({ data });
   },
+  touchLogin(id: string) {
+    return prisma.user.update({ where: { id }, data: { lastLoginAt: new Date() } });
+  },
 };
