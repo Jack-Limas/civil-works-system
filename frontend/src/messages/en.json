@@ -55,7 +55,10 @@
     "passwordRequired": "Password must be at least 6 characters",
     "heroTitle": "Manage every project with full clarity",
     "heroSubtitle": "Tracking, budgeting, and risk prediction in one place.",
-    "signingIn": "Signing in..."
+    "signingIn": "Signing in...",
+    "accountDisabled": "This account is deactivated. Contact your administrator.",
+    "tooManyAttempts": "Too many failed attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+    "sessionDisabled": "Your account was deactivated and you were signed out."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -66,7 +69,11 @@
     "incidents": "Incidents",
     "alerts": "Alerts",
     "users": "Users",
-    "reports": "Reports"
+    "reports": "Reports",
+    "settings": "Settings",
+    "audit": "History",
+    "profile": "My profile",
+    "adminSection": "Administration"
   },
   "dashboard": {
     "title": "Overview",
@@ -340,7 +347,7 @@
   },
   "incidents": {
     "title": "Field incidents",
-    "subtitle": "Delays, machinery failures, weather and other on-site events.",
+    "subtitle": "Delays, equipment failures, weather and other site events.",
     "newIncident": "Report incident",
     "project": "Project",
     "type": "Incident type",
@@ -369,21 +376,127 @@
     },
     "statuses": {
       "OPEN": "Open",
-      "IN_REVIEW": "In review",
+      "IN_REVIEW": "In progress",
       "RESOLVED": "Resolved"
+    },
+    "kpis": {
+      "open": "Open",
+      "openHint": "Not handled yet",
+      "inProgress": "In progress",
+      "inProgressHint": "Being handled",
+      "highActive": "Critical",
+      "highActiveHint": "High priority, unresolved",
+      "resolvedMonth": "Resolved this month"
+    },
+    "filters": {
+      "search": "Search the description",
+      "allProjects": "All projects",
+      "allStatuses": "All statuses",
+      "active": "Unresolved",
+      "allPriorities": "All priorities",
+      "allTypes": "All types",
+      "from": "From",
+      "to": "To",
+      "sort": "Sort by",
+      "sortPriority": "Priority",
+      "sortDate": "Most recent",
+      "clear": "Clear filters"
+    },
+    "cols": {
+      "incident": "Incident",
+      "project": "Project",
+      "type": "Type",
+      "priority": "Priority",
+      "status": "Status",
+      "date": "Date",
+      "reportedBy": "Reported by"
+    },
+    "emptyFiltered": "No incidents match these filters.",
+    "emptyAction": "When something affects a project, report it here.",
+    "photosCount": "{count, plural, one {# photo} other {# photos}}",
+    "form": {
+      "title": "Report incident",
+      "project": "Project",
+      "chooseProject": "Choose the project",
+      "type": "What happened?",
+      "priority": "Priority",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what happened and how it affects the project",
+      "date": "Event date",
+      "photo": "Photo (optional)",
+      "takePhoto": "Take photo",
+      "choosePhoto": "Choose photo",
+      "removePhoto": "Remove photo",
+      "submit": "Report incident",
+      "saving": "Reporting...",
+      "photoFailed": "The incident was reported, but the photo could not be uploaded. You can add it from the details.",
+      "errors": {
+        "project": "Choose the project",
+        "description": "Enter at least 5 characters"
+      },
+      "photoHint": "JPG, PNG or WEBP · max 5 MB. Photos are compressed automatically.",
+      "photoType": "Format not allowed. Use JPG, PNG or WEBP."
+    },
+    "detail": {
+      "title": "Incident",
+      "notFound": "This incident does not exist.",
+      "reportedBy": "Reported by {name}",
+      "eventDate": "Happened on {date}",
+      "history": "History",
+      "historyCreated": "Reported",
+      "historyChange": "{from} → {to}",
+      "historyLegacy": "Recorded before status history existed.",
+      "photos": "Photos",
+      "noPhotos": "No photos.",
+      "addPhoto": "Add photo",
+      "photoAdded": "Photo added.",
+      "resolution": "Resolution",
+      "resolvedBy": "Resolved by {name} on {date}",
+      "unknownUser": "Deleted user",
+      "close": "Close"
+    },
+    "transition": {
+      "start": "Mark in progress",
+      "resolve": "Resolve",
+      "reopen": "Reopen",
+      "toOpen": "Back to open",
+      "note": "Note",
+      "notePlaceholder": "What was done or what is missing",
+      "resolutionNote": "How was it resolved?",
+      "resolutionPlaceholder": "e.g. The material arrived and work resumed",
+      "noteRequired": "Describe how it was resolved (at least 3 characters)",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "changed": "Status updated.",
+      "reopenAdminOnly": "Only an administrator can reopen an incident.",
+      "stale": "Someone changed this incident. Reload and try again.",
+      "sameStatus": "The incident already has that status."
+    },
+    "resident": {
+      "title": "Incidents",
+      "subtitle": "Report what happens on your projects and keep it up to date.",
+      "reportButton": "Report incident",
+      "reportHint": "Delays, shortages, weather, equipment…",
+      "mine": "Incidents on my projects",
+      "tabs": {
+        "active": "Unresolved",
+        "resolved": "Resolved"
+      },
+      "emptyActive": "No unresolved incidents. Well done!",
+      "emptyResolved": "No resolved incidents yet."
     }
   },
   "workers": {
-    "title": "Staff & labor",
-    "subtitle": "Workers, crews and their project assignment.",
+    "title": "Workers",
+    "subtitle": "Site staff: trade, status and contact.",
     "newWorker": "New worker",
     "name": "Full name",
     "document": "ID document",
-    "position": "Position",
+    "position": "Trade",
     "assignedProject": "Assigned project",
     "unassigned": "Unassigned",
     "status": "Status",
-    "positionPlaceholder": "e.g. Foreman, Mason, Helper",
+    "positionPlaceholder": "e.g. Foreman, Builder, Helper",
     "create": "Create worker",
     "created": "Worker registered.",
     "empty": "No workers registered yet.",
@@ -391,7 +504,72 @@
       "ACTIVE": "Active",
       "INACTIVE": "Inactive"
     },
-    "duplicateDocument": "A worker with this ID document already exists."
+    "duplicateDocument": "A worker with this ID document already exists.",
+    "phone": "Phone",
+    "phonePlaceholder": "e.g. 310 555 1234",
+    "kpis": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "unassigned": "No project assigned",
+      "positions": "Trades",
+      "positionsHint": "{count, plural, one {# distinct trade} other {# distinct trades}}"
+    },
+    "filters": {
+      "search": "Search by name, trade or document",
+      "searchResident": "Search by name or trade",
+      "allProjects": "All projects",
+      "unassigned": "No project assigned",
+      "allPositions": "All trades",
+      "allStatuses": "All statuses",
+      "clear": "Clear filters"
+    },
+    "cols": {
+      "worker": "Worker",
+      "position": "Trade",
+      "project": "Project",
+      "status": "Status",
+      "phone": "Phone",
+      "actions": "Actions"
+    },
+    "emptyFiltered": "No workers match these filters.",
+    "emptyAction": "Register your staff to know who is on each project.",
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "createTitle": "New worker",
+      "editTitle": "Edit worker",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "sensitive": "Document and phone are only visible to administrators.",
+      "errors": {
+        "name": "Enter at least 2 characters",
+        "document": "5 to 20 letters, digits, dots or dashes",
+        "position": "Enter the trade",
+        "phone": "Enter a valid phone number"
+      }
+    },
+    "confirm": {
+      "deactivateTitle": "Deactivate {name}?",
+      "deactivateBody": "They stop counting as active staff. Their data is kept and you can reactivate them.",
+      "activateTitle": "Activate {name}?",
+      "activateBody": "They count as active staff again.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "toasts": {
+      "updated": "Worker updated.",
+      "deactivated": "Worker deactivated.",
+      "activated": "Worker activated."
+    },
+    "resident": {
+      "subtitle": "Staff assigned to your projects.",
+      "count": "{count, plural, one {# worker} other {# workers}}",
+      "empty": "No workers are assigned to your projects."
+    }
   },
   "assistant": {
     "title": "Smart Assistant",
@@ -409,11 +587,12 @@
       "costRisk": "Which project has the highest cost overrun risk?",
       "lowStock": "Which materials are low on stock?",
       "progress": "Compare the progress of my active projects"
-    }
+    },
+    "quotaExceeded": "Gemini's free daily quota is used up. Try again {hours, plural, =0 {in a few minutes} one {in # hour} other {in # hours}}. The rest of the system keeps working."
   },
   "users": {
-    "title": "User Management",
-    "subtitle": "Create accounts for administrators and resident engineers.",
+    "title": "Users",
+    "subtitle": "Administrator and resident engineer accounts.",
     "name": "Full Name",
     "email": "Email address",
     "password": "Temporary password",
@@ -430,7 +609,121 @@
     "namePlaceholder": "e.g. John Doe",
     "emailPlaceholder": "user@obraiq.co",
     "count": "{count, plural, one {# user} other {# users}}",
-    "createError": "The user could not be created. Make sure the email is not already registered."
+    "createError": "The user could not be created. Make sure the email is not already registered.",
+    "kpis": {
+      "total": "Users",
+      "totalHint": "{count, plural, one {# inactive} other {# inactive}}",
+      "active": "Active",
+      "admins": "Administrators",
+      "residents": "Residents",
+      "pendingPassword": "Must change password",
+      "pendingPasswordHint": "Using a temporary password",
+      "neverLogged": "Never signed in"
+    },
+    "filters": {
+      "search": "Search by name or email",
+      "allRoles": "All roles",
+      "allStatuses": "All statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "clear": "Clear filters"
+    },
+    "cols": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "lastLogin": "Last sign-in",
+      "projects": "Projects",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "mustChange": "Temporary password"
+    },
+    "never": "Never",
+    "you": "You",
+    "empty": "No users match these filters.",
+    "emptyAll": "There are no users yet.",
+    "actions": {
+      "view": "View details",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "resetPassword": "Reset password",
+      "more": "More actions"
+    },
+    "form": {
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "name": "Full name",
+      "namePlaceholder": "e.g. Laura Benavides, Eng.",
+      "email": "Email",
+      "emailPlaceholder": "user@company.co",
+      "emailLocked": "The email is the sign-in identity and cannot be changed.",
+      "phone": "Phone",
+      "phonePlaceholder": "e.g. 300 123 4567",
+      "role": "Role",
+      "roleHintAdmin": "Sees and manages the whole system.",
+      "roleHintResident": "Records the work of their projects.",
+      "ownRole": "You cannot change your own role.",
+      "passwordNotice": "The system generates a secure temporary password; the user changes it on first sign-in.",
+      "create": "Create user",
+      "creating": "Creating...",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "name": "Enter at least 2 characters",
+        "email": "Enter a valid email",
+        "phone": "Enter a valid phone number"
+      }
+    },
+    "tempPassword": {
+      "createdTitle": "User created",
+      "resetTitle": "Password reset",
+      "for": "Temporary password for {name}",
+      "warning": "Copy it now: it will not be shown again. Share it through a safe channel; the user must change it when signing in.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy. Select it and copy it manually.",
+      "done": "I saved it",
+      "label": "Temporary password"
+    },
+    "confirm": {
+      "deactivateTitle": "Deactivate {name}?",
+      "deactivateBody": "They will not be able to sign in and every session will be closed. Their records are kept and you can reactivate them anytime.",
+      "deactivateProjects": "{count, plural, one {They are responsible for # project; assign it to someone else if it continues.} other {They are responsible for # projects; assign them to someone else if they continue.}}",
+      "activateTitle": "Activate {name}?",
+      "activateBody": "They will be able to sign in again with their current password.",
+      "resetTitle": "Reset {name}'s password?",
+      "resetBody": "A temporary password will be generated, their sessions will be closed and they must change it when signing in.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "toasts": {
+      "updated": "User updated.",
+      "deactivated": "User deactivated.",
+      "activated": "User activated."
+    },
+    "errors": {
+      "emailTaken": "A user with that email already exists.",
+      "selfAction": "You cannot do this on your own account.",
+      "lastAdmin": "There must be at least one active administrator."
+    },
+    "detail": {
+      "back": "Back to users",
+      "notFound": "This user does not exist.",
+      "info": "Details",
+      "createdAt": "Created",
+      "createdBy": "Created by",
+      "deactivatedAt": "Deactivated on {date}",
+      "projects": "Projects in charge",
+      "noProjects": "Not in charge of any project.",
+      "activity": "Recent activity",
+      "noActivity": "No recorded activity.",
+      "seeHistory": "See in history"
+    }
   },
   "validation": {
     "minChars": "Must be at least {min} characters",
@@ -843,7 +1136,8 @@
     "progress": "progress-report",
     "financial": "financial-report",
     "materials": "materials-report",
-    "incidents": "incidents-report"
+    "incidents": "incidents-report",
+    "audit": "history"
   },
   "landing": {
     "nav": {
@@ -1166,7 +1460,8 @@
       "rateLimited": "Please wait a few seconds before requesting another summary.",
       "retry": "Retry",
       "disclaimer": "AI-generated text based on the report figures. Double-check before deciding.",
-      "hint": "Optional: key findings and one recommendation."
+      "hint": "Optional: key findings and one recommendation.",
+      "quotaExceeded": "Gemini's free daily quota is used up. Try again {hours, plural, =0 {in a few minutes} one {in # hour} other {in # hours}}."
     },
     "printHeader": {
       "generatedBy": "Generated by",
@@ -1351,6 +1646,270 @@
       "compiled": "Recorded that day on site",
       "nothingCompiled": "No activities, photos, material use or expenses were recorded on this project that day.",
       "open": "View details"
+    }
+  },
+  "changePassword": {
+    "title": "Change your password",
+    "subtitle": "Choose a new password for your account.",
+    "forcedNotice": "You are using a temporary password. Change it to continue.",
+    "current": "Current password",
+    "currentForced": "Temporary password",
+    "new": "New password",
+    "confirm": "Confirm the new password",
+    "submit": "Save password",
+    "saving": "Saving...",
+    "success": "Password updated. Your other sessions were signed out.",
+    "mismatch": "Passwords do not match",
+    "tooShort": "Use at least 8 characters",
+    "required": "Enter your current password",
+    "wrongCurrent": "The current password is not correct.",
+    "reused": "The new password must be different from the current one.",
+    "rules": "At least 8 characters and different from the current one.",
+    "show": "Show password",
+    "hide": "Hide password",
+    "logout": "Sign out"
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your details, password and preferences.",
+    "account": "Account",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "phone": "Phone",
+    "noPhone": "No phone",
+    "lastLogin": "Last sign-in",
+    "never": "Never",
+    "managedByAdmin": "Your details are managed by an administrator.",
+    "security": "Security",
+    "securityHint": "Changing your password signs out your other sessions.",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "openProfile": "Open my profile"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Rules the system uses for alerts, risks and inventory.",
+    "fixedNote": "Currency (COP) and time zone (America/Bogota) are fixed.",
+    "groups": {
+      "general": {
+        "title": "General",
+        "description": "Company details on printed reports."
+      },
+      "risk": {
+        "title": "Risks and alerts",
+        "description": "When a project is flagged with delay or cost-overrun risk. Above twice the threshold the risk is high."
+      },
+      "inventory": {
+        "title": "Inventory",
+        "description": "How coverage and each material's status are calculated."
+      }
+    },
+    "fields": {
+      "companyName": {
+        "label": "Company name",
+        "hint": "Shown on the header of printed reports. Empty: logo only.",
+        "placeholder": "e.g. Constructora del Sur S.A.S."
+      },
+      "scheduleDelayThreshold": {
+        "label": "Allowed delay",
+        "hint": "Percentage points below expected progress before alerting."
+      },
+      "financialGapThreshold": {
+        "label": "Allowed financial gap",
+        "hint": "Percentage points spending may run ahead of physical progress."
+      },
+      "consumptionWindowDays": {
+        "label": "Consumption window",
+        "hint": "Days used to compute the average daily consumption."
+      },
+      "criticalCoverageDays": {
+        "label": "Critical coverage",
+        "hint": "Below these days a material is critical."
+      },
+      "warningCoverageDays": {
+        "label": "Warning coverage",
+        "hint": "Below these days a material is on warning."
+      },
+      "planningHorizonDays": {
+        "label": "Purchase horizon",
+        "hint": "Days covered by the estimated need and the suggested purchase."
+      }
+    },
+    "units": {
+      "points": "pp",
+      "days": "days"
+    },
+    "range": "Between {min} and {max}",
+    "default": "Default: {value}",
+    "customized": "Customized",
+    "unsaved": "You have unsaved changes",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "discard": "Discard",
+    "reset": "Restore defaults",
+    "resetTitle": "Restore the settings?",
+    "resetBody": "Every setting goes back to its default value. The change is recorded in the history.",
+    "resetConfirm": "Restore",
+    "cancel": "Cancel",
+    "saved": "Settings saved.",
+    "resetDone": "Settings restored.",
+    "errors": {
+      "range": "Must be between {min} and {max}",
+      "integer": "Use a whole number",
+      "criticalBelowWarning": "Must be lower than the warning coverage",
+      "tooLong": "At most {max} characters"
+    },
+    "preview": "With these values: {critical, plural, one {# critical material} other {# critical materials}} and {warning, plural, one {# on warning} other {# on warning}}."
+  },
+  "audit": {
+    "title": "System history",
+    "subtitle": "Who did what and when. Read-only record.",
+    "filters": {
+      "user": "User",
+      "allUsers": "All users",
+      "action": "Action",
+      "allActions": "All actions",
+      "entity": "Module",
+      "allEntities": "All modules",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear filters"
+    },
+    "cols": {
+      "date": "Date",
+      "user": "User",
+      "action": "Action",
+      "entity": "Module",
+      "detail": "Details",
+      "ip": "IP"
+    },
+    "empty": "No events match these filters.",
+    "emptyAll": "No events recorded yet.",
+    "export": "Export CSV",
+    "exporting": "Exporting...",
+    "exportTruncated": "The first {count} events were exported. Narrow the filters to see the rest.",
+    "unknownActor": "Unknown",
+    "timezone": "Times in America/Bogota",
+    "viewDetail": "View details",
+    "detail": {
+      "title": "Event details",
+      "when": "Date and time",
+      "who": "User",
+      "what": "Action",
+      "entity": "Record",
+      "changes": "Changes",
+      "field": "Field",
+      "before": "Before",
+      "after": "After",
+      "data": "Data",
+      "noData": "No additional data.",
+      "ip": "IP",
+      "userAgent": "Browser",
+      "close": "Close",
+      "hiddenValue": "Personal data (value not stored)"
+    },
+    "actions": {
+      "auth": {
+        "login": "Signed in",
+        "login_failed": "Failed sign-in attempt",
+        "logout": "Signed out",
+        "password_changed": "Password changed"
+      },
+      "user": {
+        "password_reset": "Password reset",
+        "created": "User created",
+        "updated": "User edited",
+        "activated": "User activated",
+        "deactivated": "User deactivated"
+      },
+      "settings": {
+        "updated": "Settings changed",
+        "reset": "Settings restored"
+      },
+      "expense": {
+        "created": "Expense recorded",
+        "approved": "Expense approved",
+        "rejected": "Expense rejected"
+      },
+      "transfer": {
+        "created": "Fund transfer sent"
+      },
+      "project": {
+        "status_changed": "Project status changed"
+      },
+      "inventory": {
+        "movement": "Inventory movement"
+      },
+      "field_report": {
+        "reviewed": "Daily log reviewed"
+      },
+      "incident": {
+        "created": "Incident reported",
+        "status_changed": "Incident status changed"
+      },
+      "worker": {
+        "created": "Worker registered",
+        "updated": "Worker edited",
+        "activated": "Worker activated",
+        "deactivated": "Worker deactivated"
+      },
+      "unknown": "Other action"
+    },
+    "entities": {
+      "user": "Users",
+      "settings": "Settings",
+      "expense": "Costs",
+      "transfer": "Transfers",
+      "project": "Projects",
+      "material": "Inventory",
+      "field_report": "Daily log",
+      "incident": "Incidents",
+      "worker": "Workers"
+    },
+    "keys": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "phone": "Phone",
+      "documentId": "Document",
+      "position": "Trade",
+      "projectId": "Project",
+      "projectName": "Project",
+      "status": "Status",
+      "fromStatus": "Previous status",
+      "toStatus": "New status",
+      "note": "Note",
+      "reason": "Reason",
+      "rejectionReason": "Rejection reason",
+      "reviewNote": "Comment",
+      "amount": "Amount",
+      "category": "Category",
+      "priority": "Priority",
+      "type": "Type",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "materialName": "Material",
+      "residentName": "Resident",
+      "method": "Method",
+      "attempts": "Attempts",
+      "revokedSessions": "Sessions closed",
+      "date": "Date",
+      "keys": "Fields",
+      "description": "Description",
+      "companyName": "Company name",
+      "scheduleDelayThreshold": "Allowed delay",
+      "financialGapThreshold": "Allowed financial gap",
+      "consumptionWindowDays": "Consumption window",
+      "criticalCoverageDays": "Critical coverage",
+      "warningCoverageDays": "Warning coverage",
+      "planningHorizonDays": "Purchase horizon"
+    },
+    "reasons": {
+      "deactivated": "Account deactivated"
     }
   }
 }

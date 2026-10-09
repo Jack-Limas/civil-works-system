@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../config/prisma";
+import { prisma, STOCK_TX_OPTIONS } from "../config/prisma";
 import { materialRepository } from "../repositories/material.repository";
 import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
 import { expenseRepository } from "../repositories/expense.repository";
@@ -10,6 +10,7 @@ import { AppError } from "../utils/app-error";
 import { uploadBuffer } from "../utils/cloud-storage";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
+import { audit, AUDIT_ACTIONS } from "./audit.service";
 
 export interface SupportFile {
   buffer: Buffer;
@@ -75,11 +76,21 @@ export const expenseService = {
       ...(isAdmin && { reviewedById: requester.sub, reviewedAt: new Date() }),
     };
 
-    if (!inventoryEntry) return expenseRepository.create(record);
-
-    // Expense + stock IN in one transaction: either both exist or neither does
+    // Expense, optional stock IN and its audit event in one transaction: all or nothing
     const expenseId = await prisma.$transaction(async (tx) => {
       const expense = await expenseRepository.create(record, tx);
+      await audit.record(
+        tx,
+        {
+          action: AUDIT_ACTIONS.expenseCreated,
+          entityType: "expense",
+          entityId: expense.id,
+          metadata: { projectId: expense.projectId, amount: expense.amount, category: expense.category, status: expense.status },
+        },
+        audit.context(requester)
+      );
+      if (!inventoryEntry) return expense.id;
+
       const unitCost = inventoryEntry.unitCost ?? expenseData.amount / inventoryEntry.quantity;
       await inventoryMovementRepository.registerAtomic(
         {
@@ -96,8 +107,18 @@ export const expenseService = {
         },
         tx
       );
+      await audit.record(
+        tx,
+        {
+          action: AUDIT_ACTIONS.movementRegistered,
+          entityType: "material",
+          entityId: inventoryEntry.materialId,
+          metadata: { type: "IN", quantity: inventoryEntry.quantity, projectId: expense.projectId, expenseId: expense.id },
+        },
+        audit.context(requester)
+      );
       return expense.id;
-    });
+    }, STOCK_TX_OPTIONS);
     return (await expenseRepository.findById(expenseId))!;
   },
 
@@ -114,6 +135,20 @@ export const expenseService = {
     });
     if (updated === 0) throw new AppError(409, "Only pending expenses can be reviewed");
 
+    await audit.log(
+      {
+        action: input.decision === "APPROVE" ? AUDIT_ACTIONS.expenseApproved : AUDIT_ACTIONS.expenseRejected,
+        entityType: "expense",
+        entityId: id,
+        metadata: {
+          projectId: existing.projectId,
+          amount: existing.amount,
+          category: existing.category,
+          ...(input.decision === "REJECT" && { rejectionReason: input.reason ?? null }),
+        },
+      },
+      audit.context(requester)
+    );
     return (await expenseRepository.findById(id))!;
   },
 

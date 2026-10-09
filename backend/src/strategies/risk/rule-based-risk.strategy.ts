@@ -1,5 +1,5 @@
 import { RiskStrategy, ProjectRiskContext, ProjectRiskAssessment, RiskLevel } from "./risk-strategy.interface";
-import { RISK_THRESHOLDS } from "../../config/risk-thresholds";
+import { settingsService } from "../../services/settings.service";
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -7,11 +7,13 @@ export class RuleBasedRiskStrategy implements RiskStrategy {
   readonly name = "RULE_BASED";
 
   async analyze(context: ProjectRiskContext): Promise<ProjectRiskAssessment> {
+    // Thresholds are system settings (defaults: config/risk-thresholds.ts)
+    const settings = await settingsService.get();
     const delay = context.project.expectedProgress - context.project.progressPercentage;
-    const delayLevel = this.classifyDelay(delay);
+    const delayLevel = this.classify(delay, settings.scheduleDelayThreshold);
 
     const gap = context.financial.financialVsPhysicalGap;
-    const costLevel = this.classifyCostOverrun(gap);
+    const costLevel = this.classify(gap, settings.financialGapThreshold);
 
     return {
       delayRisk: {
@@ -37,15 +39,10 @@ export class RuleBasedRiskStrategy implements RiskStrategy {
     };
   }
 
-  private classifyDelay(delay: number): RiskLevel {
-    if (delay > RISK_THRESHOLDS.SCHEDULE_DELAY * 2) return "HIGH";
-    if (delay > RISK_THRESHOLDS.SCHEDULE_DELAY) return "MEDIUM";
-    return "LOW";
-  }
-
-  private classifyCostOverrun(gap: number): RiskLevel {
-    if (gap > RISK_THRESHOLDS.FINANCIAL_GAP * 2) return "HIGH";
-    if (gap > RISK_THRESHOLDS.FINANCIAL_GAP) return "MEDIUM";
+  /** Above the threshold is MEDIUM, above twice the threshold is HIGH. */
+  private classify(value: number, threshold: number): RiskLevel {
+    if (value > threshold * 2) return "HIGH";
+    if (value > threshold) return "MEDIUM";
     return "LOW";
   }
 }

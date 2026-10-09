@@ -1,3 +1,4 @@
+import { prisma, STOCK_TX_OPTIONS } from "../config/prisma";
 import { Prisma } from "@prisma/client";
 import { materialRepository } from "../repositories/material.repository";
 import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
@@ -16,6 +17,7 @@ import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
 import { AnalyzedMaterial, inventoryAnalysis, STATUS_RANK } from "./inventory-analysis.service";
 import { businessDateKey, businessMonthStart, daysAgo } from "../utils/business-time";
+import { audit, AUDIT_ACTIONS } from "./audit.service";
 
 const DAY_MS = 86_400_000;
 
@@ -235,18 +237,36 @@ export const materialService = {
     if (projectId) await projectAccess.assert(requester, projectId);
     if (supplierId && !(await supplierRepository.findById(supplierId))) throw new AppError(404, "Supplier not found");
 
-    const result = await inventoryMovementRepository.registerAtomic({
-      materialId: data.materialId,
-      type: data.type,
-      quantity: data.quantity,
-      projectId,
-      expenseId,
-      supplierId,
-      unitCost: unitCost !== undefined ? Math.round(unitCost * 100) / 100 : undefined,
-      date: data.date,
-      notes: data.notes,
-      registeredById: requester.sub,
-    });
+    // Movement and its audit event commit together (no event for a rejected movement)
+    const result = await prisma.$transaction(async (tx) => {
+      const registered = await inventoryMovementRepository.registerAtomic(
+        {
+          materialId: data.materialId,
+          type: data.type,
+          quantity: data.quantity,
+          projectId,
+          expenseId,
+          supplierId,
+          unitCost: unitCost !== undefined ? Math.round(unitCost * 100) / 100 : undefined,
+          date: data.date,
+          notes: data.notes,
+          registeredById: requester.sub,
+        },
+        tx
+      );
+      if (!registered) return null;
+      await audit.record(
+        tx,
+        {
+          action: AUDIT_ACTIONS.movementRegistered,
+          entityType: "material",
+          entityId: data.materialId,
+          metadata: { materialName: material.name, type: data.type, quantity: data.quantity, unit: material.unit, projectId, expenseId },
+        },
+        audit.context(requester)
+      );
+      return registered;
+    }, STOCK_TX_OPTIONS);
     if (!result) throw new AppError(400, "Insufficient stock for this movement");
 
     const analyzed = await inventoryAnalysis.analyzeOneById(result.material.id);

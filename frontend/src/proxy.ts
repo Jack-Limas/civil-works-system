@@ -31,8 +31,8 @@ export default function proxy(request: NextRequest) {
   }
 
   // The cookie only proves a session existed, not that it is still valid. When the
-  // client reports an expired session, show the login instead of bouncing back.
-  const sessionExpired = request.nextUrl.searchParams.get("session") === "expired";
+  // client reports an expired or disabled session, show the login instead of bouncing back.
+  const sessionExpired = ["expired", "disabled"].includes(request.nextUrl.searchParams.get("session") ?? "");
 
   if (matches(pathWithoutLocale, AUTH_PATHS) && hasSession && !sessionExpired) {
     return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));

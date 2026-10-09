@@ -1,17 +1,15 @@
-import { geminiClient, GEMINI_MODEL } from "../config/gemini";
+import { GEMINI_MODEL } from "../config/gemini";
+import { aiFailureError, generateText } from "../utils/gemini-call";
 import { ReportSummaryInput } from "../schemas/report.schema";
 import { RequestUser } from "../types/auth";
 import { AppError } from "../utils/app-error";
 import { reportService } from "./report.service";
 
-/** One summary request every 10 s per user (in memory; enough for a single API instance). */
+/** One summary request every 10 s per user, counted from the start and the end of the previous one (in memory). */
 const RATE_LIMIT_MS = 10_000;
 const lastRequestByUser = new Map<string, number>();
 /** Rows sent to the model are capped to keep the prompt small and fast. */
 const MAX_ROWS_IN_PROMPT = 25;
-
-const MAX_ATTEMPTS = 2;
-const RETRY_DELAY_MS = 1500;
 
 const LANGUAGE_NAME = { es: "español", en: "English" } as const;
 
@@ -54,26 +52,12 @@ export const reportSummaryService = {
       series: undefined,
     };
 
-    // Gemini sometimes answers 503 "high demand": retry once after a short pause
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        const response = await geminiClient.models.generateContent({
-          model: GEMINI_MODEL,
-          contents: `Report (${input.type}):
-${JSON.stringify(compact)}`,
-          config: { systemInstruction: systemInstruction(input.locale) },
-        });
-        const text = response.text?.trim();
-        if (!text) throw new Error("Empty response");
-        return { summary: text, model: GEMINI_MODEL, basedOn: meta };
-      } catch (error) {
-        console.warn(
-          `[reportSummary] Gemini attempt ${attempt}/${MAX_ATTEMPTS} failed:`,
-          error instanceof Error ? error.message.slice(0, 300) : error
-        );
-        if (attempt < MAX_ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-      }
-    }
-    throw new AppError(502, "The AI summary is unavailable right now");
+    // Time budget and the single retry (Gemini sometimes answers 503 "high demand") live in generateText
+    const result = await generateText("reportSummary", `Report (${input.type}):
+${JSON.stringify(compact)}`, systemInstruction(input.locale));
+    // The 10 s window also counts from the end of the call: a slow failure must not allow an instant retry
+    lastRequestByUser.set(requester.sub, Date.now());
+    if (result.ok) return { summary: result.text, model: GEMINI_MODEL, basedOn: meta };
+    throw aiFailureError(result, "The AI summary is unavailable right now");
   },
 };

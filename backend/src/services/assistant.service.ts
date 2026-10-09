@@ -1,7 +1,7 @@
-import { geminiClient, GEMINI_MODEL } from "../config/gemini";
+import { aiFailureError, generateText } from "../utils/gemini-call";
+import { settingsService } from "./settings.service";
 import { prisma } from "../config/prisma";
 import { inventoryAnalysis } from "./inventory-analysis.service";
-import { AppError } from "../utils/app-error";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
 
@@ -18,6 +18,8 @@ clara y profesional, como lo haría un analista de obra experimentado.`;
 
 /** Context sent to Gemini: a resident only ever sees data from their own projects. */
 async function buildSystemContext(requester: RequestUser) {
+  // Same thresholds the inventory screens use, so the AI explains the same statuses
+  const thresholds = await settingsService.get();
   const responsibleId = projectAccess.scope(requester);
 
   const [projects, analyzedMaterials, activeAlerts] = await Promise.all([
@@ -92,7 +94,7 @@ async function buildSystemContext(requester: RequestUser) {
       ...(isAdmin && { lastUnitCostCOP: m.lastUnitCost }),
     }));
   const inventory = {
-    statusLegend: "OUT=agotado, CRITICAL=bajo el mínimo o cobertura < 7 días, WARNING=cobertura < 14 días",
+    statusLegend: `OUT=agotado, CRITICAL=bajo el mínimo o cobertura < ${thresholds.criticalCoverageDays} días, WARNING=cobertura < ${thresholds.warningCoverageDays} días`,
     totalMaterials: analyzedMaterials.length,
     materialsNeedingAttention: inventoryNeedingAttention,
     ...(isAdmin && {
@@ -112,24 +114,9 @@ export const assistantService = {
       2
     )}\n\nPregunta: ${question}`;
 
-    try {
-      const response = await geminiClient.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: prompt,
-        config: { systemInstruction: SYSTEM_INSTRUCTION },
-      });
-      return (
-        response.text ??
-        "No obtuve una respuesta del asistente, intenta de nuevo."
-      );
-    } catch (error) {
-      // Log the cause (truncated, no prompt or keys) so a Gemini outage is diagnosable;
-      // the client only gets a 502 and shows its own translated message
-      console.warn(
-        "[assistant] Gemini request failed:",
-        error instanceof Error ? error.message.slice(0, 300) : error
-      );
-      throw new AppError(502, "The AI assistant is unavailable right now");
-    }
+    // 20 s budget with one retry; the cause of a failure is logged inside generateText
+    const result = await generateText("assistant", prompt, SYSTEM_INSTRUCTION);
+    if (!result.ok) throw aiFailureError(result, "The AI assistant is unavailable right now");
+    return result.text;
   },
 };

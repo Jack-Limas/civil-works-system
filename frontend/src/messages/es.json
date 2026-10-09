@@ -55,7 +55,10 @@
     "passwordRequired": "La contraseña debe tener al menos 6 caracteres",
     "heroTitle": "Gestiona cada obra con claridad total",
     "heroSubtitle": "Seguimiento, presupuesto y predicción de riesgos en un solo lugar.",
-    "signingIn": "Ingresando..."
+    "signingIn": "Ingresando...",
+    "accountDisabled": "Esta cuenta está desactivada. Habla con el administrador.",
+    "tooManyAttempts": "Demasiados intentos fallidos. Intenta de nuevo en {minutes, plural, one {# minuto} other {# minutos}}.",
+    "sessionDisabled": "Tu cuenta fue desactivada y se cerró la sesión."
   },
   "nav": {
     "dashboard": "Panel general",
@@ -66,7 +69,11 @@
     "incidents": "Novedades",
     "alerts": "Alertas",
     "users": "Usuarios",
-    "reports": "Reportes"
+    "reports": "Reportes",
+    "settings": "Configuración",
+    "audit": "Historial",
+    "profile": "Mi perfil",
+    "adminSection": "Administración"
   },
   "dashboard": {
     "title": "Panel general",
@@ -369,21 +376,127 @@
     },
     "statuses": {
       "OPEN": "Abierta",
-      "IN_REVIEW": "En revisión",
+      "IN_REVIEW": "En progreso",
       "RESOLVED": "Resuelta"
+    },
+    "kpis": {
+      "open": "Abiertas",
+      "openHint": "Sin atender",
+      "inProgress": "En progreso",
+      "inProgressHint": "En atención",
+      "highActive": "Críticas",
+      "highActiveHint": "Prioridad alta sin resolver",
+      "resolvedMonth": "Resueltas este mes"
+    },
+    "filters": {
+      "search": "Buscar en la descripción",
+      "allProjects": "Todas las obras",
+      "allStatuses": "Todos los estados",
+      "active": "Sin resolver",
+      "allPriorities": "Todas las prioridades",
+      "allTypes": "Todos los tipos",
+      "from": "Desde",
+      "to": "Hasta",
+      "sort": "Ordenar por",
+      "sortPriority": "Prioridad",
+      "sortDate": "Más recientes",
+      "clear": "Limpiar filtros"
+    },
+    "cols": {
+      "incident": "Novedad",
+      "project": "Obra",
+      "type": "Tipo",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "date": "Fecha",
+      "reportedBy": "Reportó"
+    },
+    "emptyFiltered": "No hay novedades con estos filtros.",
+    "emptyAction": "Cuando algo afecte una obra, repórtalo aquí.",
+    "photosCount": "{count, plural, one {# foto} other {# fotos}}",
+    "form": {
+      "title": "Reportar novedad",
+      "project": "Obra",
+      "chooseProject": "Elige la obra",
+      "type": "¿Qué pasó?",
+      "priority": "Prioridad",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describe qué pasó y cómo afecta la obra",
+      "date": "Fecha del evento",
+      "photo": "Foto (opcional)",
+      "takePhoto": "Tomar foto",
+      "choosePhoto": "Elegir foto",
+      "removePhoto": "Quitar foto",
+      "submit": "Reportar novedad",
+      "saving": "Reportando...",
+      "photoFailed": "La novedad se reportó, pero la foto no se pudo subir. Puedes agregarla desde el detalle.",
+      "errors": {
+        "project": "Elige la obra",
+        "description": "Escribe al menos 5 caracteres"
+      },
+      "photoHint": "JPG, PNG o WEBP · máx. 5 MB. Las fotos se comprimen automáticamente.",
+      "photoType": "Formato no permitido. Usa JPG, PNG o WEBP."
+    },
+    "detail": {
+      "title": "Novedad",
+      "notFound": "Esta novedad no existe.",
+      "reportedBy": "Reportó {name}",
+      "eventDate": "Ocurrió el {date}",
+      "history": "Historial",
+      "historyCreated": "Reportada",
+      "historyChange": "{from} → {to}",
+      "historyLegacy": "Registrada antes del historial de estados.",
+      "photos": "Fotos",
+      "noPhotos": "Sin fotos.",
+      "addPhoto": "Agregar foto",
+      "photoAdded": "Foto agregada.",
+      "resolution": "Resolución",
+      "resolvedBy": "Resuelta por {name} el {date}",
+      "unknownUser": "Usuario eliminado",
+      "close": "Cerrar"
+    },
+    "transition": {
+      "start": "Marcar en progreso",
+      "resolve": "Resolver",
+      "reopen": "Reabrir",
+      "toOpen": "Volver a abierta",
+      "note": "Nota",
+      "notePlaceholder": "Qué se hizo o qué falta",
+      "resolutionNote": "¿Cómo se resolvió?",
+      "resolutionPlaceholder": "Ej. Llegó el material y se retomó la actividad",
+      "noteRequired": "Escribe cómo se resolvió (mínimo 3 caracteres)",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "changed": "Estado actualizado.",
+      "reopenAdminOnly": "Solo un administrador puede reabrir una novedad.",
+      "stale": "Alguien cambió esta novedad. Recarga e intenta de nuevo.",
+      "sameStatus": "La novedad ya tiene ese estado."
+    },
+    "resident": {
+      "title": "Novedades",
+      "subtitle": "Reporta lo que pasa en tus obras y mantenlo al día.",
+      "reportButton": "Reportar novedad",
+      "reportHint": "Retrasos, faltantes, clima, equipos…",
+      "mine": "Novedades de mis obras",
+      "tabs": {
+        "active": "Sin resolver",
+        "resolved": "Resueltas"
+      },
+      "emptyActive": "No hay novedades sin resolver. ¡Buen trabajo!",
+      "emptyResolved": "Aún no hay novedades resueltas."
     }
   },
   "workers": {
-    "title": "Personal y mano de obra",
-    "subtitle": "Operarios, cuadrillas y su asignación por obra.",
+    "title": "Trabajadores",
+    "subtitle": "Personal por obra: oficio, estado y contacto.",
     "newWorker": "Nuevo trabajador",
     "name": "Nombre completo",
     "document": "Documento de identidad",
-    "position": "Cargo",
+    "position": "Oficio",
     "assignedProject": "Obra asignada",
     "unassigned": "Sin asignar",
     "status": "Estado",
-    "positionPlaceholder": "Ej: Maestro de obra, Oficial, Ayudante",
+    "positionPlaceholder": "Ej. Maestro de obra, Oficial, Ayudante",
     "create": "Crear trabajador",
     "created": "Trabajador registrado correctamente.",
     "empty": "Aún no hay trabajadores registrados.",
@@ -391,7 +504,72 @@
       "ACTIVE": "Activo",
       "INACTIVE": "Inactivo"
     },
-    "duplicateDocument": "Ya existe un trabajador con ese documento."
+    "duplicateDocument": "Ya existe un trabajador con ese documento.",
+    "phone": "Teléfono",
+    "phonePlaceholder": "Ej. 310 555 1234",
+    "kpis": {
+      "active": "Activos",
+      "inactive": "Inactivos",
+      "unassigned": "Sin obra asignada",
+      "positions": "Oficios",
+      "positionsHint": "{count, plural, one {# oficio distinto} other {# oficios distintos}}"
+    },
+    "filters": {
+      "search": "Buscar por nombre, oficio o documento",
+      "searchResident": "Buscar por nombre u oficio",
+      "allProjects": "Todas las obras",
+      "unassigned": "Sin obra asignada",
+      "allPositions": "Todos los oficios",
+      "allStatuses": "Todos los estados",
+      "clear": "Limpiar filtros"
+    },
+    "cols": {
+      "worker": "Trabajador",
+      "position": "Oficio",
+      "project": "Obra",
+      "status": "Estado",
+      "phone": "Teléfono",
+      "actions": "Acciones"
+    },
+    "emptyFiltered": "No hay trabajadores con estos filtros.",
+    "emptyAction": "Registra al personal para saber quién está en cada obra.",
+    "actions": {
+      "edit": "Editar",
+      "deactivate": "Desactivar",
+      "activate": "Activar"
+    },
+    "form": {
+      "createTitle": "Nuevo trabajador",
+      "editTitle": "Editar trabajador",
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "cancel": "Cancelar",
+      "sensitive": "Documento y teléfono solo los ven los administradores.",
+      "errors": {
+        "name": "Escribe al menos 2 caracteres",
+        "document": "Entre 5 y 20 letras, números, puntos o guiones",
+        "position": "Escribe el oficio",
+        "phone": "Escribe un teléfono válido"
+      }
+    },
+    "confirm": {
+      "deactivateTitle": "¿Desactivar a {name}?",
+      "deactivateBody": "Deja de contar como personal activo. Sus datos se conservan y puedes reactivarlo.",
+      "activateTitle": "¿Activar a {name}?",
+      "activateBody": "Vuelve a contar como personal activo.",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
+    "toasts": {
+      "updated": "Trabajador actualizado.",
+      "deactivated": "Trabajador desactivado.",
+      "activated": "Trabajador activado."
+    },
+    "resident": {
+      "subtitle": "Personal asignado a tus obras.",
+      "count": "{count, plural, one {# trabajador} other {# trabajadores}}",
+      "empty": "No hay trabajadores asignados a tus obras."
+    }
   },
   "assistant": {
     "title": "Asistente Inteligente",
@@ -409,11 +587,12 @@
       "costRisk": "¿Qué obra tiene mayor riesgo de sobrecosto?",
       "lowStock": "¿Qué materiales están en stock bajo?",
       "progress": "Compara el avance de mis obras activas"
-    }
+    },
+    "quotaExceeded": "Se agotó la cuota gratuita diaria de Gemini. Vuelve a intentar {hours, plural, =0 {en unos minutos} one {en # hora} other {en # horas}}. El resto del sistema sigue funcionando."
   },
   "users": {
-    "title": "Gestión de Usuarios",
-    "subtitle": "Crea cuentas para administradores e ingenieros residentes.",
+    "title": "Usuarios",
+    "subtitle": "Cuentas de administradores e ingenieros residentes.",
     "name": "Nombre completo",
     "email": "Correo electrónico",
     "password": "Contraseña temporal",
@@ -430,7 +609,121 @@
     "namePlaceholder": "Ej. Juan Pérez",
     "emailPlaceholder": "usuario@obraiq.co",
     "count": "{count, plural, one {# usuario} other {# usuarios}}",
-    "createError": "No se pudo crear el usuario. Verifica que el correo no esté registrado."
+    "createError": "No se pudo crear el usuario. Verifica que el correo no esté registrado.",
+    "kpis": {
+      "total": "Usuarios",
+      "totalHint": "{count, plural, one {# inactivo} other {# inactivos}}",
+      "active": "Activos",
+      "admins": "Administradores",
+      "residents": "Residentes",
+      "pendingPassword": "Por cambiar contraseña",
+      "pendingPasswordHint": "Con contraseña temporal",
+      "neverLogged": "Sin primer acceso"
+    },
+    "filters": {
+      "search": "Buscar por nombre o correo",
+      "allRoles": "Todos los roles",
+      "allStatuses": "Todos los estados",
+      "active": "Activos",
+      "inactive": "Inactivos",
+      "clear": "Limpiar filtros"
+    },
+    "cols": {
+      "user": "Usuario",
+      "role": "Rol",
+      "status": "Estado",
+      "lastLogin": "Último acceso",
+      "projects": "Obras",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "mustChange": "Contraseña temporal"
+    },
+    "never": "Nunca",
+    "you": "Tú",
+    "empty": "No hay usuarios con estos filtros.",
+    "emptyAll": "Aún no hay usuarios.",
+    "actions": {
+      "view": "Ver detalle",
+      "edit": "Editar",
+      "deactivate": "Desactivar",
+      "activate": "Activar",
+      "resetPassword": "Restablecer contraseña",
+      "more": "Más acciones"
+    },
+    "form": {
+      "createTitle": "Nuevo usuario",
+      "editTitle": "Editar usuario",
+      "name": "Nombre completo",
+      "namePlaceholder": "Ej. Ing. Laura Benavides",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "usuario@empresa.co",
+      "emailLocked": "El correo es el usuario de acceso y no se puede cambiar.",
+      "phone": "Teléfono",
+      "phonePlaceholder": "Ej. 300 123 4567",
+      "role": "Rol",
+      "roleHintAdmin": "Ve y gestiona todo el sistema.",
+      "roleHintResident": "Registra el trabajo de sus obras.",
+      "ownRole": "No puedes cambiar tu propio rol.",
+      "passwordNotice": "El sistema genera una contraseña temporal segura; el usuario la cambia en su primer acceso.",
+      "create": "Crear usuario",
+      "creating": "Creando...",
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "cancel": "Cancelar",
+      "errors": {
+        "name": "Escribe al menos 2 caracteres",
+        "email": "Escribe un correo válido",
+        "phone": "Escribe un teléfono válido"
+      }
+    },
+    "tempPassword": {
+      "createdTitle": "Usuario creado",
+      "resetTitle": "Contraseña restablecida",
+      "for": "Contraseña temporal de {name}",
+      "warning": "Cópiala ahora: no se volverá a mostrar. Compártela por un canal seguro; el usuario deberá cambiarla al ingresar.",
+      "copy": "Copiar",
+      "copied": "Copiada",
+      "copyFailed": "No se pudo copiar. Selecciónala y cópiala manualmente.",
+      "done": "Ya la guardé",
+      "label": "Contraseña temporal"
+    },
+    "confirm": {
+      "deactivateTitle": "¿Desactivar a {name}?",
+      "deactivateBody": "No podrá iniciar sesión y se cerrarán todas sus sesiones. Sus registros se conservan y puedes reactivarlo cuando quieras.",
+      "deactivateProjects": "{count, plural, one {Es responsable de # obra; asígnala a otra persona si seguirá en curso.} other {Es responsable de # obras; asígnalas a otra persona si seguirán en curso.}}",
+      "activateTitle": "¿Activar a {name}?",
+      "activateBody": "Podrá volver a iniciar sesión con su contraseña actual.",
+      "resetTitle": "¿Restablecer la contraseña de {name}?",
+      "resetBody": "Se generará una contraseña temporal, se cerrarán sus sesiones y deberá cambiarla al ingresar.",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
+    "toasts": {
+      "updated": "Usuario actualizado.",
+      "deactivated": "Usuario desactivado.",
+      "activated": "Usuario activado."
+    },
+    "errors": {
+      "emailTaken": "Ya existe un usuario con ese correo.",
+      "selfAction": "No puedes hacer esto con tu propia cuenta.",
+      "lastAdmin": "Debe quedar al menos un administrador activo."
+    },
+    "detail": {
+      "back": "Volver a usuarios",
+      "notFound": "Este usuario no existe.",
+      "info": "Datos",
+      "createdAt": "Creado",
+      "createdBy": "Creado por",
+      "deactivatedAt": "Desactivado el {date}",
+      "projects": "Obras a cargo",
+      "noProjects": "No tiene obras a cargo.",
+      "activity": "Actividad reciente",
+      "noActivity": "Sin actividad registrada.",
+      "seeHistory": "Ver en el historial"
+    }
   },
   "validation": {
     "minChars": "Debe tener al menos {min} caracteres",
@@ -843,7 +1136,8 @@
     "progress": "reporte-avance",
     "financial": "reporte-financiero",
     "materials": "reporte-materiales",
-    "incidents": "reporte-novedades"
+    "incidents": "reporte-novedades",
+    "audit": "historial"
   },
   "landing": {
     "nav": {
@@ -1166,7 +1460,8 @@
       "rateLimited": "Espera unos segundos antes de pedir otro resumen.",
       "retry": "Reintentar",
       "disclaimer": "Texto generado por IA a partir de las cifras del reporte. Verifica antes de decidir.",
-      "hint": "Opcional: un resumen con los hallazgos clave y una recomendación."
+      "hint": "Opcional: un resumen con los hallazgos clave y una recomendación.",
+      "quotaExceeded": "Se agotó la cuota gratuita diaria de Gemini. Vuelve a intentar {hours, plural, =0 {en unos minutos} one {en # hora} other {en # horas}}."
     },
     "printHeader": {
       "generatedBy": "Generado por",
@@ -1351,6 +1646,270 @@
       "compiled": "Registrado ese día en la obra",
       "nothingCompiled": "Ese día no se registraron actividades, fotos, consumos ni gastos en esta obra.",
       "open": "Ver detalle"
+    }
+  },
+  "changePassword": {
+    "title": "Cambia tu contraseña",
+    "subtitle": "Elige una contraseña nueva para tu cuenta.",
+    "forcedNotice": "Estás usando una contraseña temporal. Cámbiala para continuar.",
+    "current": "Contraseña actual",
+    "currentForced": "Contraseña temporal",
+    "new": "Contraseña nueva",
+    "confirm": "Confirma la contraseña nueva",
+    "submit": "Guardar contraseña",
+    "saving": "Guardando...",
+    "success": "Contraseña actualizada. Se cerraron tus otras sesiones.",
+    "mismatch": "Las contraseñas no coinciden",
+    "tooShort": "Usa al menos 8 caracteres",
+    "required": "Escribe tu contraseña actual",
+    "wrongCurrent": "La contraseña actual no es correcta.",
+    "reused": "La contraseña nueva debe ser distinta a la actual.",
+    "rules": "Mínimo 8 caracteres y distinta a la actual.",
+    "show": "Mostrar contraseña",
+    "hide": "Ocultar contraseña",
+    "logout": "Cerrar sesión"
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "subtitle": "Tus datos, tu contraseña y tus preferencias.",
+    "account": "Cuenta",
+    "name": "Nombre",
+    "email": "Correo",
+    "role": "Rol",
+    "phone": "Teléfono",
+    "noPhone": "Sin teléfono",
+    "lastLogin": "Último acceso",
+    "never": "Nunca",
+    "managedByAdmin": "Tus datos los administra un administrador.",
+    "security": "Seguridad",
+    "securityHint": "Al cambiar la contraseña se cierran tus otras sesiones.",
+    "preferences": "Preferencias",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "openProfile": "Abrir mi perfil"
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Reglas que usa el sistema para alertas, riesgos e inventario.",
+    "fixedNote": "La moneda (COP) y la zona horaria (America/Bogota) son fijas.",
+    "groups": {
+      "general": {
+        "title": "General",
+        "description": "Datos de la empresa en los reportes impresos."
+      },
+      "risk": {
+        "title": "Riesgos y alertas",
+        "description": "Cuándo una obra se marca con riesgo de atraso o de sobrecosto. Por encima del doble del umbral el riesgo es alto."
+      },
+      "inventory": {
+        "title": "Inventario",
+        "description": "Cómo se calcula la cobertura y el estado de cada material."
+      }
+    },
+    "fields": {
+      "companyName": {
+        "label": "Nombre de la empresa",
+        "hint": "Aparece en el encabezado de los reportes impresos. Vacío: solo el logo.",
+        "placeholder": "Ej. Constructora del Sur S.A.S."
+      },
+      "scheduleDelayThreshold": {
+        "label": "Atraso permitido",
+        "hint": "Puntos porcentuales por debajo del avance esperado antes de alertar."
+      },
+      "financialGapThreshold": {
+        "label": "Brecha financiera permitida",
+        "hint": "Puntos porcentuales que el gasto puede ir por delante del avance físico."
+      },
+      "consumptionWindowDays": {
+        "label": "Ventana de consumo",
+        "hint": "Días usados para calcular el consumo diario promedio."
+      },
+      "criticalCoverageDays": {
+        "label": "Cobertura crítica",
+        "hint": "Por debajo de estos días un material es crítico."
+      },
+      "warningCoverageDays": {
+        "label": "Cobertura en alerta",
+        "hint": "Por debajo de estos días un material queda en alerta."
+      },
+      "planningHorizonDays": {
+        "label": "Horizonte de compra",
+        "hint": "Días que cubre la necesidad estimada y la compra sugerida."
+      }
+    },
+    "units": {
+      "points": "pp",
+      "days": "días"
+    },
+    "range": "Entre {min} y {max}",
+    "default": "Predeterminado: {value}",
+    "customized": "Personalizado",
+    "unsaved": "Tienes cambios sin guardar",
+    "save": "Guardar cambios",
+    "saving": "Guardando...",
+    "discard": "Descartar",
+    "reset": "Restablecer valores por defecto",
+    "resetTitle": "¿Restablecer la configuración?",
+    "resetBody": "Todos los ajustes vuelven a sus valores predeterminados. El cambio queda en el historial.",
+    "resetConfirm": "Restablecer",
+    "cancel": "Cancelar",
+    "saved": "Configuración guardada.",
+    "resetDone": "Configuración restablecida.",
+    "errors": {
+      "range": "Debe estar entre {min} y {max}",
+      "integer": "Usa un número entero",
+      "criticalBelowWarning": "Debe ser menor que la cobertura en alerta",
+      "tooLong": "Máximo {max} caracteres"
+    },
+    "preview": "Con estos valores: {critical, plural, one {# material crítico} other {# materiales críticos}} y {warning, plural, one {# en alerta} other {# en alerta}}."
+  },
+  "audit": {
+    "title": "Historial del sistema",
+    "subtitle": "Quién hizo qué y cuándo. Registro de solo lectura.",
+    "filters": {
+      "user": "Usuario",
+      "allUsers": "Todos los usuarios",
+      "action": "Acción",
+      "allActions": "Todas las acciones",
+      "entity": "Módulo",
+      "allEntities": "Todos los módulos",
+      "from": "Desde",
+      "to": "Hasta",
+      "clear": "Limpiar filtros"
+    },
+    "cols": {
+      "date": "Fecha",
+      "user": "Usuario",
+      "action": "Acción",
+      "entity": "Módulo",
+      "detail": "Detalle",
+      "ip": "IP"
+    },
+    "empty": "No hay eventos con estos filtros.",
+    "emptyAll": "Aún no hay eventos registrados.",
+    "export": "Exportar CSV",
+    "exporting": "Exportando...",
+    "exportTruncated": "Se exportaron los primeros {count} eventos. Ajusta los filtros para ver el resto.",
+    "unknownActor": "Desconocido",
+    "timezone": "Horas en America/Bogota",
+    "viewDetail": "Ver detalle",
+    "detail": {
+      "title": "Detalle del evento",
+      "when": "Fecha y hora",
+      "who": "Usuario",
+      "what": "Acción",
+      "entity": "Registro",
+      "changes": "Cambios",
+      "field": "Campo",
+      "before": "Antes",
+      "after": "Después",
+      "data": "Datos",
+      "noData": "Sin datos adicionales.",
+      "ip": "IP",
+      "userAgent": "Navegador",
+      "close": "Cerrar",
+      "hiddenValue": "Dato personal (no se guarda el valor)"
+    },
+    "actions": {
+      "auth": {
+        "login": "Inicio de sesión",
+        "login_failed": "Intento fallido de inicio de sesión",
+        "logout": "Cierre de sesión",
+        "password_changed": "Cambio de contraseña"
+      },
+      "user": {
+        "password_reset": "Restablecimiento de contraseña",
+        "created": "Usuario creado",
+        "updated": "Usuario editado",
+        "activated": "Usuario activado",
+        "deactivated": "Usuario desactivado"
+      },
+      "settings": {
+        "updated": "Configuración modificada",
+        "reset": "Configuración restablecida"
+      },
+      "expense": {
+        "created": "Gasto registrado",
+        "approved": "Gasto aprobado",
+        "rejected": "Gasto rechazado"
+      },
+      "transfer": {
+        "created": "Giro enviado"
+      },
+      "project": {
+        "status_changed": "Cambio de estado de obra"
+      },
+      "inventory": {
+        "movement": "Movimiento de inventario"
+      },
+      "field_report": {
+        "reviewed": "Bitácora revisada"
+      },
+      "incident": {
+        "created": "Novedad reportada",
+        "status_changed": "Cambio de estado de novedad"
+      },
+      "worker": {
+        "created": "Trabajador registrado",
+        "updated": "Trabajador editado",
+        "activated": "Trabajador activado",
+        "deactivated": "Trabajador desactivado"
+      },
+      "unknown": "Otra acción"
+    },
+    "entities": {
+      "user": "Usuarios",
+      "settings": "Configuración",
+      "expense": "Costos",
+      "transfer": "Giros",
+      "project": "Obras",
+      "material": "Inventario",
+      "field_report": "Bitácora",
+      "incident": "Novedades",
+      "worker": "Trabajadores"
+    },
+    "keys": {
+      "name": "Nombre",
+      "email": "Correo",
+      "role": "Rol",
+      "phone": "Teléfono",
+      "documentId": "Documento",
+      "position": "Oficio",
+      "projectId": "Obra",
+      "projectName": "Obra",
+      "status": "Estado",
+      "fromStatus": "Estado anterior",
+      "toStatus": "Estado nuevo",
+      "note": "Nota",
+      "reason": "Motivo",
+      "rejectionReason": "Motivo del rechazo",
+      "reviewNote": "Comentario",
+      "amount": "Monto",
+      "category": "Categoría",
+      "priority": "Prioridad",
+      "type": "Tipo",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "materialName": "Material",
+      "residentName": "Residente",
+      "method": "Método",
+      "attempts": "Intentos",
+      "revokedSessions": "Sesiones cerradas",
+      "date": "Fecha",
+      "keys": "Campos",
+      "description": "Descripción",
+      "companyName": "Nombre de la empresa",
+      "scheduleDelayThreshold": "Atraso permitido",
+      "financialGapThreshold": "Brecha financiera permitida",
+      "consumptionWindowDays": "Ventana de consumo",
+      "criticalCoverageDays": "Cobertura crítica",
+      "warningCoverageDays": "Cobertura en alerta",
+      "planningHorizonDays": "Horizonte de compra"
+    },
+    "reasons": {
+      "deactivated": "Cuenta desactivada"
     }
   }
 }

@@ -4,6 +4,7 @@ import { CreateProjectInput, UpdateProjectInput, ListProjectsQuery } from "../sc
 import { AppError } from "../utils/app-error";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
+import { audit, AUDIT_ACTIONS } from "./audit.service";
 
 export const projectService = {
   async list(query: ListProjectsQuery, requester: RequestUser) {
@@ -29,6 +30,7 @@ export const projectService = {
   async create(data: CreateProjectInput) {
     const responsible = await userRepository.findById(data.responsibleId);
     if (!responsible) throw new AppError(400, "Responsible user does not exist");
+    if (!responsible.isActive) throw new AppError(400, "The responsible user is deactivated", { code: "USER_INACTIVE" });
 
     if (data.estimatedEndDate <= data.startDate) {
       throw new AppError(400, "Estimated end date must be after start date");
@@ -38,8 +40,20 @@ export const projectService = {
   },
 
   async update(id: string, data: UpdateProjectInput, requester: RequestUser) {
-    await projectAccess.assert(requester, id);
-    return projectRepository.update(id, data);
+    const before = await projectAccess.assert(requester, id);
+    const updated = await projectRepository.update(id, data);
+    if (data.status && data.status !== before.status) {
+      await audit.log(
+        {
+          action: AUDIT_ACTIONS.projectStatusChanged,
+          entityType: "project",
+          entityId: id,
+          metadata: { name: before.name, fromStatus: before.status, toStatus: data.status },
+        },
+        audit.context(requester)
+      );
+    }
+    return updated;
   },
 
   /**

@@ -1,5 +1,7 @@
 /**
- * Rule-based inventory analysis thresholds (explainable, no AI).
+ * Default rule-based inventory analysis thresholds (explainable, no AI).
+ * The effective values come from system settings (settings.service); an admin
+ * can customise them and reset back to these.
  *
  * Coverage (days) = stockAvailable / average daily consumption over the
  * consumption window. Status rules, evaluated in order:

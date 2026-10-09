@@ -21,6 +21,7 @@ export function DashboardHeader({
   actions?: ReactNode;
 }) {
   const t = useTranslations("common");
+  const tProfile = useTranslations("profile");
   const user = useAuthStore((s) => s.user);
   const openNav = useUiStore((s) => s.setMobileNavOpen);
   const { data: activeAlerts } = useAlerts("ACTIVE");
@@ -53,13 +54,14 @@ export function DashboardHeader({
               </span>
             )}
           </Link>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-sm font-medium text-accent"
+          <Link
+            href="/profile"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-sm font-medium text-accent transition-colors hover:bg-accent/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             title={user?.name}
-            aria-hidden
+            aria-label={tProfile("openProfile")}
           >
-            {nameInitial(user?.name)}
-          </div>
+            <span aria-hidden>{nameInitial(user?.name)}</span>
+          </Link>
         </div>
       </div>
 

@@ -1,11 +1,17 @@
 import { Material, MaterialCategory, MovementType } from "@prisma/client";
 import { materialRepository } from "../repositories/material.repository";
 import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
-import { INVENTORY_THRESHOLDS } from "../config/inventory-thresholds";
+import { settingsService } from "./settings.service";
 import { MaterialStatus } from "../schemas/material.schema";
 import { daysAgo } from "../utils/business-time";
 
-const T = INVENTORY_THRESHOLDS;
+/** Thresholds come from system settings (defaults: config/inventory-thresholds.ts). */
+export interface InventoryThresholds {
+  consumptionWindowDays: number;
+  criticalCoverageDays: number;
+  warningCoverageDays: number;
+  planningHorizonDays: number;
+}
 
 /** Material plus the rule-based analysis every screen and report shares. */
 export interface AnalyzedMaterial {
@@ -35,10 +41,10 @@ export interface AnalyzedMaterial {
 
 const round = (n: number, digits = 2) => Math.round(n * 10 ** digits) / 10 ** digits;
 
-export function classify(stock: number, minimum: number, coverageDays: number | null): MaterialStatus {
+export function classify(stock: number, minimum: number, coverageDays: number | null, t: InventoryThresholds): MaterialStatus {
   if (stock <= 0) return "OUT";
-  if (stock < minimum || (coverageDays !== null && coverageDays < T.CRITICAL_COVERAGE_DAYS)) return "CRITICAL";
-  if (coverageDays !== null && coverageDays < T.WARNING_COVERAGE_DAYS) return "WARNING";
+  if (stock < minimum || (coverageDays !== null && coverageDays < t.criticalCoverageDays)) return "CRITICAL";
+  if (coverageDays !== null && coverageDays < t.warningCoverageDays) return "WARNING";
   return "OK";
 }
 
@@ -49,12 +55,13 @@ function analyzeOne(
   material: Material,
   consumed: number,
   last: AnalyzedMaterial["lastMovement"],
-  lastUnitCost: number | null
+  lastUnitCost: number | null,
+  t: InventoryThresholds
 ): AnalyzedMaterial {
-  const dailyConsumption = consumed / T.CONSUMPTION_WINDOW_DAYS;
+  const dailyConsumption = consumed / t.consumptionWindowDays;
   const stock = material.stockAvailable;
   const coverageDays = dailyConsumption > 0 ? round(stock / dailyConsumption, 1) : null;
-  const horizonNeed = dailyConsumption * T.PLANNING_HORIZON_DAYS;
+  const horizonNeed = dailyConsumption * t.planningHorizonDays;
 
   return {
     id: material.id,
@@ -65,7 +72,7 @@ function analyzeOne(
     stockMinimum: material.stockMinimum,
     createdAt: material.createdAt,
     updatedAt: material.updatedAt,
-    status: classify(stock, material.stockMinimum, coverageDays),
+    status: classify(stock, material.stockMinimum, coverageDays, t),
     dailyConsumption: round(dailyConsumption, 3),
     coverageDays,
     estimatedNeed: round(Math.max(0, horizonNeed - stock)),
@@ -87,7 +94,8 @@ export const inventoryAnalysis = {
    * instead of filtering the movement array per material (O(n x m)).
    */
   async analyzeAll(): Promise<AnalyzedMaterial[]> {
-    const since = daysAgo(T.CONSUMPTION_WINDOW_DAYS);
+    const t = await settingsService.get();
+    const since = daysAgo(t.consumptionWindowDays);
     const [materials, outRows, lastRows, costRows] = await Promise.all([
       materialRepository.findAll(),
       inventoryMovementRepository.consumptionSince(since),
@@ -103,7 +111,7 @@ export const inventoryAnalysis = {
     const costByMaterial = new Map(costRows.map((r) => [r.materialId, Number(r.unitCost)]));
 
     return materials.map((m) =>
-      analyzeOne(m, consumedByMaterial.get(m.id) ?? 0, lastByMaterial.get(m.id) ?? null, costByMaterial.get(m.id) ?? null)
+      analyzeOne(m, consumedByMaterial.get(m.id) ?? 0, lastByMaterial.get(m.id) ?? null, costByMaterial.get(m.id) ?? null, t)
     );
   },
 

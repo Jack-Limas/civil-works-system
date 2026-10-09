@@ -6,7 +6,7 @@ import { RequestUser } from "../types/auth";
 import { AppError } from "../utils/app-error";
 import { businessDateKey, businessDayRange, daysAgo } from "../utils/business-time";
 import { withReportMeta } from "../utils/report-meta";
-import { RISK_THRESHOLDS } from "../config/risk-thresholds";
+import { settingsService } from "./settings.service";
 import { projectAccess } from "./project-access.service";
 import { inventoryAnalysis } from "./inventory-analysis.service";
 
@@ -60,6 +60,7 @@ function expectedProgress(start: Date, end: Date, now: number) {
 
 async function progressReport(requester: RequestUser, query: ReportQuery) {
   const period = resolvePeriod(query);
+  const { scheduleDelayThreshold } = await settingsService.get();
   const ids = await scopedProjectIds(requester, query.projectId);
   const [projects, activities, before, last] = await Promise.all([
     reportRepository.projects(ids),
@@ -92,7 +93,7 @@ async function progressReport(requester: RequestUser, query: ReportQuery) {
       progress: round(p.progressPercentage),
       expected: round(expected),
       delay: round(delay),
-      onTrack: delay <= RISK_THRESHOLDS.SCHEDULE_DELAY,
+      onTrack: delay <= scheduleDelayThreshold,
       gainInPeriod: round(Math.max(0, p.progressPercentage - (progressBefore.get(p.id) ?? 0))),
       activitiesInPeriod: activitiesByProject.get(p.id) ?? 0,
       lastActivity: lastByProject.get(p.id) ?? null,
@@ -124,6 +125,7 @@ async function progressReport(requester: RequestUser, query: ReportQuery) {
 async function financialReport(requester: RequestUser, query: ReportQuery) {
   if (!projectAccess.isAdmin(requester)) throw new AppError(403, "The financial report is only available to administrators");
   const period = resolvePeriod(query);
+  const { financialGapThreshold } = await settingsService.get();
   const ids = await scopedProjectIds(requester, query.projectId);
   const [projects, expenses, totals, transfers] = await Promise.all([
     reportRepository.projects(ids),
@@ -187,7 +189,7 @@ async function financialReport(requester: RequestUser, query: ReportQuery) {
         available: budget - spent,
         cpi: spent > 0 ? round(earned / spent, 2) : null,
         transfersInPeriod: Number(transfers._sum.amount ?? 0),
-        overrunProjects: rows.filter((r) => r.gap > RISK_THRESHOLDS.FINANCIAL_GAP).length,
+        overrunProjects: rows.filter((r) => r.gap > financialGapThreshold).length,
       },
       rows,
       byCategory: [...byCategory.entries()].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount),

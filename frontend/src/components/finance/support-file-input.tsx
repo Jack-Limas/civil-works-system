@@ -6,7 +6,8 @@ import { Camera, FileText, Loader2, Upload, X } from "lucide-react";
 import { compressImage } from "@/lib/compress-image";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED = [...IMAGE_TYPES, "application/pdf"];
 
 /**
  * Invoice/receipt picker with two explicit actions: "Take photo" opens the
@@ -18,11 +19,21 @@ export function SupportFileInput({
   file,
   onChange,
   onBusyChange,
+  imagesOnly = false,
+  hint,
+  typeError,
 }: {
   file: File | null;
   onChange: (file: File | null) => void;
   onBusyChange?: (busy: boolean) => void;
+  /** Photos only (e.g. incident evidence): no PDFs. */
+  imagesOnly?: boolean;
+  /** Replaces the default helper text under the picker. */
+  hint?: string;
+  /** Replaces the default "format not allowed" message. */
+  typeError?: string;
 }) {
+  const accepted = imagesOnly ? IMAGE_TYPES : ACCEPTED;
   const t = useTranslations("expenseForm");
   const format = useFormatter();
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -50,8 +61,8 @@ export function SupportFileInput({
     setError(null);
     setSavings(null);
 
-    if (!ACCEPTED.includes(selected.type)) {
-      setError(t("fileType"));
+    if (!accepted.includes(selected.type)) {
+      setError(typeError ?? t("fileType"));
       return;
     }
 
@@ -133,7 +144,7 @@ export function SupportFileInput({
       <input
         ref={fileRef}
         type="file"
-        accept={ACCEPTED.join(",")}
+        accept={accepted.join(",")}
         onChange={handleSelect}
         className="sr-only"
         tabIndex={-1}
@@ -150,7 +161,7 @@ export function SupportFileInput({
           <p className="text-success">{t("compressed", { before: size(savings.before), after: size(savings.after) })}</p>
         )}
         {error && <p className="text-critical" role="alert">{error}</p>}
-        {!busy && !error && !savings && <p className="text-ink-muted">{t("supportHint")}</p>}
+        {!busy && !error && !savings && <p className="text-ink-muted">{hint ?? t("supportHint")}</p>}
       </div>
     </div>
   );

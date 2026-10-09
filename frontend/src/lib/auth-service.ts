@@ -19,6 +19,12 @@ export const authService = {
     return data.user;
   },
 
+  /** Signs out the other sessions; this one receives fresh cookies. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {
+    const { data } = await apiClient.post<AuthResponse>("/auth/change-password", { currentPassword, newPassword });
+    return data.user;
+  },
+
   async logout(): Promise<void> {
     try {
       await apiClient.post("/auth/logout");

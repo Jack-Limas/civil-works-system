@@ -1,10 +1,10 @@
 import "@fastify/jwt";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { RequestUser, Role } from "./auth";
+import { RequestUser, Role, TokenPayload } from "./auth";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: RequestUser;
+    payload: TokenPayload;
     user: RequestUser;
   }
 }

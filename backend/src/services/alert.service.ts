@@ -4,7 +4,7 @@ import { expenseService } from "./expense.service";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/app-error";
 import { Project } from "@prisma/client";
-import { RISK_THRESHOLDS } from "../config/risk-thresholds";
+import { settingsService } from "./settings.service";
 import { RequestUser } from "../types/auth";
 import { projectAccess } from "./project-access.service";
 
@@ -25,12 +25,13 @@ function calculateExpectedProgress(project: Project): number {
 async function evaluateScheduleRisk(project: Project) {
   const expectedProgress = calculateExpectedProgress(project);
   const delay = expectedProgress - project.progressPercentage;
+  const { scheduleDelayThreshold } = await settingsService.get();
 
-  if (delay > RISK_THRESHOLDS.SCHEDULE_DELAY) {
+  if (delay > scheduleDelayThreshold) {
     return {
       shouldAlert: true,
       message: `El avance físico (${project.progressPercentage.toFixed(1)}%) está ${delay.toFixed(1)} puntos por debajo del avance esperado según el cronograma (${expectedProgress.toFixed(1)}%).`,
-      severity: delay > RISK_THRESHOLDS.SCHEDULE_DELAY * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      severity: delay > scheduleDelayThreshold * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
       params: { progress: round1(project.progressPercentage), expected: round1(expectedProgress), delay: round1(delay) },
     };
   }
@@ -39,12 +40,13 @@ async function evaluateScheduleRisk(project: Project) {
 
 async function evaluateFinancialRisk(project: Project) {
   const indicators = await expenseService.getBudgetIndicators(project.id);
+  const { financialGapThreshold } = await settingsService.get();
 
-  if (indicators.financialVsPhysicalGap > RISK_THRESHOLDS.FINANCIAL_GAP) {
+  if (indicators.financialVsPhysicalGap > financialGapThreshold) {
     return {
       shouldAlert: true,
       message: `Los gastos ejecutados (${indicators.executedPercentage.toFixed(1)}%) crecen más rápido que el avance físico (${project.progressPercentage.toFixed(1)}%), con una brecha de ${indicators.financialVsPhysicalGap.toFixed(1)} puntos.`,
-      severity: indicators.financialVsPhysicalGap > RISK_THRESHOLDS.FINANCIAL_GAP * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
+      severity: indicators.financialVsPhysicalGap > financialGapThreshold * 2 ? ("HIGH" as const) : ("MEDIUM" as const),
       params: {
         executed: round1(indicators.executedPercentage),
         progress: round1(project.progressPercentage),

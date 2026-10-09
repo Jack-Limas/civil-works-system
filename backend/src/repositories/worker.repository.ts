@@ -1,19 +1,28 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
-import { CreateWorkerInput, UpdateWorkerInput } from "../schemas/worker.schema";
+
+const workerInclude = { project: { select: { id: true, name: true, responsibleId: true } } } satisfies Prisma.WorkerInclude;
 
 export const workerRepository = {
-  findMany(filters: { projectId?: string; skip: number; take: number }) {
-    const where = { ...(filters.projectId && { projectId: filters.projectId }) };
-
-    return Promise.all([
+  findMany(where: Prisma.WorkerWhereInput, skip: number, take: number) {
+    return prisma.$transaction([
       prisma.worker.findMany({
         where,
-        skip: filters.skip,
-        take: filters.take,
-        orderBy: { name: "asc" },
-        include: { project: { select: { id: true, name: true } } },
+        skip,
+        take,
+        orderBy: [{ status: "asc" }, { name: "asc" }],
+        include: workerInclude,
       }),
       prisma.worker.count({ where }),
+    ]);
+  },
+
+  /** KPIs and the trade list for the filter, for the caller's scope, in one round trip. */
+  summary(scope: Prisma.WorkerWhereInput) {
+    return prisma.$transaction([
+      prisma.worker.groupBy({ by: ["status"], where: scope, _count: { _all: true }, orderBy: { status: "asc" } }),
+      prisma.worker.count({ where: { ...scope, projectId: null } }),
+      prisma.worker.groupBy({ by: ["position"], where: scope, _count: { _all: true }, orderBy: { position: "asc" } }),
     ]);
   },
 
@@ -22,14 +31,14 @@ export const workerRepository = {
   },
 
   findById(id: string) {
-    return prisma.worker.findUnique({ where: { id } });
+    return prisma.worker.findUnique({ where: { id }, include: workerInclude });
   },
 
-  create(data: CreateWorkerInput) {
-    return prisma.worker.create({ data });
+  create(tx: Prisma.TransactionClient, data: Prisma.WorkerUncheckedCreateInput) {
+    return tx.worker.create({ data, include: workerInclude });
   },
 
-  update(id: string, data: UpdateWorkerInput) {
-    return prisma.worker.update({ where: { id }, data });
+  update(tx: Prisma.TransactionClient, id: string, data: Prisma.WorkerUncheckedUpdateInput) {
+    return tx.worker.update({ where: { id }, data, include: workerInclude });
   },
 };
