@@ -399,7 +399,8 @@
       "to": "To",
       "sort": "Sort by",
       "sortPriority": "Priority",
-      "sortDate": "Most recent"
+      "sortDate": "Most recent",
+      "clear": "Clear filters"
     },
     "cols": {
       "incident": "Incident",
@@ -519,7 +520,8 @@
       "allProjects": "All projects",
       "unassigned": "No project assigned",
       "allPositions": "All trades",
-      "allStatuses": "All statuses"
+      "allStatuses": "All statuses",
+      "clear": "Clear filters"
     },
     "cols": {
       "worker": "Worker",
@@ -622,7 +624,8 @@
       "allRoles": "All roles",
       "allStatuses": "All statuses",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "clear": "Clear filters"
     },
     "cols": {
       "user": "User",
@@ -1807,30 +1810,50 @@
       "hiddenValue": "Personal data (value not stored)"
     },
     "actions": {
-      "auth.login": "Signed in",
-      "auth.login_failed": "Failed sign-in attempt",
-      "auth.logout": "Signed out",
-      "auth.password_changed": "Password changed",
-      "user.password_reset": "Password reset",
-      "user.created": "User created",
-      "user.updated": "User edited",
-      "user.activated": "User activated",
-      "user.deactivated": "User deactivated",
-      "settings.updated": "Settings changed",
-      "settings.reset": "Settings restored",
-      "expense.created": "Expense recorded",
-      "expense.approved": "Expense approved",
-      "expense.rejected": "Expense rejected",
-      "transfer.created": "Fund transfer sent",
-      "project.status_changed": "Project status changed",
-      "inventory.movement": "Inventory movement",
-      "field_report.reviewed": "Daily log reviewed",
-      "incident.created": "Incident reported",
-      "incident.status_changed": "Incident status changed",
-      "worker.created": "Worker registered",
-      "worker.updated": "Worker edited",
-      "worker.activated": "Worker activated",
-      "worker.deactivated": "Worker deactivated",
+      "auth": {
+        "login": "Signed in",
+        "login_failed": "Failed sign-in attempt",
+        "logout": "Signed out",
+        "password_changed": "Password changed"
+      },
+      "user": {
+        "password_reset": "Password reset",
+        "created": "User created",
+        "updated": "User edited",
+        "activated": "User activated",
+        "deactivated": "User deactivated"
+      },
+      "settings": {
+        "updated": "Settings changed",
+        "reset": "Settings restored"
+      },
+      "expense": {
+        "created": "Expense recorded",
+        "approved": "Expense approved",
+        "rejected": "Expense rejected"
+      },
+      "transfer": {
+        "created": "Fund transfer sent"
+      },
+      "project": {
+        "status_changed": "Project status changed"
+      },
+      "inventory": {
+        "movement": "Inventory movement"
+      },
+      "field_report": {
+        "reviewed": "Daily log reviewed"
+      },
+      "incident": {
+        "created": "Incident reported",
+        "status_changed": "Incident status changed"
+      },
+      "worker": {
+        "created": "Worker registered",
+        "updated": "Worker edited",
+        "activated": "Worker activated",
+        "deactivated": "Worker deactivated"
+      },
       "unknown": "Other action"
     },
     "entities": {

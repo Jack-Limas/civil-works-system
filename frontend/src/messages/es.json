@@ -399,7 +399,8 @@
       "to": "Hasta",
       "sort": "Ordenar por",
       "sortPriority": "Prioridad",
-      "sortDate": "Más recientes"
+      "sortDate": "Más recientes",
+      "clear": "Limpiar filtros"
     },
     "cols": {
       "incident": "Novedad",
@@ -519,7 +520,8 @@
       "allProjects": "Todas las obras",
       "unassigned": "Sin obra asignada",
       "allPositions": "Todos los oficios",
-      "allStatuses": "Todos los estados"
+      "allStatuses": "Todos los estados",
+      "clear": "Limpiar filtros"
     },
     "cols": {
       "worker": "Trabajador",
@@ -622,7 +624,8 @@
       "allRoles": "Todos los roles",
       "allStatuses": "Todos los estados",
       "active": "Activos",
-      "inactive": "Inactivos"
+      "inactive": "Inactivos",
+      "clear": "Limpiar filtros"
     },
     "cols": {
       "user": "Usuario",
@@ -1807,30 +1810,50 @@
       "hiddenValue": "Dato personal (no se guarda el valor)"
     },
     "actions": {
-      "auth.login": "Inicio de sesión",
-      "auth.login_failed": "Intento fallido de inicio de sesión",
-      "auth.logout": "Cierre de sesión",
-      "auth.password_changed": "Cambio de contraseña",
-      "user.password_reset": "Restablecimiento de contraseña",
-      "user.created": "Usuario creado",
-      "user.updated": "Usuario editado",
-      "user.activated": "Usuario activado",
-      "user.deactivated": "Usuario desactivado",
-      "settings.updated": "Configuración modificada",
-      "settings.reset": "Configuración restablecida",
-      "expense.created": "Gasto registrado",
-      "expense.approved": "Gasto aprobado",
-      "expense.rejected": "Gasto rechazado",
-      "transfer.created": "Giro enviado",
-      "project.status_changed": "Cambio de estado de obra",
-      "inventory.movement": "Movimiento de inventario",
-      "field_report.reviewed": "Bitácora revisada",
-      "incident.created": "Novedad reportada",
-      "incident.status_changed": "Cambio de estado de novedad",
-      "worker.created": "Trabajador registrado",
-      "worker.updated": "Trabajador editado",
-      "worker.activated": "Trabajador activado",
-      "worker.deactivated": "Trabajador desactivado",
+      "auth": {
+        "login": "Inicio de sesión",
+        "login_failed": "Intento fallido de inicio de sesión",
+        "logout": "Cierre de sesión",
+        "password_changed": "Cambio de contraseña"
+      },
+      "user": {
+        "password_reset": "Restablecimiento de contraseña",
+        "created": "Usuario creado",
+        "updated": "Usuario editado",
+        "activated": "Usuario activado",
+        "deactivated": "Usuario desactivado"
+      },
+      "settings": {
+        "updated": "Configuración modificada",
+        "reset": "Configuración restablecida"
+      },
+      "expense": {
+        "created": "Gasto registrado",
+        "approved": "Gasto aprobado",
+        "rejected": "Gasto rechazado"
+      },
+      "transfer": {
+        "created": "Giro enviado"
+      },
+      "project": {
+        "status_changed": "Cambio de estado de obra"
+      },
+      "inventory": {
+        "movement": "Movimiento de inventario"
+      },
+      "field_report": {
+        "reviewed": "Bitácora revisada"
+      },
+      "incident": {
+        "created": "Novedad reportada",
+        "status_changed": "Cambio de estado de novedad"
+      },
+      "worker": {
+        "created": "Trabajador registrado",
+        "updated": "Trabajador editado",
+        "activated": "Trabajador activado",
+        "deactivated": "Trabajador desactivado"
+      },
       "unknown": "Otra acción"
     },
     "entities": {
