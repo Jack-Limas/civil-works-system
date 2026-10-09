@@ -9,6 +9,7 @@ import { RequestUser } from "../types/auth";
 import { AppError } from "../utils/app-error";
 import { businessDateKey, businessDayRange, dateKeyToDbDate, dbDateToKey } from "../utils/business-time";
 import { projectAccess } from "./project-access.service";
+import { audit, AUDIT_ACTIONS } from "./audit.service";
 
 type FieldReportRow = NonNullable<Awaited<ReturnType<typeof fieldReportRepository.findById>>>;
 
@@ -142,6 +143,15 @@ export const fieldReportService = {
 
     const updated = await fieldReportRepository.reviewIfSubmitted(id, requester.sub, note);
     if (updated === 0) throw new AppError(409, "This daily log was already reviewed");
+    await audit.log(
+      {
+        action: AUDIT_ACTIONS.fieldReportReviewed,
+        entityType: "field_report",
+        entityId: id,
+        metadata: { projectId: report.projectId, date: report.date, reviewNote: note ?? null },
+      },
+      audit.context(requester)
+    );
     return present((await fieldReportRepository.findById(id))!);
   },
 };
