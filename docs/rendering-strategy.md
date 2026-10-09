@@ -25,14 +25,21 @@ ObraIQ usa Next.js 16 (App Router). El patrón de renderizado se eligió **panta
 | Proveedores | `/[locale]/suppliers` | CSR | Directorio con búsqueda y estadísticas solo para ADMIN. | Búsqueda con *debounce*; estadísticas unidas con un `Map`. | Las estadísticas recorren todos los gastos aprobados (agregadas en BD). |
 | Caja menor | `/[locale]/cash` | CSR | Saldos por residente: dato sensible y por rol. | El residente solo recibe su propia fila desde la API. | — |
 | Flujo de caja | `/[locale]/cashflow` | CSR | Serie mensual y libro de movimientos filtrables. | Cambiar el periodo o filtro mantiene los datos previos visibles (`keepPreviousData`). | La exportación CSV recorre todas las páginas del filtro. |
-| Usuarios | `/[locale]/users` | CSR | Solo ADMIN. | — | — |
+| Usuarios | `/[locale]/users` | CSR (solo ADMIN) | Cuentas, roles y estados: datos sensibles que cambian con cada alta o desactivación. La contraseña temporal solo existe en la respuesta de creación (`Cache-Control: no-store`). | KPIs y lista en una sola petición; búsqueda con *debounce*. | — |
+| Detalle de usuario | `/[locale]/users/[id]` | CSR (ruta dinámica `ƒ`, solo ADMIN) | El `id` no se conoce en el build; muestra obras y actividad reciente del historial. | Acciones (desactivar, restablecer) invalidan lista, detalle e historial. | — |
+| Configuración | `/[locale]/settings` | CSR (solo ADMIN) | Umbrales que cambian alertas, riesgos e inventario; deben verse al instante tras guardar. | Validación en vivo y vista previa de estados del inventario sin ir al servidor. | El cálculo de la vista previa usa la cobertura actual (no aplica si cambia la ventana de consumo). |
+| Historial del sistema | `/[locale]/audit` | CSR (solo ADMIN) | Registro de solo lectura, filtrable y privado. | Paginación en el servidor con índices por fecha, actor, entidad y acción. | La exportación CSV tiene un tope de 5000 eventos. |
+| Mi perfil | `/[locale]/profile` | CSR | Datos de la sesión, cambio de contraseña y preferencias. | Cambiar idioma o tema no recarga datos. | — |
+| Cambio de contraseña | `/[locale]/change-password` | CSR (sin sidebar) | Obligatorio tras una contraseña temporal: la API responde 403 `PASSWORD_CHANGE_REQUIRED` en todo lo demás. | El cliente redirige aquí desde cualquier petición bloqueada. | — |
 | Inventario | `/[locale]/materials` | CSR | Stock, estados y costos cambian con cada movimiento; el ADMIN ve valores y el residente una vista simple sin costos (la API los omite). | Estados calculados en el servidor con 4 consultas agregadas con `Map`; filtros sin recargar. | El análisis recorre todos los materiales en cada visita (aceptable con cientos; con miles habría que precalcular). |
 | Movimientos | `/[locale]/materials/movements` | CSR (solo ADMIN) | Libro inmutable privado, con formulario en línea. | Registrar una entrada o salida refresca stock, estados y libro por invalidación de caché. | La exportación CSV recorre todas las páginas del filtro. |
 | Detalle de material | `/[locale]/materials/[id]` | CSR (ruta dinámica `ƒ`) | El `id` no se conoce en el build; datos privados. | La serie de stock se reconstruye en el servidor; el selector 30/90 días conserva el gráfico previo mientras carga. | Reconstruir 90 días exige leer todos los movimientos del periodo. |
 | Centro de reportes | `/[locale]/reports` | CSR | Tarjetas según el rol (sin financiero para el residente) y bitácoras pendientes del ADMIN. | Navegación inmediata; solo una petición pequeña. | — |
 | Reporte | `/[locale]/reports/[type]` | CSR (ruta dinámica `ƒ`) | Cifras calculadas en el servidor bajo demanda para el periodo y la obra elegidos; el financiero es solo ADMIN. **No ISR**: dependen del rol y cambian con cada registro. | La API mide su tiempo (`Server-Timing`, “Generado en N ms”); `staleTime` de 1 min evita recalcular al volver. Impresión/PDF con CSS `@media print`; resumen IA opcional. | Cada cambio de filtro recalcula el reporte en el servidor; Gemini puede tardar o fallar (el reporte sigue funcionando). |
 | Bitácora diaria | `/[locale]/reports/daily` | CSR (mobile-first para el residente) | Cola de revisión del ADMIN o “Mi bitácora” del residente con el día compilado. El reporte abierto vive en la URL (`?report=id`). | Formulario prellenado con lo registrado en el día; enlace directo desde el centro de reportes. | La compilación del día hace 5 consultas en paralelo por obra. |
-| Novedades, trabajadores, alertas, evidencias | `/[locale]/...` | CSR | Datos privados y por rol. | — | — |
+| Novedades | `/[locale]/incidents` | CSR | Estados que cambian con cada transición; el residente solo ve sus obras. La novedad abierta vive en la URL (`?incident=id`). | Filtros y KPIs en una petición; fotos comprimidas en un Web Worker antes de subir. | Cada cambio de estado invalida novedades, alertas y dashboard. |
+| Trabajadores | `/[locale]/workers` | CSR | Datos personales solo para el ADMIN (la API no los envía al residente). | Lista filtrada en el servidor; oficios sugeridos desde los KPIs. | — |
+| Alertas, evidencias | `/[locale]/...` | CSR | Datos privados y por rol. | — | — |
 
 ## Por qué las pantallas privadas aparecen como `●` en `next build`
 
@@ -59,10 +66,12 @@ Route (app)
 ├   /[locale]/expenses/new         ● ...                              (shell; datos CSR)
 ├   /[locale]/suppliers, /cash, /cashflow, /projects, /projects/new,
 │   /materials, /materials/movements, /incidents, /workers, /users,
-│   /alerts, /evidence, /reports, /reports/daily                      ● (shell; datos CSR)
+│   /alerts, /evidence, /reports, /reports/daily, /settings, /audit,
+│   /profile, /change-password                                       ● (shell; datos CSR)
 ├ ƒ /[locale]/projects/[id]                                           (dinámica; datos CSR)
 ├ ƒ /[locale]/materials/[id]                                          (dinámica; datos CSR)
 ├ ƒ /[locale]/reports/[type]                                          (dinámica; datos CSR)
+├ ƒ /[locale]/users/[id]                                             (dinámica; datos CSR)
 ƒ Proxy (Middleware)
 
 ○ (Static)  prerendered as static content
