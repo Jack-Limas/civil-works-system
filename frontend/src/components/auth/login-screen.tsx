@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,7 +14,9 @@ import { ConstructionSkyline } from "@/components/auth/construction-skyline";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import { Logo } from "@/components/ui/logo";
-import { useApiErrorMessage } from "@/lib/api-error";
+import { getHttpStatus, useApiErrorMessage } from "@/lib/api-error";
+import { apiErrorCode } from "@/lib/api-client";
+import { isAxiosError } from "axios";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -21,6 +24,18 @@ const loginSchema = z.object({
 });
 
 type LoginInput = z.infer<typeof loginSchema>;
+
+/** "?session=disabled" (set by the API client) explains why the user is back here. Needs Suspense: the page is prerendered. */
+function SessionNotice() {
+  const t = useTranslations("auth");
+  const disabled = useSearchParams().get("session") === "disabled";
+  if (!disabled) return null;
+  return (
+    <p role="status" className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-ink">
+      {t("sessionDisabled")}
+    </p>
+  );
+}
 
 export function LoginScreen() {
   const t = useTranslations("auth");
@@ -52,8 +67,18 @@ export function LoginScreen() {
     try {
       const user = await authService.login(values.email, values.password);
       setUser(user);
-      router.push("/dashboard");
+      // A temporary password must be replaced before using the app
+      router.push(user.mustChangePassword ? "/change-password" : "/dashboard");
     } catch (error) {
+      if (getHttpStatus(error) === 429) {
+        const seconds = isAxiosError<{ retryAfterSeconds?: number }>(error) ? (error.response?.data?.retryAfterSeconds ?? 900) : 900;
+        setServerError(t("tooManyAttempts", { minutes: Math.max(1, Math.ceil(seconds / 60)) }));
+        return;
+      }
+      if (apiErrorCode(error) === "ACCOUNT_DISABLED") {
+        setServerError(t("accountDisabled"));
+        return;
+      }
       // 401 = wrong credentials; anything else (network, 5xx) gets its own message
       setServerError(errorMessage(error, { 401: t("invalidCredentials") }));
     }
@@ -138,6 +163,10 @@ export function LoginScreen() {
             <h2 className="text-xl font-semibold text-ink">{t("login")}</h2>
             <p className="text-sm text-ink-muted">{t("loginSubtitle")}</p>
           </div>
+
+          <Suspense fallback={null}>
+            <SessionNotice />
+          </Suspense>
 
           <div>
             <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-ink">
