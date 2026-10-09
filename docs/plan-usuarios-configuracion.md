@@ -17,14 +17,14 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
   - [x] 2.1 Assistant: 15–20 s timeout + one retry, 502 with truncated cause in the log
   - [x] 2.2 Fix audit bugs: `/workers` leaks every worker (with document) to residents
 - [x] Step 3 — Additive schema (User, AuditLog, SystemSetting, Incident history, Evidence.incidentId, Worker.phone) — STOP-1
-- [ ] Step 4 — Backend
+- [x] Step 4 — Backend
   - [x] 4.1 Audit service + GET /audit-logs (+ export) and events wired in existing modules
   - [x] 4.2 Auth: inactive users, lastLoginAt, login rate limit, change-password, PASSWORD_CHANGE_REQUIRED
   - [x] 4.3 Users CRUD (list+KPIs, detail, create with temp password, edit, activate/deactivate, reset password)
   - [x] 4.4 Settings (GET/PUT/reset) wired to risk and inventory thresholds + company name
   - [x] 4.5 Incidents (filters, KPIs, detail with history, status transitions by role, photos)
   - [x] 4.6 Workers (filters, KPIs, detail, create/edit, deactivate/activate, role-filtered fields)
-  - [ ] 4.7 curl checks both roles
+  - [x] 4.7 curl checks both roles — users/auth 48/48, inventory 33/33, reports 39/39 (AI 502 handled: Gemini quota exhausted)
 - [ ] Step 5 — Frontend base (types, hooks, i18n namespaces, sidebar, profile entry, /change-password, PASSWORD_CHANGE_REQUIRED handling)
 - [ ] Step 6 — Screens
   - [ ] 6.1 Incidents (admin + resident)
