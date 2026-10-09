@@ -12,6 +12,8 @@ import {
   TriangleAlert,
   Users2,
   UserCog,
+  SlidersHorizontal,
+  History,
   LogOut,
   X,
   LucideIcon,
@@ -24,7 +26,7 @@ import { Role } from "@/types/auth";
 
 interface NavLink {
   href: string;
-  key: "dashboard" | "projects" | "expenses" | "materials" | "reports" | "incidents" | "workers" | "users";
+  key: "dashboard" | "projects" | "expenses" | "materials" | "reports" | "incidents" | "workers" | "users" | "settings" | "audit";
   icon: LucideIcon;
   roles?: Role[];
   /** Other route prefixes that belong to the same module (keeps the item highlighted). */
@@ -39,7 +41,13 @@ const LINKS: NavLink[] = [
   { href: "/reports", key: "reports", icon: FileBarChart },
   { href: "/incidents", key: "incidents", icon: TriangleAlert },
   { href: "/workers", key: "workers", icon: Users2 },
+];
+
+/** Administration: only rendered for admins (the API enforces the same rule). */
+const ADMIN_LINKS: NavLink[] = [
   { href: "/users", key: "users", icon: UserCog, roles: ["ADMIN"] },
+  { href: "/settings", key: "settings", icon: SlidersHorizontal, roles: ["ADMIN"] },
+  { href: "/audit", key: "audit", icon: History, roles: ["ADMIN"] },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -61,7 +69,27 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     router.push("/login");
   }
 
-  const visible = LINKS.filter((l) => !l.roles || (user && l.roles.includes(user.role)));
+  const allowed = (l: NavLink) => !l.roles || (!!user && l.roles.includes(user.role));
+  const visible = LINKS.filter(allowed);
+  const adminVisible = ADMIN_LINKS.filter(allowed);
+
+  const renderLink = ({ href, key, icon: Icon, also }: NavLink) => {
+    const active = [href, ...(also ?? [])].some((prefix) => isActive(pathname, prefix));
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
+          active ? "bg-accent font-medium text-white" : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+        }`}
+      >
+        <Icon size={17} strokeWidth={active ? 2.3 : 1.8} aria-hidden />
+        {t(key)}
+      </Link>
+    );
+  };
 
   return (
     <div className="flex h-full flex-col px-4 py-6">
@@ -73,31 +101,27 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <nav aria-label={tCommon("mainNav")} className="flex flex-1 flex-col gap-1">
-        {visible.map(({ href, key, icon: Icon, also }) => {
-          const active = [href, ...(also ?? [])].some((prefix) => isActive(pathname, prefix));
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
-                active ? "bg-accent font-medium text-white" : "text-ink-muted hover:bg-surface-2 hover:text-ink"
-              }`}
-            >
-              <Icon size={17} strokeWidth={active ? 2.3 : 1.8} aria-hidden />
-              {t(key)}
-            </Link>
-          );
-        })}
+      <nav aria-label={tCommon("mainNav")} className="flex flex-1 flex-col gap-1 overflow-y-auto">
+        {visible.map(renderLink)}
+        {adminVisible.length > 0 && (
+          <>
+            <p className="mb-1 mt-5 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t("adminSection")}</p>
+            {adminVisible.map(renderLink)}
+          </>
+        )}
       </nav>
 
-      <div className="mt-4 flex items-center justify-between gap-2 rounded-lg bg-surface-2 p-3">
-        <div className="min-w-0">
+      <div className="mt-4 flex items-center justify-between gap-2 rounded-lg bg-surface-2 p-1.5">
+        <Link
+          href="/profile"
+          onClick={onNavigate}
+          aria-current={isActive(pathname, "/profile") ? "page" : undefined}
+          className="min-w-0 flex-1 rounded-md px-1.5 py-1 transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+          title={t("profile")}
+        >
           <p className="truncate text-xs font-medium text-ink">{user?.name ?? tCommon("userFallback")}</p>
           {user && <p className="truncate text-[11px] text-ink-muted">{tCommon(`roles.${user.role}`)}</p>}
-        </div>
+        </Link>
         <button
           type="button"
           onClick={handleLogout}
