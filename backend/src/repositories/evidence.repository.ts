@@ -26,6 +26,7 @@ export const evidenceRepository = {
   create(data: {
     projectId: string;
     activityId?: string;
+    incidentId?: string;
     description?: string;
     imageUrl: string;
     uploadedById: string;
