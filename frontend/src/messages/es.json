@@ -1135,7 +1135,8 @@
     "progress": "reporte-avance",
     "financial": "reporte-financiero",
     "materials": "reporte-materiales",
-    "incidents": "reporte-novedades"
+    "incidents": "reporte-novedades",
+    "audit": "historial"
   },
   "landing": {
     "nav": {
