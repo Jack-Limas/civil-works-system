@@ -73,6 +73,18 @@ const RESIDENTS = [
   { key: "resident-3", name: "Ing. Daniela Burbano Pantoja", email: "daniela.burbano@demo.obraiq.co" },
 ];
 
+/**
+ * Extra demo accounts for the users module: a second admin (so the "last
+ * admin" safeguard can be tried), a deactivated resident and one who must
+ * change a temporary password (its password is the demo one).
+ */
+const EXTRA_USERS: Array<{ key: string; name: string; email: string; role: "ADMIN" | "RESIDENT_ENGINEER"; phone?: string; isActive?: boolean; mustChangePassword?: boolean }> = [
+  { key: "admin-2", name: "Arq. Lucía Delgado Erazo", email: "lucia.delgado@demo.obraiq.co", role: "ADMIN", phone: "315 600 4421" },
+  { key: "resident-4", name: "Ing. Paola Insuasti Rosero", email: "paola.insuasti@demo.obraiq.co", role: "RESIDENT_ENGINEER", phone: "317 330 2184", isActive: false },
+  { key: "resident-5", name: "Ing. Mateo Cabrera López", email: "mateo.cabrera@demo.obraiq.co", role: "RESIDENT_ENGINEER", mustChangePassword: true },
+];
+const ALL_DEMO_USERS = [...RESIDENTS, ...EXTRA_USERS];
+
 interface DemoProject {
   key: string;
   name: string;
@@ -195,7 +207,8 @@ for (const s of SUPPLIERS) {
 // ---------- id registry (everything cleanup may touch) ----------
 
 const ids = {
-  users: RESIDENTS.map((r) => demoId(r.key)),
+  // RESIDENTS first: projects reference residents by index (0..2)
+  users: ALL_DEMO_USERS.map((u) => demoId(u.key)),
   projects: PROJECTS.map((p) => demoId(p.key)),
   suppliers: SUPPLIERS.map((s) => demoId(s.key)),
   materials: MATERIALS.map((m) => demoId(m.key)),
@@ -222,6 +235,9 @@ async function countRealRows() {
     suppliers: await prisma.supplier.count({ where: { id: notIn(ids.suppliers) } }),
     fundTransfers: await prisma.fundTransfer.count({ where: { residentId: notIn(ids.users) } }),
     fieldReports: await prisma.fieldReport.count({ where: { NOT: demoProject } }),
+    auditLogs: await prisma.auditLog.count({ where: { id: notIn(DEMO_AUDIT_IDS) } }),
+    incidentStatusChanges: await prisma.incidentStatusChange.count({ where: { incident: { NOT: demoProject } } }),
+    systemSettings: await prisma.systemSetting.count(),
   };
 }
 
@@ -237,6 +253,8 @@ function assertSame(before: Record<string, number>, after: Record<string, number
 async function clean() {
   const demoProject = { projectId: { in: ids.projects } };
   await prisma.$transaction([
+    // Demo history rows only (fixed ids); real history is never touched
+    prisma.auditLog.deleteMany({ where: { id: { in: DEMO_AUDIT_IDS } } }),
     // Field reports reference projects and users with RESTRICT: remove them first
     prisma.fieldReport.deleteMany({ where: { OR: [demoProject, { authorId: { in: ids.users } }] } }),
     prisma.fundTransfer.deleteMany({ where: { residentId: { in: ids.users } } }),
@@ -503,12 +521,327 @@ function buildFieldReports(adminId: string): Prisma.FieldReportCreateManyInput[]
   return reports;
 }
 
+// ---------- users, incidents, workers and history (users & settings module) ----------
+
+const peopleRand = prng(20261010);
+const pPick = <T>(items: readonly T[]) => items[Math.floor(peopleRand() * items.length)];
+const pBetween = (min: number, max: number) => min + peopleRand() * (max - min);
+const HOUR = 3_600_000;
+/** Never in the future (history entries are clamped to "an hour ago"). */
+const notFuture = (d: Date) => new Date(Math.min(d.getTime(), Date.now() - HOUR));
+
+/** Phones for demo residents (index-aligned with RESIDENTS) and the extra demo accounts. */
+const RESIDENT_PHONES = ["316 482 1190", "312 774 5032", "318 209 6614"];
+
+/**
+ * Example incident photos: construction sites in Colombia from Wikimedia Commons
+ * (free licences, served with CORS so they load under COEP like Cloudinary images).
+ */
+const INCIDENT_PHOTOS = [
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/Edificio_en_construcci%C3%B3n_2014-09-20_%283%29.jpg/960px-Edificio_en_construcci%C3%B3n_2014-09-20_%283%29.jpg",
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Edificios_en_obra_negra_en_el_norte_de_Bucaramanga.jpeg/960px-Edificios_en_obra_negra_en_el_norte_de_Bucaramanga.jpeg",
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Trabajos_mejoramiento_y_ampliaci%C3%B3n_V%C3%ADa_Cu%C3%ADtiva_a_Tota_-_Boyac%C3%A1_-_panoramio.jpg/960px-Trabajos_mejoramiento_y_ampliaci%C3%B3n_V%C3%ADa_Cu%C3%ADtiva_a_Tota_-_Boyac%C3%A1_-_panoramio.jpg",
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/Construcci%C3%B3n_en_la_Alpujarra%2C_Medell%C3%ADn.jpg/960px-Construcci%C3%B3n_en_la_Alpujarra%2C_Medell%C3%ADn.jpg",
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Edificio_en_construcci%C3%B3n_2014-09-20_%282%29.jpg/960px-Edificio_en_construcci%C3%B3n_2014-09-20_%282%29.jpg",
+];
+const PHOTO_CREDIT = "Foto de ejemplo (Wikimedia Commons)";
+
+const PROGRESS_NOTES = [
+  "Se notificó al proveedor y se reprogramó la actividad.",
+  "Se asignó una cuadrilla adicional para recuperar el tiempo.",
+  "Se solicitó cotización de reemplazo.",
+  "Interventoría informada; se espera visita técnica.",
+];
+const RESOLUTION_NOTES = [
+  "Llegó el material y se retomó la actividad.",
+  "Se reparó el equipo y volvió a operar.",
+  "Se ajustó el cronograma con la interventoría.",
+  "El personal se reincorporó y se completó la cuadrilla.",
+];
+
+const EXTRA_INCIDENTS: Array<{ projectKey: string; type: IncidentType; priority: Priority; description: string; daysAgo: number; status: "OPEN" | "IN_REVIEW" | "RESOLVED"; photos: number }> = [
+  { projectKey: "p-edificio", type: "MATERIAL_SHORTAGE", priority: "HIGH", description: "Faltan 40 bultos de cemento para la fundición de la placa del piso 5.", daysAgo: 2, status: "IN_REVIEW", photos: 2 },
+  { projectKey: "p-via", type: "WEATHER", priority: "MEDIUM", description: "Lluvia continua impidió la colocación de mezcla asfáltica en la tarde.", daysAgo: 4, status: "OPEN", photos: 1 },
+  { projectKey: "p-puente", type: "EQUIPMENT_DAMAGE", priority: "HIGH", description: "La grúa telescópica presenta fuga hidráulica; se detuvo el montaje de vigas.", daysAgo: 6, status: "RESOLVED", photos: 1 },
+  { projectKey: "p-colegio", type: "STAFF_ISSUE", priority: "LOW", description: "Dos ayudantes no se presentaron por calamidad familiar.", daysAgo: 1, status: "OPEN", photos: 0 },
+  { projectKey: "p-colegio", type: "ACTIVITY_CHANGE", priority: "MEDIUM", description: "Rector solicitó trasladar la batería sanitaria al costado norte.", daysAgo: 9, status: "RESOLVED", photos: 1 },
+];
+/** Status pattern for the original demo incidents (index-aligned, deterministic). */
+const STATUS_PATTERN = ["IN_REVIEW", "RESOLVED", "OPEN", "RESOLVED", "IN_REVIEW", "OPEN", "RESOLVED", "OPEN"] as const;
+
+const residentIdByProject = new Map(PROJECTS.map((p) => [demoId(p.key), ids.users[p.resident]]));
+
+/**
+ * Gives every demo incident a reporter, a lifecycle with its history (who, when,
+ * note) and resolution data, adds a few recent ones and example photos.
+ */
+function buildIncidentLifecycle(incidents: Prisma.IncidentCreateManyInput[], adminId: string) {
+  const changes: Prisma.IncidentStatusChangeCreateManyInput[] = [];
+  const evidence: Prisma.EvidenceCreateManyInput[] = [];
+  const extra: Prisma.IncidentCreateManyInput[] = EXTRA_INCIDENTS.map((e, i) => ({
+    id: demoId(`${e.projectKey}-incident-extra-${i}`),
+    projectId: demoId(e.projectKey),
+    date: daysAgo(e.daysAgo),
+    type: e.type,
+    description: e.description,
+    priority: e.priority,
+    status: e.status,
+  }));
+
+  [...incidents, ...extra].forEach((incident, index) => {
+    const isExtra = index >= incidents.length;
+    const status = isExtra ? incident.status! : STATUS_PATTERN[index % STATUS_PATTERN.length];
+    const resident = residentIdByProject.get(incident.projectId)!;
+    const reporter = index % 4 === 3 ? adminId : resident;
+    const reportedAt = new Date(incident.date as Date);
+    incident.status = status;
+    incident.reportedById = reporter;
+    incident.createdAt = reportedAt;
+
+    changes.push({ id: demoId(`${incident.id}-history-0`), incidentId: incident.id!, fromStatus: null, toStatus: "OPEN", changedById: reporter, createdAt: reportedAt });
+    if (status !== "OPEN") {
+      const startedAt = notFuture(new Date(reportedAt.getTime() + pBetween(4, 30) * HOUR));
+      changes.push({
+        id: demoId(`${incident.id}-history-1`),
+        incidentId: incident.id!,
+        fromStatus: "OPEN",
+        toStatus: "IN_REVIEW",
+        changedById: resident,
+        note: pPick(PROGRESS_NOTES),
+        createdAt: startedAt,
+      });
+      if (status === "RESOLVED") {
+        const resolvedAt = notFuture(new Date(startedAt.getTime() + pBetween(20, 70) * HOUR));
+        const resolver = index % 3 === 0 ? adminId : resident;
+        const note = pPick(RESOLUTION_NOTES);
+        changes.push({ id: demoId(`${incident.id}-history-2`), incidentId: incident.id!, fromStatus: "IN_REVIEW", toStatus: "RESOLVED", changedById: resolver, note, createdAt: resolvedAt });
+        incident.resolvedAt = resolvedAt;
+        incident.resolvedById = resolver;
+        incident.resolutionNote = note;
+      }
+    }
+
+    const photos = isExtra ? EXTRA_INCIDENTS[index - incidents.length].photos : index % 3 === 0 ? 1 : 0;
+    for (let k = 0; k < photos; k++) {
+      evidence.push({
+        id: demoId(`${incident.id}-photo-${k}`),
+        projectId: incident.projectId,
+        incidentId: incident.id!,
+        imageUrl: INCIDENT_PHOTOS[(index + k) % INCIDENT_PHOTOS.length],
+        description: PHOTO_CREDIT,
+        uploadedById: reporter,
+        date: new Date(reportedAt.getTime() + (k + 1) * 600_000),
+      });
+    }
+  });
+
+  return { extra, changes, evidence };
+}
+
+const EXTRA_TRADES = ["Ayudante de obra", "Electricista", "Operador de maquinaria", "Topógrafo", "Plomero", "Soldador"];
+const EXTRA_NAMES = [
+  "Yeison Andrés Pantoja",
+  "Diana Marcela Getial",
+  "Héctor Fabio Rosero",
+  "Óscar Iván Chalapud",
+  "Ana Lucía Bolaños",
+  "Freddy Alexander Imbachí",
+  "Javier Ernesto Tulcán",
+  "Sandra Milena Quenguán",
+  "Germán Darío Cuaspud",
+  "Luz Dary Narváez",
+];
+
+/** Phones for every demo worker plus more trades, two unassigned and a couple inactive. */
+function buildWorkerExtras(workers: Prisma.WorkerCreateManyInput[]) {
+  for (const w of workers) w.phone = `3${Math.floor(pBetween(10, 22))} ${Math.floor(pBetween(100, 999))} ${Math.floor(pBetween(1000, 9999))}`;
+  const active = PROJECTS.filter((p) => p.status === "IN_PROGRESS");
+  const extra: Prisma.WorkerCreateManyInput[] = EXTRA_NAMES.map((name, i) => {
+    const project = i < 8 ? active[i % active.length] : null;
+    return {
+      name,
+      documentId: `DEMO-X${1100 + i}`,
+      position: EXTRA_TRADES[i % EXTRA_TRADES.length],
+      projectId: project ? demoId(project.key) : null,
+      status: i === 5 ? "INACTIVE" : "ACTIVE",
+      phone: `3${Math.floor(pBetween(10, 22))} ${Math.floor(pBetween(100, 999))} ${Math.floor(pBetween(1000, 9999))}`,
+    };
+  });
+  return extra;
+}
+
+/** Up to this many demo audit rows; their ids are fixed so cleanup never needs to read them. */
+const DEMO_AUDIT_MAX = 300;
+const DEMO_AUDIT_IDS = Array.from({ length: DEMO_AUDIT_MAX }, (_, i) => demoId(`audit-${i}`));
+const IPS = ["190.248.12.44", "181.53.98.120", "186.84.21.7", "191.95.140.18", "200.21.33.97"];
+const AGENTS = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/129.0 Safari/537.36",
+  "Mozilla/5.0 (Linux; Android 14; SM-A546E) AppleWebKit/537.36 Chrome/129.0 Mobile Safari/537.36",
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 Version/17.6 Mobile/15E148 Safari/604.1",
+];
+
+interface AuditSources {
+  adminId: string;
+  adminEmail: string;
+  expenses: Prisma.ExpenseCreateManyInput[];
+  transfers: Prisma.FundTransferCreateManyInput[];
+  incidents: Prisma.IncidentCreateManyInput[];
+  changes: Prisma.IncidentStatusChangeCreateManyInput[];
+  workers: Prisma.WorkerCreateManyInput[];
+  fieldReports: Prisma.FieldReportCreateManyInput[];
+  movements: Prisma.InventoryMovementCreateManyInput[];
+}
+
+/**
+ * A believable last-30-days history: sign-ins (and a few failed ones), user
+ * management, a settings change and its revert, approvals, transfers, incident
+ * transitions, worker changes, reviews and stock movements. Same action codes
+ * and metadata shape the API writes, never any secret.
+ */
+function buildAuditEvents(src: AuditSources): Prisma.AuditLogCreateManyInput[] {
+  const events: Array<Omit<Prisma.AuditLogCreateManyInput, "id">> = [];
+  const since = Date.now() - 30 * 86_400_000;
+  const within = (d: Date | string | undefined) => !!d && new Date(d).getTime() >= since;
+  const emailOf = new Map<string, string>([[src.adminId, src.adminEmail], ...ALL_DEMO_USERS.map((u) => [demoId(u.key), u.email] as [string, string])]);
+  const push = (actorId: string | null, at: Date, action: string, entityType: string | null, entityId: string | null, metadata: Record<string, unknown> | null) =>
+    events.push({
+      actorId,
+      actorEmail: (actorId && emailOf.get(actorId)) || "desconocido@correo.co",
+      action,
+      entityType,
+      entityId,
+      metadata: metadata ? (metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
+      ip: pPick(IPS),
+      userAgent: pPick(AGENTS),
+      createdAt: notFuture(at),
+    });
+
+  // Accounts
+  EXTRA_USERS.forEach((u, i) =>
+    push(src.adminId, daysAgo(28 - i), "user.created", "user", demoId(u.key), { name: u.name, email: u.email, role: u.role, phone: u.phone ?? null })
+  );
+  push(src.adminId, daysAgo(12), "user.deactivated", "user", demoId("resident-4"), { name: "Ing. Paola Insuasti Rosero", email: "paola.insuasti@demo.obraiq.co", revokedSessions: 2 });
+  push(src.adminId, daysAgo(2), "user.password_reset", "user", demoId("resident-5"), { name: "Ing. Mateo Cabrera López", email: "mateo.cabrera@demo.obraiq.co", revokedSessions: 1 });
+  push(src.adminId, daysAgo(20), "user.updated", "user", demoId("resident-2"), { before: { phone: null }, after: { phone: RESIDENT_PHONES[1] } });
+
+  // Sign-ins: residents most working days, the admin daily, a few failures
+  for (let d = 29; d >= 1; d--) {
+    const day = daysAgo(d);
+    if (day.getUTCDay() === 0) continue;
+    push(src.adminId, new Date(day.setUTCHours(12, Math.floor(pBetween(0, 59)))), "auth.login", "user", src.adminId, null);
+    for (const r of RESIDENTS) {
+      if (peopleRand() < 0.55) push(demoId(r.key), new Date(daysAgo(d).setUTCHours(11 + Math.floor(pBetween(0, 3)), Math.floor(pBetween(0, 59)))), "auth.login", "user", demoId(r.key), null);
+    }
+  }
+  push(null, daysAgo(17), "auth.login_failed", null, null, { attempts: 1 });
+  push(demoId("resident-2"), daysAgo(8), "auth.login_failed", "user", demoId("resident-2"), { attempts: 2 });
+  push(demoId("resident-4"), daysAgo(10), "auth.login_failed", "user", demoId("resident-4"), { reason: "deactivated" });
+  push(demoId("resident-1"), daysAgo(6), "auth.password_changed", "user", demoId("resident-1"), { revokedSessions: 1 });
+  push(demoId("resident-3"), daysAgo(3), "auth.logout", "user", demoId("resident-3"), null);
+
+  // Settings: an adjustment and its revert (current values are the defaults)
+  push(src.adminId, daysAgo(15), "settings.updated", "settings", null, {
+    keys: ["criticalCoverageDays", "warningCoverageDays"],
+    before: { criticalCoverageDays: 7, warningCoverageDays: 14 },
+    after: { criticalCoverageDays: 10, warningCoverageDays: 21 },
+  });
+  push(src.adminId, daysAgo(9), "settings.reset", "settings", null, {
+    keys: ["criticalCoverageDays", "warningCoverageDays"],
+    before: { criticalCoverageDays: 10, warningCoverageDays: 21 },
+    after: { criticalCoverageDays: 7, warningCoverageDays: 14 },
+  });
+
+  // Costs
+  for (const e of src.expenses.filter((x) => within(x.date as Date)).slice(0, 25)) {
+    const registeredAt = new Date(e.date as Date);
+    push(e.registeredById ?? null, registeredAt, "expense.created", "expense", e.id!, { projectId: e.projectId, amount: e.amount, category: e.category, status: e.registeredById === src.adminId ? "APPROVED" : "PENDING" });
+    if (e.registeredById !== src.adminId && e.status !== "PENDING") {
+      push(src.adminId, new Date(registeredAt.getTime() + 20 * HOUR), e.status === "REJECTED" ? "expense.rejected" : "expense.approved", "expense", e.id!, {
+        projectId: e.projectId,
+        amount: e.amount,
+        category: e.category,
+        ...(e.status === "REJECTED" && { rejectionReason: e.rejectionReason }),
+      });
+    }
+  }
+  for (const t of src.transfers.filter((x) => within(x.date as Date))) {
+    push(src.adminId, new Date(t.date as Date), "transfer.created", "transfer", t.id!, { residentId: t.residentId, amount: t.amount, projectId: t.projectId, method: t.method });
+  }
+  push(src.adminId, daysAgo(21), "project.status_changed", "project", demoId("p-coliseo"), { name: "Cubierta coliseo municipal La Unión", fromStatus: "IN_PROGRESS", toStatus: "SUSPENDED" });
+
+  // Incidents (mirrors their history rows)
+  const incidentById = new Map(src.incidents.map((i) => [i.id!, i]));
+  for (const c of src.changes.filter((x) => within(x.createdAt as Date))) {
+    const incident = incidentById.get(c.incidentId)!;
+    if (c.fromStatus === null) {
+      push(c.changedById ?? null, new Date(c.createdAt as Date), "incident.created", "incident", c.incidentId, { projectId: incident.projectId, type: incident.type, priority: incident.priority });
+    } else {
+      push(c.changedById ?? null, new Date(c.createdAt as Date), "incident.status_changed", "incident", c.incidentId, {
+        projectId: incident.projectId,
+        projectName: PROJECTS.find((p) => demoId(p.key) === incident.projectId)?.name,
+        fromStatus: c.fromStatus,
+        toStatus: c.toStatus,
+        note: c.note ?? null,
+      });
+    }
+  }
+
+  // Workers, daily logs and stock
+  src.workers.slice(-6).forEach((w, i) => push(src.adminId, daysAgo(26 - i * 3), "worker.created", "worker", null, { name: w.name, position: w.position, projectId: w.projectId ?? null }));
+  const inactive = src.workers.filter((w) => w.status === "INACTIVE").slice(0, 2);
+  inactive.forEach((w, i) => push(src.adminId, daysAgo(11 - i * 4), "worker.deactivated", "worker", null, { name: w.name, position: w.position, projectId: w.projectId ?? null }));
+  for (const r of src.fieldReports.filter((x) => x.status === "REVIEWED" && within(x.reviewedAt as Date)).slice(0, 18)) {
+    push(src.adminId, new Date(r.reviewedAt as Date), "field_report.reviewed", "field_report", r.id!, { projectId: r.projectId, date: r.date, reviewNote: r.reviewNote ?? null });
+  }
+  for (const m of src.movements.filter((x) => within(x.date as Date)).slice(-20)) {
+    const material = MATERIALS.find((mat) => demoId(mat.key) === m.materialId);
+    push(m.registeredById ?? src.adminId, new Date(m.date as Date), "inventory.movement", "material", m.materialId, {
+      materialName: material?.name,
+      type: m.type,
+      quantity: m.quantity,
+      unit: material?.unit,
+      projectId: m.projectId ?? null,
+      expenseId: m.expenseId ?? null,
+    });
+  }
+
+  if (events.length > DEMO_AUDIT_MAX) throw new Error(`Too many demo audit events (${events.length})`);
+  return events
+    .sort((a, b) => new Date(a.createdAt as Date).getTime() - new Date(b.createdAt as Date).getTime())
+    .map((event, i) => ({ ...event, id: DEMO_AUDIT_IDS[i] }));
+}
+
 // ---------- seed ----------
 
 async function seed(adminId: string) {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
   await prisma.user.createMany({
-    data: RESIDENTS.map((r) => ({ id: demoId(r.key), name: r.name, email: r.email, passwordHash, role: "RESIDENT_ENGINEER" as const })),
+    data: [
+      ...RESIDENTS.map((r, i) => ({
+        id: demoId(r.key),
+        name: r.name,
+        email: r.email,
+        passwordHash,
+        role: "RESIDENT_ENGINEER" as const,
+        phone: RESIDENT_PHONES[i],
+        createdById: adminId,
+        // Daniela has never signed in (shows "Never" in the user list)
+        lastLoginAt: i === 2 ? null : daysAgo(i === 0 ? 0.2 : 1),
+      })),
+      ...EXTRA_USERS.map((u, i) => ({
+        id: demoId(u.key),
+        name: u.name,
+        email: u.email,
+        passwordHash,
+        role: u.role,
+        phone: u.phone ?? null,
+        createdById: adminId,
+        isActive: u.isActive ?? true,
+        deactivatedAt: u.isActive === false ? daysAgo(12) : null,
+        mustChangePassword: u.mustChangePassword ?? false,
+        lastLoginAt: u.mustChangePassword ? null : daysAgo(3 + i * 4),
+      })),
+    ],
   });
 
   await prisma.supplier.createMany({
@@ -719,13 +1052,21 @@ async function seed(adminId: string) {
   movements.push(...inventory.movements);
 
   await prisma.activity.createMany({ data: activities });
+  const lifecycle = buildIncidentLifecycle(incidents, adminId);
+  incidents.push(...lifecycle.extra);
   await prisma.incident.createMany({ data: incidents });
+  await prisma.incidentStatusChange.createMany({ data: lifecycle.changes });
+  await prisma.evidence.createMany({ data: lifecycle.evidence });
   await prisma.expense.createMany({ data: expenses });
   await prisma.fundTransfer.createMany({ data: transfers });
   await prisma.inventoryMovement.createMany({ data: movements });
+  workers.push(...buildWorkerExtras(workers));
   await prisma.worker.createMany({ data: workers });
   const fieldReports = buildFieldReports(adminId);
   await prisma.fieldReport.createMany({ data: fieldReports });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { id: adminId }, select: { email: true } });
+  const auditEvents = buildAuditEvents({ adminId, adminEmail: admin.email, expenses, transfers, incidents, changes: lifecycle.changes, workers, fieldReports, movements });
+  await prisma.auditLog.createMany({ data: auditEvents });
 
   // Rule-based predictions (no Gemini) and real alerts, demo projects only
   const strategy = new RuleBasedRiskStrategy();
@@ -753,6 +1094,11 @@ async function seed(adminId: string) {
     movements: movements.length,
     linkedMovements: movements.filter((m) => m.expenseId).length,
     fieldReports: fieldReports.length,
+    users: ALL_DEMO_USERS.length,
+    incidentHistory: lifecycle.changes.length,
+    incidentPhotos: lifecycle.evidence.length,
+    workers: workers.length,
+    auditEvents: auditEvents.length,
     suppliers: SUPPLIERS.length,
   };
 }
