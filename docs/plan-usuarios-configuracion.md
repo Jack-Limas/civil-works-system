@@ -7,6 +7,8 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
 - No `docs/design/` folder and no images were provided: Users, Settings and History follow the visual language of Costs and Inventory.
 - Incident status keeps the existing `IN_REVIEW` value (renaming an enum value is not additive). The UI labels it "In progress" / "En progreso".
 - Worker already has `status` (ACTIVE/INACTIVE) and `position` (trade): reused as "isActive" and "oficio" instead of duplicating columns.
+- Incidents: `date` is the event date in every screen and API; `createdAt` is only for internal history (existing rows got the migration date).
+- Migration `20261009150000_users_settings` applied with `migrate deploy` on 2026-10-09 after backup `backup-antes-de-usuarios`: every data table kept its row count, users stayed active without forced change, incident statuses unchanged.
 
 ## Steps
 - [x] Step 0 — State check (main has the non-squash merge, baseline checks green, sidebar/route audit, tag + branch, this plan)
@@ -14,7 +16,7 @@ A new session can resume by reading `CLAUDE.md`, this file and `git log`.
 - [x] Step 2 — Hardening
   - [x] 2.1 Assistant: 15–20 s timeout + one retry, 502 with truncated cause in the log
   - [x] 2.2 Fix audit bugs: `/workers` leaks every worker (with document) to residents
-- [ ] Step 3 — Additive schema (User, AuditLog, SystemSetting, Incident history, Evidence.incidentId, Worker.phone) — STOP-1
+- [x] Step 3 — Additive schema (User, AuditLog, SystemSetting, Incident history, Evidence.incidentId, Worker.phone) — STOP-1
 - [ ] Step 4 — Backend
   - [ ] 4.1 Audit service + GET /audit-logs (+ export) and events wired in existing modules
   - [ ] 4.2 Auth: inactive users, lastLoginAt, login rate limit, change-password, PASSWORD_CHANGE_REQUIRED
