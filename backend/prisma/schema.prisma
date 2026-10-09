@@ -150,6 +150,15 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // --- Users module (additive: defaults keep existing users active, no forced change) ---
+  isActive           Boolean   @default(true)
+  lastLoginAt        DateTime?
+  mustChangePassword Boolean   @default(false)
+  phone              String?
+  createdById        String?
+  createdBy          User?     @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  deactivatedAt      DateTime?
+
   projectsInCharge Project[]      @relation("ProjectResponsible")
   activities       Activity[]     @relation("ActivityResponsible")
   evidenceUploaded Evidence[]     @relation("EvidenceUploadedBy")
@@ -163,6 +172,13 @@ model User {
   movementsRegistered  InventoryMovement[] @relation("MovementRegisteredBy")
   fieldReportsAuthored FieldReport[]       @relation("FieldReportAuthor")
   fieldReportsReviewed FieldReport[]       @relation("FieldReportReviewer")
+
+  usersCreated          User[]                 @relation("UserCreatedBy")
+  auditLogs             AuditLog[]             @relation("AuditActor")
+  settingsUpdated       SystemSetting[]        @relation("SettingUpdatedBy")
+  incidentsReported     Incident[]             @relation("IncidentReportedBy")
+  incidentsResolved     Incident[]             @relation("IncidentResolvedBy")
+  incidentStatusChanges IncidentStatusChange[] @relation("IncidentStatusChangedBy")
 
   @@map("users")
 }
@@ -236,6 +252,8 @@ model Worker {
   project    Project?     @relation(fields: [projectId], references: [id])
   status     WorkerStatus @default(ACTIVE)
   createdAt  DateTime     @default(now())
+  /// Sensitive personal data: only returned to admins
+  phone      String?
 
   @@map("workers")
 }
@@ -367,6 +385,19 @@ model Incident {
   priority    Priority       @default(MEDIUM)
   status      IncidentStatus @default(OPEN)
 
+  // --- Incidents module (additive; existing rows keep their status) ---
+  reportedById   String?
+  reportedBy     User?     @relation("IncidentReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  resolvedAt     DateTime?
+  resolvedById   String?
+  resolvedBy     User?     @relation("IncidentResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolutionNote String?
+  createdAt      DateTime  @default(now())
+
+  statusChanges IncidentStatusChange[]
+  evidence      Evidence[]
+
+  @@index([projectId, status])
   @@map("incidents")
 }
 
@@ -381,7 +412,11 @@ model Evidence {
   imageUrl     String
   uploadedById String
   uploadedBy   User      @relation("EvidenceUploadedBy", fields: [uploadedById], references: [id])
+  /// Optional link so an incident can carry photos (SET NULL keeps the photo if the link goes)
+  incidentId   String?
+  incident     Incident? @relation(fields: [incidentId], references: [id], onDelete: SetNull)
 
+  @@index([incidentId])
   @@map("evidence")
 }
 
@@ -436,4 +471,54 @@ model FieldReport {
   @@index([authorId])
   @@index([date])
   @@map("field_reports")
+}
+
+/// Who moved an incident between states and why. Rows are part of the incident:
+/// they follow it if its project is ever deleted (incidents already cascade from projects).
+model IncidentStatusChange {
+  id          String          @id @default(uuid())
+  incidentId  String
+  incident    Incident        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  fromStatus  IncidentStatus?
+  toStatus    IncidentStatus
+  changedById String?
+  changedBy   User?           @relation("IncidentStatusChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  @@index([incidentId, createdAt])
+  @@map("incident_status_changes")
+}
+
+/// Append-only system history. actorEmail is a snapshot so the row stays readable
+/// if the user is ever removed (actorId is SET NULL). metadata never holds secrets.
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorEmail String
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+/// Only the settings an admin customised; missing keys fall back to code defaults.
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedBy   User?    @relation("SettingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
 }
