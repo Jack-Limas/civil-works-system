@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma";
+import { prisma, STOCK_TX_OPTIONS } from "../config/prisma";
 import { Prisma } from "@prisma/client";
 import { materialRepository } from "../repositories/material.repository";
 import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
@@ -266,7 +266,7 @@ export const materialService = {
         audit.context(requester)
       );
       return registered;
-    });
+    }, STOCK_TX_OPTIONS);
     if (!result) throw new AppError(400, "Insufficient stock for this movement");
 
     const analyzed = await inventoryAnalysis.analyzeOneById(result.material.id);

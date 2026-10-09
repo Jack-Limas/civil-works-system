@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../config/prisma";
+import { prisma, STOCK_TX_OPTIONS } from "../config/prisma";
 import { materialRepository } from "../repositories/material.repository";
 import { inventoryMovementRepository } from "../repositories/inventory-movement.repository";
 import { expenseRepository } from "../repositories/expense.repository";
@@ -118,7 +118,7 @@ export const expenseService = {
         audit.context(requester)
       );
       return expense.id;
-    });
+    }, STOCK_TX_OPTIONS);
     return (await expenseRepository.findById(expenseId))!;
   },
 

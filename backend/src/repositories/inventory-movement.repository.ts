@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../config/prisma";
+import { prisma, STOCK_TX_OPTIONS } from "../config/prisma";
 
 type Db = Prisma.TransactionClient | typeof prisma;
 
@@ -39,7 +39,7 @@ export const inventoryMovementRepository = {
       const material = await tx.material.findUniqueOrThrow({ where: { id: data.materialId } });
       return { movement, material };
     };
-    return db ? run(db) : prisma.$transaction(run);
+    return db ? run(db) : prisma.$transaction(run, STOCK_TX_OPTIONS);
   },
 
   findMany(where: Prisma.InventoryMovementWhereInput, skip: number, take: number) {
