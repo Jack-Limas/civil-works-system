@@ -27,11 +27,14 @@ import { settingsRoutes } from "./routes/settings.routes";
 import { env } from "./config/env";
 import { AppError } from "./utils/app-error";
 
-const app = Fastify({ logger: true });
+// Render (and most hosts) sit behind a proxy: trust it so request.ip is the
+// client's address (login attempt limits and the audit log depend on it)
+const app = Fastify({ logger: true, trustProxy: process.env.NODE_ENV === "production" });
 
 async function main() {
   await app.register(cors, {
-    origin: env.FRONTEND_URL,
+    // Exact origin match: a trailing slash in FRONTEND_URL would never equal the browser's Origin header
+    origin: env.FRONTEND_URL.replace(/\/+$/, ""),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -45,7 +48,7 @@ async function main() {
 
   // Report endpoints send Server-Timing; this lets the frontend origin read it
   app.addHook("onSend", async (_request, reply) => {
-    reply.header("Timing-Allow-Origin", env.FRONTEND_URL);
+    reply.header("Timing-Allow-Origin", env.FRONTEND_URL.replace(/\/+$/, ""));
   });
 
   // Global error handler. It must be set BEFORE registering the route plugins:
