@@ -1,9 +1,17 @@
 import axios, { AxiosRequestConfig, isAxiosError } from "axios";
 import { routing } from "@/i18n/routing";
+import { getAccessToken, setAccessToken } from "./access-token";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
+});
+
+// Cookies are the primary session; the Bearer header is the fallback when the browser blocks them
+apiClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token && !config.headers.Authorization) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 /** Endpoints that must never trigger a refresh attempt (they ARE the auth flow). */
@@ -28,6 +36,7 @@ function currentPage() {
  */
 function redirectToLogin(reason: "expired" | "disabled" = "expired") {
   if (typeof window === "undefined") return;
+  setAccessToken(null);
   if (PUBLIC_PATHS.includes(currentPage())) return;
   window.location.replace(`/${currentLocale()}/login?session=${reason}`);
 }
@@ -53,8 +62,10 @@ let refreshPromise: Promise<void> | null = null;
 /** One refresh at a time: concurrent 401s wait for the same request. */
 function refreshSession() {
   refreshPromise ??= apiClient
-    .post("/auth/refresh")
-    .then(() => undefined)
+    .post<{ ok: boolean; accessToken?: string }>("/auth/refresh")
+    .then(({ data }) => {
+      if (data.accessToken) setAccessToken(data.accessToken);
+    })
     .finally(() => {
       refreshPromise = null;
     });
