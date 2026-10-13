@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
+import { SESSION_MARKER_COOKIE } from "./lib/access-token";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -24,7 +25,9 @@ export default function proxy(request: NextRequest) {
   const locale = hasLocalePrefix ? possibleLocale : routing.defaultLocale;
   const pathWithoutLocale = "/" + segments.slice(hasLocalePrefix ? 2 : 1).filter(Boolean).join("/");
 
-  const hasSession = request.cookies.has("accessToken");
+  // In production the API cookies belong to the API's domain: the frontend marker cookie
+  // (set by src/lib/access-token.ts after login) is what this proxy can see
+  const hasSession = request.cookies.has("accessToken") || request.cookies.has(SESSION_MARKER_COOKIE);
 
   if (!matches(pathWithoutLocale, PUBLIC_PATHS) && !hasSession) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
