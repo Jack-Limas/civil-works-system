@@ -20,24 +20,35 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
 });
 
+/**
+ * In production the frontend (Vercel) and the API (Render) live on different
+ * sites, so the session cookies must be SameSite=None; Secure or the browser
+ * never sends them back to the API. Locally both run on localhost (same site)
+ * and Lax works over plain http.
+ */
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
+  path: "/",
+};
+
 function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string) {
-  reply.setCookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
-  reply.setCookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
+  reply.setCookie("accessToken", accessToken, cookieOptions);
+  reply.setCookie("refreshToken", refreshToken, cookieOptions);
 }
 
+/** Same attributes as when setting them: browsers ignore a clear that does not match. */
 function clearAuthCookies(reply: FastifyReply) {
-  reply.clearCookie("accessToken", { path: "/" });
-  reply.clearCookie("refreshToken", { path: "/" });
+  reply.clearCookie("accessToken", cookieOptions);
+  reply.clearCookie("refreshToken", cookieOptions);
+}
+
+/** Bearer token sent by the frontend as a fallback when the browser blocks third-party cookies. */
+function bearerToken(request: FastifyRequest): string | undefined {
+  const header = request.headers.authorization;
+  return header && /^Bearer\s+\S+/i.test(header) ? header.replace(/^Bearer\s+/i, "").trim() : undefined;
 }
 
 export function buildAuthController(app: FastifyInstance) {
@@ -51,7 +62,8 @@ export function buildAuthController(app: FastifyInstance) {
         userAgent: request.headers["user-agent"],
       });
       setAuthCookies(reply, result.accessToken, result.refreshToken);
-      return reply.send({ user: result.user });
+      // accessToken in the body (additive) lets the client use a Bearer header if cookies are blocked
+      return reply.send({ user: result.user, accessToken: result.accessToken });
     },
 
     /**
@@ -61,19 +73,34 @@ export function buildAuthController(app: FastifyInstance) {
      */
     async refresh(request: FastifyRequest, reply: FastifyReply) {
       const refreshToken = request.cookies.refreshToken;
-      const decoded = app.jwt.decode(request.cookies.accessToken || "") as { sub?: string } | null;
-      const body = request.body as { userId?: string } | undefined;
-      const userId = decoded?.sub ?? body?.userId;
-
-      if (!refreshToken || !userId) {
+      if (!refreshToken) {
         clearAuthCookies(reply);
-        return reply.code(401).send({ error: "Session expired" });
+        return reply.code(401).send({ error: "Refresh token missing", message: "Refresh token missing" });
+      }
+
+      // The (possibly expired) access token only tells whose session it is.
+      // decode() asserts on an empty string, so it is never called without a token.
+      const expiredToken = request.cookies.accessToken || bearerToken(request);
+      let userId: string | undefined;
+      if (expiredToken) {
+        try {
+          userId = (app.jwt.decode(expiredToken) as { sub?: string } | null)?.sub;
+        } catch {
+          userId = undefined;
+        }
+      }
+      const body = request.body as { userId?: string } | undefined;
+      userId ??= typeof body?.userId === "string" ? body.userId : undefined;
+
+      if (!userId) {
+        clearAuthCookies(reply);
+        return reply.code(401).send({ error: "Session expired", message: "Session expired" });
       }
 
       try {
         const result = await authService.refresh(userId, refreshToken);
         setAuthCookies(reply, result.accessToken, result.refreshToken);
-        return reply.send({ ok: true });
+        return reply.send({ ok: true, accessToken: result.accessToken });
       } catch (error) {
         clearAuthCookies(reply);
         throw error;
@@ -96,7 +123,7 @@ export function buildAuthController(app: FastifyInstance) {
       const body = changePasswordSchema.parse(request.body);
       const result = await authService.changePassword(request.user, body.currentPassword, body.newPassword);
       setAuthCookies(reply, result.accessToken, result.refreshToken);
-      return reply.send({ user: result.user, revokedSessions: result.revokedSessions });
+      return reply.send({ user: result.user, accessToken: result.accessToken, revokedSessions: result.revokedSessions });
     },
 
     async register(request: FastifyRequest, reply: FastifyReply) {
